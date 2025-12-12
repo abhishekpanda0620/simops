@@ -52,24 +52,24 @@
   }
 }
 
-/* Response packet animation (going up) - starts after request arrives */
+/* Response packet animation (going up) - starts hidden, appears after request arrives */
 .traffic-packet-response {
   position: absolute;
   left: 55%;
+  top: 75%;
   z-index: 20;
+  opacity: 0;
   animation: responseFlow 4s ease-in-out forwards;
   animation-delay: 2s;
 }
 
 @keyframes responseFlow {
-
-  0%,
-  45% {
+  0% {
     top: 75%;
     opacity: 0;
   }
 
-  50% {
+  5% {
     top: 75%;
     opacity: 1;
   }
