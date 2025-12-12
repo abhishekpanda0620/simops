@@ -105,19 +105,19 @@
 /* Response moving up animation - used by React */
 @keyframes moveUp {
   0% {
-    top: 55%;
+    top: 62%;
   }
 
   30% {
-    top: 35%;
+    top: 42%;
   }
 
   60% {
-    top: 20%;
+    top: 28%;
   }
 
   100% {
-    top: 8%;
+    top: 18%;
   }
 }
 
