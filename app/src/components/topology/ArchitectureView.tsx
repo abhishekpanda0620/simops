@@ -118,21 +118,36 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
               <ControlPlaneStatus state={controlPlane.state} />
             </div>
 
-            {/* kubectl Entry Point */}
+            {/* kubectl Entry Point / Event Display */}
             <div className="flex flex-col items-center">
-              <div className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-lg border transition-all duration-300",
-                isControlPlaneActive('kubectl', controlPlane.state.phase)
-                  ? "bg-accent-500/20 border-accent-500/50 shadow-lg shadow-accent-500/20 scale-105"
-                  : "bg-surface-800 border-surface-600"
-              )}>
-                <span className="text-accent-400 font-mono text-sm">$</span>
-                <span className="text-sm font-medium text-surface-200">
-                  {controlPlane.state.scenario === 'create-pod' && 'kubectl create pod nginx'}
-                  {controlPlane.state.scenario === 'get-pods' && 'kubectl get pods'}
-                  {controlPlane.state.scenario === 'delete-pod' && 'kubectl delete pod nginx'}
-                </span>
-              </div>
+              {controlPlane.state.scenario === 'node-failure' ? (
+                 <div className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg border transition-all duration-300",
+                  !['idle', 'kubectl'].includes(controlPlane.state.phase)
+                    ? "bg-error-500/10 border-error-500/50 shadow-lg shadow-error-500/20" 
+                    : "bg-surface-800 border-surface-600"
+                )}>
+                  <AlertCircle className="w-4 h-4 text-error-500" />
+                  <span className="text-sm font-medium text-surface-200">
+                    # Simulating Power Failure...
+                  </span>
+                </div>
+              ) : (
+                <div className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg border transition-all duration-300",
+                  isControlPlaneActive('kubectl', controlPlane.state.phase)
+                    ? "bg-accent-500/20 border-accent-500/50 shadow-lg shadow-accent-500/20 scale-105"
+                    : "bg-surface-800 border-surface-600"
+                )}>
+                  <span className="text-accent-400 font-mono text-sm">$</span>
+                  <span className="text-sm font-medium text-surface-200">
+                    {controlPlane.state.scenario === 'create-pod' && 'kubectl create pod nginx'}
+                    {controlPlane.state.scenario === 'get-pods' && 'kubectl get pods'}
+                    {controlPlane.state.scenario === 'delete-pod' && 'kubectl delete pod nginx'}
+                    {controlPlane.state.scenario === 'scale-deployment' && 'kubectl scale deploy nginx --replicas=5'}
+                  </span>
+                </div>
+              )}
               <ArrowDown className="w-5 h-5 my-2 text-accent-500/50" />
             </div>
 
@@ -295,6 +310,105 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
                             </p>
                             <p className="text-xs text-surface-400">Node: worker-node-2</p>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Visual Pod Feedback (Scale Deployment Scenario) */}
+            {controlPlane.state.scenario === 'scale-deployment' && (
+                <div className="flex justify-center gap-4 flex-wrap max-w-2xl mx-auto">
+                    {/* Existing Pods */}
+                    {[1, 2, 3].map((i) => (
+                        <div key={`existing-${i}`} className="flex items-center gap-3 p-3 rounded-lg bg-surface-800 border-2 border-surface-700 opacity-50">
+                            <div className="w-10 h-10 bg-surface-900 rounded-lg flex items-center justify-center border border-surface-700">
+                                <Box className="w-6 h-6 text-surface-400" />
+                            </div>
+                            <div>
+                                <p className="font-semibold text-surface-100">pod-{i}</p>
+                                <p className="text-xs text-surface-400">Running</p>
+                            </div>
+                        </div>
+                    ))}
+                    
+                    {/* New Pods (appear during scheduler phase) */}
+                    {['scheduler', 'node-assign', 'complete'].includes(controlPlane.state.phase) && [4, 5].map((i) => (
+                         <div key={`new-${i}`} className="flex items-center gap-3 p-3 rounded-lg bg-surface-800 border-2 border-primary-500/50 shadow-[0_0_30px_rgba(59,130,246,0.2)] animate-in fade-in zoom-in duration-500">
+                            <div className="relative">
+                                <div className="w-10 h-10 bg-surface-900 rounded-lg flex items-center justify-center border border-surface-700">
+                                    <Box className="w-6 h-6 text-primary-400" />
+                                </div>
+                                <div className="absolute -top-2 -right-2 bg-success-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold shadow-lg animate-bounce">
+                                    NEW
+                                </div>
+                            </div>
+                            <div>
+                                <p className="font-semibold text-surface-100">pod-{i}</p>
+                                <p className="text-xs text-primary-400">
+                                    {['complete'].includes(controlPlane.state.phase) ? 'Running' : 'Creating...'}
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Visual Feedback (Node Failure Scenario) */}
+            {controlPlane.state.scenario === 'node-failure' && (
+                <div className="flex justify-center gap-8 items-start">
+                    {/* Node 1 (Healthy) */}
+                    <div className="flex flex-col gap-2 p-4 rounded-lg bg-surface-800 border-2 border-success-500/30 w-48 transition-all duration-500">
+                        <div className="flex items-center gap-2 mb-2">
+                             <div className="w-3 h-3 rounded-full bg-success-500" />
+                             <span className="font-semibold text-surface-100">Node 1 (Ready)</span>
+                        </div>
+                        {/* Existing Pods */}
+                        <div className="flex flex-col gap-2">
+                            <div className="flex items-center gap-2 p-2 bg-surface-900 rounded border border-surface-700 opacity-50">
+                                <Box className="w-4 h-4 text-surface-400" />
+                                <span className="text-xs text-surface-400">pod-stable-1</span>
+                            </div>
+                             {/* Recovered Pods */}
+                             {['node-assign', 'complete'].includes(controlPlane.state.phase) && (
+                                <div className="flex items-center gap-2 p-2 bg-surface-900 rounded border border-success-500/50 animate-in fade-in slide-in-from-right-4 duration-700">
+                                    <Box className="w-4 h-4 text-success-400" />
+                                    <div>
+                                        <p className="text-xs text-success-300 font-bold">pod-recovered-1</p>
+                                        <p className="text-[10px] text-surface-400">Restarted by Kubelet</p>
+                                    </div>
+                                </div>
+                             )}
+                        </div>
+                    </div>
+
+                    {/* Node 2 (Failing) */}
+                    <div className={cn(
+                        "flex flex-col gap-2 p-4 rounded-lg bg-surface-800 border-2 w-48 transition-all duration-1000",
+                        ['idle', 'kubectl'].includes(controlPlane.state.phase) ? "border-success-500/30" : "border-error-500 opacity-70"
+                    )}>
+                        <div className="flex items-center gap-2 mb-2">
+                             <div className={cn(
+                                 "w-3 h-3 rounded-full transition-colors duration-500",
+                                 ['idle', 'kubectl'].includes(controlPlane.state.phase) ? "bg-success-500" : "bg-error-500 animate-pulse"
+                             )} />
+                             <span className="font-semibold text-surface-100">Node 2</span>
+                        </div>
+                        {/* Pods on failing node - Only show until complete */}
+                        {controlPlane.state.phase !== 'complete' && (
+                            <div className="flex flex-col gap-2">
+                                <div className={cn(
+                                    "flex items-center gap-2 p-2 bg-surface-900 rounded border border-surface-700 transition-all duration-1000",
+                                    !['idle', 'kubectl'].includes(controlPlane.state.phase) ? "opacity-30 grayscale blur-[1px]" : "opacity-100"
+                                )}>
+                                    <Box className="w-4 h-4 text-surface-400" />
+                                    <span className="text-xs text-surface-400">pod-target-1</span>
+                                </div>
+                                {!['idle', 'kubectl'].includes(controlPlane.state.phase) && (
+                                    <div className="text-[10px] text-error-400 text-center font-mono bg-error-500/10 rounded py-1">
+                                        Node Lost
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

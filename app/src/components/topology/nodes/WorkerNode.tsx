@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { cn, percentage } from '@/utils';
 import type { K8sNode, K8sPod } from '@/types';
-import { Server, Cpu, HardDrive, Container } from 'lucide-react';
+import { Server, Cpu, HardDrive, Container, Box } from 'lucide-react';
 
 interface WorkerNodeProps {
   node: K8sNode;
@@ -64,18 +64,29 @@ function WorkerNodeComponent({
         className="flex items-center gap-2 mb-3 pb-2 border-b border-surface-700 cursor-pointer hover:opacity-80"
       >
         <Server className="w-5 h-5 text-accent-400" />
-        <div className="flex-1">
-          <p className="text-sm font-semibold text-surface-100">{node.name}</p>
-          <p className="text-xs text-surface-400">{node.kubeletVersion}</p>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-surface-100 truncate">{node.name}</p>
+            <span
+              className={cn(
+                'w-2 h-2 rounded-full shrink-0',
+                node.status === 'running' && 'bg-success-500',
+                node.status === 'failed' && 'bg-error-500 animate-pulse',
+                node.status === 'unknown' && 'bg-warning-500 animate-pulse'
+              )}
+            />
+          </div>
+          <div className="flex items-center gap-2 text-[10px] text-surface-400 mt-0.5">
+            <span>{node.kubeletVersion}</span>
+            <span className="w-0.5 h-0.5 rounded-full bg-surface-500" />
+            <div className="flex items-center gap-1" title={node.containerRuntime || 'containerd'}>
+               <Box className="w-3 h-3 text-surface-500" />
+               <span className="truncate max-w-[80px]">
+                 {node.containerRuntime || 'containerd'}
+               </span>
+            </div>
+          </div>
         </div>
-        <span
-          className={cn(
-            'w-2.5 h-2.5 rounded-full',
-            node.status === 'running' && 'bg-success-500',
-            node.status === 'failed' && 'bg-error-500 animate-pulse',
-            node.status === 'unknown' && 'bg-warning-500 animate-pulse'
-          )}
-        />
       </div>
 
       {/* Resource Bars */}
@@ -133,22 +144,43 @@ function WorkerNodeComponent({
                 trafficTargetPodId === pod.id && 'traffic-target-pod'
               )}
             >
-              <div className="flex items-center gap-1.5 mb-1">
+              <div className="flex items-center gap-1.5 mb-1.5">
                 <span className={cn('w-2 h-2 rounded-full', podDotColors[pod.status] || podDotColors.unknown)} />
-                <span className="text-xs text-surface-200 truncate">
+                <span className="text-xs text-surface-200 truncate font-medium">
                   {pod.name.split('-').slice(0, 2).join('-')}
                 </span>
               </div>
-              {pod.restarts > 0 && (
-                <span className="text-xs text-error-400">
-                  {pod.restarts} restart{pod.restarts > 1 ? 's' : ''}
-                </span>
-              )}
-              {pod.containers[0]?.waitingReason && (
-                <span className="text-xs text-warning-400 block truncate">
-                  {pod.containers[0].waitingReason}
-                </span>
-              )}
+              
+              {/* Internal Container Visualization */}
+              <div className="flex gap-1 mb-1.5 px-0.5">
+                {pod.containers.map((c, i) => (
+                  <div 
+                    key={i} 
+                    className={cn(
+                      "h-1.5 w-1.5 rounded-sm",
+                      c.state === 'running' ? "bg-accent-400" : "bg-surface-600 animate-pulse"
+                    )} 
+                    title={c.name}
+                  />
+                ))}
+                {/* Fallback if no containers array yet */}
+                {(!pod.containers || pod.containers.length === 0) && (
+                   <div className="h-1.5 w-1.5 rounded-sm bg-accent-400/50" />
+                )}
+              </div>
+
+              <div className="flex flex-col gap-0.5">
+                {pod.restarts > 0 && (
+                  <span className="text-[10px] text-error-400">
+                    {pod.restarts} restart{pod.restarts > 1 ? 's' : ''}
+                  </span>
+                )}
+                {pod.containers[0]?.waitingReason && (
+                  <span className="text-[10px] text-warning-400 block truncate">
+                    {pod.containers[0].waitingReason}
+                  </span>
+                )}
+              </div>
             </div>
           ))}
         </div>

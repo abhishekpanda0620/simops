@@ -70,9 +70,23 @@ function PodNodeComponent({ data }: PodNodeProps) {
       </p>
       
       {/* Container info */}
-      <p className="text-xs text-surface-400 mt-1">
-        {pod.containers.length} container{pod.containers.length > 1 ? 's' : ''}
-      </p>
+      {/* Container info */}
+      <div className="flex gap-1 mt-2">
+        {pod.containers.map((c, i) => (
+             <div 
+               key={i}
+               className={cn(
+                 "w-3 h-3 rounded-sm transition-colors",
+                 c.state === 'running' ? "bg-accent-500" : "bg-surface-600 animate-pulse"
+               )}
+               title={`${c.name} (${c.state})`}
+             />
+        ))}
+         {/* Fallback if no containers array yet */}
+        {(!pod.containers || pod.containers.length === 0) && (
+            <div className="w-3 h-3 rounded-sm bg-accent-500/50" title="Initializing..." />
+        )}
+      </div>
       
       {/* Restarts badge if > 0 */}
       {pod.restarts > 0 && (

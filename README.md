@@ -1,9 +1,9 @@
 # SimOps: Kubernetes Architecture Simulator
 
-![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-7.2-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.1-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![Control Plane](https://img.shields.io/badge/K8s-Control_Plane-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
 
 SimOps is an interactive, visual platform designed to simulate and demonstrate Kubernetes internal operations, traffic flows, and control plane logic in real-time. It provides a "glass box" view of K8s clusters, helping engineers understand how components like the API Server, Scheduler, etcd, and Controllers interact.

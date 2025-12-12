@@ -77,6 +77,10 @@ function runScenario(
     return runGetPodsScenario(setState, stopSimulation);
   } else if (scenario === 'delete-pod') {
     return runDeletePodScenario(setState, stopSimulation);
+  } else if (scenario === 'scale-deployment') {
+    return runScaleDeploymentScenario(setState, stopSimulation);
+  } else if (scenario === 'node-failure') {
+    return runNodeFailureScenario(setState, stopSimulation);
   }
   return [];
 }
@@ -86,6 +90,9 @@ function getStartMessage(scenario: ControlPlaneScenario) {
     case 'create-pod': return '$ kubectl create pod nginx';
     case 'get-pods': return '$ kubectl get pods';
     case 'delete-pod': return '$ kubectl delete pod nginx';
+    case 'scale-deployment': return '$ kubectl scale deploy nginx --replicas=5';
+    case 'node-failure': return '# Simulating Node Power Failure...';
+    default: return '';
   }
 }
 
@@ -147,6 +154,52 @@ function runDeletePodScenario(
   // 6. Complete
   timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'complete', message: 'Pod Deleted' })), 14000));
   timeouts.push(setTimeout(stop, 16000));
+  
+  return timeouts;
+}
+
+function runScaleDeploymentScenario(
+  setState: React.Dispatch<React.SetStateAction<ControlPlaneState>>,
+  stop: () => void
+): ReturnType<typeof setTimeout>[] {
+  const timeouts: ReturnType<typeof setTimeout>[] = [];
+  // 1. API Server
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'api-server', message: 'API Server: Validating scale request...' })), 2000));
+  // 2. etcd (Update spec)
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'etcd', message: 'etcd: Updating Deployment replicas to 5' })), 4000));
+  // 3. Controller Manager (ReplicaSet)
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'controller', message: 'Controller (ReplicaSet): Detected 2 missing pods...' })), 6500));
+  // 4. Scheduler (Schedule new pods)
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'scheduler', message: 'Scheduler: Assigning nodes for new pods...' })), 9000));
+  // 5. Node (Start containers)
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'node-assign', message: 'Kubelet: Starting new containers...' })), 11500));
+  // 6. Complete
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'complete', message: 'Deployment Scaled' })), 14000));
+  timeouts.push(setTimeout(stop, 16000));
+  
+  return timeouts;
+}
+
+function runNodeFailureScenario(
+  setState: React.Dispatch<React.SetStateAction<ControlPlaneState>>,
+  stop: () => void
+): ReturnType<typeof setTimeout>[] {
+  const timeouts: ReturnType<typeof setTimeout>[] = [];
+  // 1. Controller Manager (Heartbeat check)
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'controller', message: 'Controller: Heartbeat missing from Node 2...' })), 2000));
+  // 2. Controller Manager (Mark NodeLost)
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'controller', message: 'Controller: Marking Node 2 as NotReady' })), 4000));
+  // 3. Controller (Eviction)
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'controller', message: 'Controller: Evicting pods from failed node...' })), 6500));
+  // 4. API Server (Update state)
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'api-server', message: 'API Server: Updating Pod status to Pending' })), 8500));
+   // 5. Scheduler (Reschedule)
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'scheduler', message: 'Scheduler: Detected pending pods, assigning to Node 1...' })), 11000));
+  // 6. Node (Start new pods)
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'node-assign', message: 'Kubelet (Node 1): Starting recovered pods...' })), 13500));
+  // 7. Complete
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'complete', message: 'Recovery Complete' })), 16000));
+  timeouts.push(setTimeout(stop, 18000));
   
   return timeouts;
 }

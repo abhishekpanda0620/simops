@@ -1,5 +1,5 @@
 export type ControlPlanePhase = 'idle' | 'kubectl' | 'api-server' | 'etcd' | 'scheduler' | 'controller' | 'node-assign' | 'complete';
-export type ControlPlaneScenario = 'create-pod' | 'get-pods' | 'delete-pod';
+export type ControlPlaneScenario = 'create-pod' | 'get-pods' | 'delete-pod' | 'scale-deployment' | 'node-failure';
 
 export interface ControlPlaneState {
   isFlowing: boolean;
