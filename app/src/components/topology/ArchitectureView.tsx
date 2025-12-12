@@ -78,11 +78,8 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
           </>
         )}
         
-        {/* Routing Status Bar */}
-        <RoutingStatus trafficState={traffic.state} />
-        
-        {/* Traffic Controls - Fixed top right */}
-        <div className="absolute top-4 right-4 z-40">
+        {/* Traffic Controls - Above routing status */}
+        <div className="mb-3">
           <TrafficFlowControls 
             isFlowing={traffic.state.isFlowing}
             endpoints={traffic.endpoints}
@@ -92,6 +89,9 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
             onComplete={traffic.stopSimulation}
           />
         </div>
+        
+        {/* Routing Status Bar */}
+        <RoutingStatus trafficState={traffic.state} />
         
         <div className="max-w-6xl mx-auto space-y-8">
           
