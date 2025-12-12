@@ -44,7 +44,7 @@ export function TrafficFlowControls({
     
     const timer = setTimeout(() => {
       onComplete?.();
-    }, 6000); // 6 seconds for full animation
+    }, 11000); // 11 seconds for full animation with pauses
     
     return () => clearTimeout(timer);
   }, [isFlowing, onComplete]);
@@ -165,11 +165,12 @@ export function useTrafficSimulation(
       targetServiceName: service.name,
     }));
 
-    // Phase transitions - each phase highlights different components
-    setTimeout(() => setState(prev => ({ ...prev, phase: 'service' })), 1000);
-    setTimeout(() => setState(prev => ({ ...prev, phase: 'pod' })), 2000);
-    setTimeout(() => setState(prev => ({ ...prev, phase: 'response' })), 4000);
-    setTimeout(() => setState(prev => ({ ...prev, phase: 'complete' })), 5500);
+    // Phase transitions - longer pauses at each component for understanding
+    // Ingress: 0-2s, Service: 2-4s, Pod processing: 4-7s, Response: 7-10s
+    setTimeout(() => setState(prev => ({ ...prev, phase: 'service' })), 2000);
+    setTimeout(() => setState(prev => ({ ...prev, phase: 'pod' })), 4000);
+    setTimeout(() => setState(prev => ({ ...prev, phase: 'response' })), 7000);
+    setTimeout(() => setState(prev => ({ ...prev, phase: 'complete' })), 10000);
   }, [state.endpoint, ingresses, services, pods]);
 
   const stopSimulation = useCallback(() => {
