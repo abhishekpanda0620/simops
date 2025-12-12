@@ -1,4 +1,4 @@
-import { X, Lightbulb, Info, Trash2, Box, Server, Database, Cog, Calendar, AlertTriangle, Network, Globe, HardDrive } from 'lucide-react';
+import { X, Lightbulb, Info, Trash2, Box, Server, Database, Cog, Calendar, AlertTriangle, Network, Globe } from 'lucide-react';
 import { Button } from '@/components/ui';
 import type { K8sPod, K8sNode, K8sService, K8sIngress, ControlPlaneComponent, ClusterSnapshot } from '@/types';
 import { formatRelativeTime, formatMemory } from '@/utils';
@@ -191,6 +191,111 @@ export function EnhancedInfoPanel({ selected, cluster, onClose, onKillPod }: Enh
         </div>
       </div>
     );
+  }
+
+  // Info sections (Control Plane intro, Worker Nodes intro)
+  if (selected.type === 'info') {
+    if (selected.data.id === 'controlPlaneIntro') {
+      return (
+        <div className="w-96 bg-surface-900 border-l border-surface-700 flex flex-col overflow-hidden">
+          <div className="p-4 border-b border-surface-700 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Cog className="w-5 h-5 text-primary-400" />
+              <span className="font-semibold text-surface-100">Control Plane</span>
+            </div>
+            <button onClick={onClose} className="p-1 rounded hover:bg-surface-700 text-surface-400">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-auto p-4 space-y-5">
+            <p className="text-sm text-surface-300 leading-relaxed">
+              The Control Plane is the brain of your Kubernetes cluster. It makes global decisions about the cluster 
+              (like scheduling), and detects and responds to cluster events.
+            </p>
+            
+            <AnalogyBox analogy="🧠 Think of the Control Plane as the management office of a hotel — it decides which room (node) to assign to guests (pods), keeps track of all reservations (state), and dispatches maintenance when needed." />
+
+            <div>
+              <h4 className="text-xs font-medium text-surface-400 uppercase tracking-wide mb-2">Components</h4>
+              <div className="space-y-2 text-sm">
+                <div className="p-2 rounded bg-surface-800">
+                  <span className="text-primary-400 font-medium">API Server</span>
+                  <span className="text-surface-400"> — Front door for all cluster operations</span>
+                </div>
+                <div className="p-2 rounded bg-surface-800">
+                  <span className="text-primary-400 font-medium">etcd</span>
+                  <span className="text-surface-400"> — Cluster database (all state stored here)</span>
+                </div>
+                <div className="p-2 rounded bg-surface-800">
+                  <span className="text-primary-400 font-medium">Controller Manager</span>
+                  <span className="text-surface-400"> — Ensures desired state matches reality</span>
+                </div>
+                <div className="p-2 rounded bg-surface-800">
+                  <span className="text-primary-400 font-medium">Scheduler</span>
+                  <span className="text-surface-400"> — Decides where to run new pods</span>
+                </div>
+              </div>
+            </div>
+
+            <KeyPointsList points={[
+              'Usually runs on dedicated master nodes',
+              'Should have 3+ replicas for high availability',
+              'If control plane goes down, cluster keeps running but can\'t make changes',
+              'Click individual components above to learn more',
+            ]} />
+          </div>
+        </div>
+      );
+    }
+
+    if (selected.data.id === 'workerNodesIntro') {
+      return (
+        <div className="w-96 bg-surface-900 border-l border-surface-700 flex flex-col overflow-hidden">
+          <div className="p-4 border-b border-surface-700 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Server className="w-5 h-5 text-success-400" />
+              <span className="font-semibold text-surface-100">Worker Nodes</span>
+            </div>
+            <button onClick={onClose} className="p-1 rounded hover:bg-surface-700 text-surface-400">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-auto p-4 space-y-5">
+            <p className="text-sm text-surface-300 leading-relaxed">
+              Worker Nodes are the machines that actually run your containerized applications. Each node runs 
+              a kubelet agent that communicates with the control plane and manages pods.
+            </p>
+            
+            <AnalogyBox analogy="🏢 Think of Worker Nodes as floors in a hotel building — each floor has rooms (pods) that can host guests (containers). The floor manager (kubelet) reports room status to the front desk (control plane)." />
+
+            <div>
+              <h4 className="text-xs font-medium text-surface-400 uppercase tracking-wide mb-2">What Runs on Each Node</h4>
+              <div className="space-y-2 text-sm">
+                <div className="p-2 rounded bg-surface-800">
+                  <span className="text-success-400 font-medium">kubelet</span>
+                  <span className="text-surface-400"> — Agent that manages pods on the node</span>
+                </div>
+                <div className="p-2 rounded bg-surface-800">
+                  <span className="text-success-400 font-medium">Container Runtime</span>
+                  <span className="text-surface-400"> — containerd or Docker for running containers</span>
+                </div>
+                <div className="p-2 rounded bg-surface-800">
+                  <span className="text-success-400 font-medium">kube-proxy</span>
+                  <span className="text-surface-400"> — Handles networking rules for Services</span>
+                </div>
+              </div>
+            </div>
+
+            <KeyPointsList points={[
+              'Nodes can be added/removed for horizontal scaling',
+              'Each node has finite CPU, memory, and pod capacity',
+              'When a node fails, pods are rescheduled to healthy nodes',
+              'Click individual nodes above to see resource usage',
+            ]} />
+          </div>
+        </div>
+      );
+    }
   }
 
   // Control Plane Component

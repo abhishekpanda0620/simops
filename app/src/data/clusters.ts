@@ -44,7 +44,7 @@ const createNodes = (): K8sNode[] => [
     cpu: { used: 1.2, total: 4, unit: 'cores' },
     memory: { used: 3072, total: 8192, unit: 'Mi' },
     pods: ['pod-etcd', 'pod-apiserver', 'pod-controller', 'pod-scheduler'],
-    kubeletVersion: 'v1.28.4',
+    kubeletVersion: 'v1.34.0',
     containerRuntime: 'containerd://1.7.0',
   },
   {
@@ -61,7 +61,7 @@ const createNodes = (): K8sNode[] => [
     cpu: { used: 2.5, total: 8, unit: 'cores' },
     memory: { used: 6144, total: 16384, unit: 'Mi' },
     pods: ['pod-frontend-1', 'pod-frontend-2', 'pod-api-1'],
-    kubeletVersion: 'v1.28.4',
+    kubeletVersion: 'v1.34.0',
     containerRuntime: 'containerd://1.7.0',
   },
   {
@@ -78,7 +78,7 @@ const createNodes = (): K8sNode[] => [
     cpu: { used: 1.8, total: 8, unit: 'cores' },
     memory: { used: 4096, total: 16384, unit: 'Mi' },
     pods: ['pod-api-2', 'pod-db-1', 'pod-cache-1'],
-    kubeletVersion: 'v1.28.4',
+    kubeletVersion: 'v1.34.0',
     containerRuntime: 'containerd://1.7.0',
   },
 ];
