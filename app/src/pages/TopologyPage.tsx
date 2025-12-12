@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { Header } from '@/components/layout';
-import { ArchitectureView, ScenarioSelector, ScenarioDescription } from '@/components/topology';
+import { ArchitectureView } from '@/components/topology';
 import { useClusterStore } from '@/store';
-import type { ScenarioId } from '@/data';
+
 
 export function TopologyPage() {
   const { currentCluster, currentScenarioId, loadScenario, killPod } = useClusterStore();
@@ -28,18 +28,14 @@ export function TopologyPage() {
         subtitle="Click any component to learn what it does"
       />
 
-      {/* Scenario Selector */}
-      <div className="px-6 py-3 border-b border-surface-700 bg-surface-900/50 space-y-3">
-        <ScenarioSelector
-          currentScenarioId={currentScenarioId}
-          onSelectScenario={(id: ScenarioId) => loadScenario(id)}
-        />
-        <ScenarioDescription scenarioId={currentScenarioId} />
-      </div>
-
-      {/* Architecture View */}
+      {/* Architecture View - handles both User Request and Control Plane modes */}
       <div className="flex-1 overflow-hidden">
-        <ArchitectureView cluster={currentCluster} onKillPod={killPod} />
+        <ArchitectureView 
+          cluster={currentCluster} 
+          currentScenarioId={currentScenarioId}
+          onSelectScenario={(id) => loadScenario(id)}
+          onKillPod={killPod} 
+        />
       </div>
     </div>
   );

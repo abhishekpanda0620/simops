@@ -1,4 +1,4 @@
-import { Button, Badge } from '@/components/ui';
+import { Badge } from '@/components/ui';
 import { CheckCircle, AlertTriangle, Database, Server, Clock, Skull } from 'lucide-react';
 import type { ScenarioId } from '@/data';
 
@@ -54,25 +54,26 @@ const scenariosList: { id: ScenarioId; label: string; icon: typeof CheckCircle; 
 
 export function ScenarioSelector({ currentScenarioId, onSelectScenario }: ScenarioSelectorProps) {
   return (
-    <div className="flex items-center gap-2 overflow-x-auto pb-2">
-      <span className="text-sm text-surface-400 whitespace-nowrap">Simulate:</span>
-      {scenariosList.map((scenario) => {
-        const Icon = scenario.icon;
-        const isActive = currentScenarioId === scenario.id;
-        
-        return (
-          <Button
-            key={scenario.id}
-            variant={isActive ? 'primary' : 'secondary'}
-            size="sm"
-            onClick={() => onSelectScenario(scenario.id)}
-            className="whitespace-nowrap gap-1.5"
-          >
-            <Icon className="w-3.5 h-3.5" />
-            {scenario.label}
-          </Button>
-        );
-      })}
+    <div className="flex items-center gap-3">
+      <span className="text-sm font-medium text-surface-300 whitespace-nowrap">Scenario:</span>
+      <div className="relative">
+        <select
+          value={currentScenarioId || 'healthy'}
+          onChange={(e) => onSelectScenario(e.target.value as ScenarioId)}
+          className="appearance-none bg-surface-800 border border-surface-600 text-surface-200 text-sm rounded-md pl-3 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500/50 cursor-pointer min-w-[200px]"
+        >
+          {scenariosList.map((scenario) => (
+            <option key={scenario.id} value={scenario.id}>
+              {scenario.label}
+            </option>
+          ))}
+        </select>
+        <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+          <svg className="w-4 h-4 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
     </div>
   );
 }

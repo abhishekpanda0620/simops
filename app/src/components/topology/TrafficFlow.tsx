@@ -274,25 +274,36 @@ export function TrafficPathIndicator({ trafficState }: { trafficState: TrafficSt
 export function RoutingStatus({ trafficState }: { trafficState: TrafficState }) {
   if (!trafficState.isFlowing) return null;
   
+  const arrow = trafficState.phase === 'response' ? '←' : '→';
+
   return (
     <div className="mb-4 p-3 rounded-lg bg-success-500/10 border border-success-500/30">
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-success-400 font-medium">🔄 Routing:</span>
+        <span className="text-success-400 font-medium">
+          {trafficState.phase === 'response' ? '📥 Response:' : '🔄 Routing:'}
+        </span>
         <span className="font-mono text-accent-400">{trafficState.endpoint}</span>
-        <span className="text-surface-500">→</span>
+        
+        <span className="text-surface-500">{arrow}</span>
+        
         <span className={trafficState.phase === 'ingress' ? "text-success-400 font-medium" : "text-surface-400"}>
           Ingress
         </span>
-        <span className="text-surface-500">→</span>
+        
+        <span className="text-surface-500">{arrow}</span>
+        
         <span className={trafficState.phase === 'service' ? "text-success-400 font-medium" : "text-surface-400"}>
           {trafficState.targetServiceName || 'Service'}
         </span>
-        <span className="text-surface-500">→</span>
+        
+        <span className="text-surface-500">{arrow}</span>
+        
         <span className={trafficState.phase === 'pod' || trafficState.phase === 'response' ? "text-success-400 font-medium" : "text-surface-400"}>
           Pod
         </span>
+        
         {trafficState.phase === 'response' && (
-          <span className="ml-2 text-accent-400 font-medium">← 200 OK</span>
+          <span className="ml-2 text-accent-400 font-medium">200 OK</span>
         )}
       </div>
     </div>

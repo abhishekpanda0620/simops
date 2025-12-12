@@ -1,16 +1,21 @@
 import { useMemo, useState, useEffect } from 'react';
 import { ControlPlaneNode, WorkerNode } from './nodes';
 import { EnhancedInfoPanel } from './EnhancedInfoPanel';
-import { TrafficFlowControls, RoutingStatus, useTrafficSimulation, isInTrafficPath } from './TrafficFlow';
-import { ControlPlaneFlowControls, ControlPlaneStatus, useControlPlaneSimulation } from './ControlPlaneFlow';
+import { useTrafficSimulation, isInTrafficPath, TrafficFlowControls, RoutingStatus } from './TrafficFlow';
+import { ControlPlaneFlowControls, ControlPlaneStatus } from './ControlPlaneFlow';
+import { useControlPlaneSimulation } from './useControlPlaneSimulation';
 import { isControlPlaneActive } from './ControlPlaneUtils';
 import { FlowModeSelector, type FlowMode } from './FlowModeSelector';
+import { ScenarioSelector, ScenarioDescription } from './ScenarioSelector';
 import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sNode } from '@/types';
+import type { ScenarioId } from '@/data';
 import { Globe, Network, ArrowDown, AlertCircle, Info, Box } from 'lucide-react';
 import { cn } from '@/utils';
 
 interface ArchitectureViewProps {
   cluster: ClusterSnapshot;
+  currentScenarioId: ScenarioId | null;
+  onSelectScenario: (id: ScenarioId) => void;
   onKillPod: (podId: string) => void;
 }
 
@@ -23,7 +28,7 @@ type SelectedItem =
   | { type: 'info'; data: { id: 'controlPlaneIntro' | 'workerNodesIntro' } }
   | null;
 
-export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) {
+export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario, onKillPod }: ArchitectureViewProps) {
   const [selected, setSelected] = useState<SelectedItem>(null);
   const [flowMode, setFlowMode] = useState<FlowMode>('user-request');
 
@@ -67,9 +72,9 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
             {['ingress', 'service', 'pod'].includes(traffic.state.phase) && (
               <div className={cn(
                 "absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-all duration-700 ease-in-out",
-                traffic.state.phase === 'ingress' && "top-[22%]",
-                traffic.state.phase === 'service' && "top-[42%]",
-                traffic.state.phase === 'pod' && "top-[62%]"
+                traffic.state.phase === 'ingress' && "top-[38%]",
+                traffic.state.phase === 'service' && "top-[58%]",
+                traffic.state.phase === 'pod' && "top-[78%]"
               )}>
                 <div className="px-3 py-1.5 rounded-md text-xs font-mono whitespace-nowrap shadow-lg bg-success-500 text-white border border-success-400 flex items-center gap-2">
                   <span>📤</span>
@@ -80,7 +85,7 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
             )}
             {/* Response packet - moves UP based on phase */}
             {traffic.state.phase === 'response' && (
-              <div className="absolute left-1/2 translate-x-12 z-30 pointer-events-none top-[62%] animate-[moveUp_3s_ease-in-out_forwards]">
+              <div className="absolute left-1/2 translate-x-12 z-30 pointer-events-none top-[78%] animate-[moveUp_3s_ease-in-out_forwards]">
                 <div className="px-3 py-1.5 rounded-md text-xs font-mono whitespace-nowrap shadow-lg bg-accent-500 text-white border border-accent-400 flex items-center gap-2">
                   <span className="animate-bounce">▲</span>
                   <span>200 OK</span>
@@ -96,24 +101,7 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
           <FlowModeSelector mode={flowMode} onModeChange={setFlowMode} />
         </div>
         
-        {/* User Request Flow Controls - only show in user-request mode */}
-        {flowMode === 'user-request' && (
-          <>
-            <div className="mb-3">
-              <TrafficFlowControls 
-                isFlowing={traffic.state.isFlowing}
-                endpoints={traffic.endpoints}
-                selectedEndpoint={traffic.state.endpoint}
-                onEndpointChange={traffic.setEndpoint}
-                onStart={traffic.startSimulation}
-                onComplete={traffic.stopSimulation}
-              />
-            </div>
-            
-            {/* Routing Status Bar */}
-            <RoutingStatus trafficState={traffic.state} />
-          </>
-        )}
+
         
         {/* Control Plane Flow View */}
         {flowMode === 'control-plane' && (
@@ -327,6 +315,28 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
         {flowMode === 'user-request' && (
         <div className="max-w-6xl mx-auto space-y-8">
           
+          {/* Traffic Controls */}
+          <div className="flex flex-col items-center gap-4 mb-6">
+            <TrafficFlowControls
+              isFlowing={traffic.state.isFlowing}
+              endpoints={traffic.endpoints}
+              selectedEndpoint={traffic.state.endpoint}
+              onEndpointChange={traffic.setEndpoint}
+              onStart={traffic.startSimulation}
+              onComplete={traffic.stopSimulation}
+            />
+            <RoutingStatus trafficState={traffic.state} />
+          </div>
+
+          {/* Scenario Selection (User Request Flow Only) */}
+          <div className="flex flex-col items-center gap-3 mb-6 bg-surface-900/50 p-4 rounded-xl border border-surface-700/50">
+             <ScenarioSelector
+               currentScenarioId={currentScenarioId}
+               onSelectScenario={onSelectScenario}
+             />
+             <ScenarioDescription scenarioId={currentScenarioId} />
+           </div>
+
           {/* External Traffic Entry Point */}
           <div className="flex flex-col items-center">
             <div className={cn(
