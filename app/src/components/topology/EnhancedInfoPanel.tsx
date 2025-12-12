@@ -1,4 +1,4 @@
-import { X, Lightbulb, Info, Trash2, Box, Server, Database, Cog, Calendar, AlertTriangle, Network, Globe } from 'lucide-react';
+import { X, Lightbulb, Trash2, Box, Server, Database, Cog, Calendar, AlertTriangle, Network, Globe } from 'lucide-react';
 import { Button } from '@/components/ui';
 import type { K8sPod, K8sNode, K8sService, K8sIngress, ControlPlaneComponent, ClusterSnapshot } from '@/types';
 import { formatRelativeTime, formatMemory } from '@/utils';
@@ -172,26 +172,7 @@ const educationalContent = {
 };
 
 export function EnhancedInfoPanel({ selected, cluster, onClose, onKillPod }: EnhancedInfoPanelProps) {
-  if (!selected) {
-    return (
-      <div className="w-96 bg-surface-900 border-l border-surface-700 p-6 flex flex-col items-center justify-center text-center">
-        <div className="p-4 rounded-full bg-primary-500/10 mb-4">
-          <Info className="w-8 h-8 text-primary-400" />
-        </div>
-        <h3 className="text-lg font-semibold text-surface-100 mb-2">
-          Click to Learn
-        </h3>
-        <p className="text-sm text-surface-400 mb-4">
-          Click on any component to understand what it does, why it matters, and how to troubleshoot it.
-        </p>
-        <div className="text-left text-sm text-surface-500 space-y-2">
-          <p>• <span className="text-primary-400">Control Plane</span> - Cluster brain</p>
-          <p>• <span className="text-accent-400">Worker Nodes</span> - Where pods run</p>
-          <p>• <span className="text-success-400">Pods</span> - Your containers</p>
-        </div>
-      </div>
-    );
-  }
+  if (!selected) return null;
 
   // Info sections (Control Plane intro, Worker Nodes intro)
   if (selected.type === 'info') {
