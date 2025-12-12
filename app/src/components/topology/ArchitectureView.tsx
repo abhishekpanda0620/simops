@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ControlPlaneNode, WorkerNode } from './nodes';
 import { EnhancedInfoPanel } from './EnhancedInfoPanel';
+import { TrafficFlowControls, TrafficPacket, TrafficFlowLine } from './TrafficFlow';
 import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sNode } from '@/types';
 import { Globe, Network, ArrowDown, AlertCircle, Info } from 'lucide-react';
 import { cn } from '@/utils';
@@ -21,6 +22,7 @@ type SelectedItem =
 
 export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) {
   const [selected, setSelected] = useState<SelectedItem>(null);
+  const [isTrafficFlowing, setIsTrafficFlowing] = useState(false);
 
   // Get pods for each node
   const podsByNode = useMemo(() => {
@@ -38,17 +40,36 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
   return (
     <div className="flex h-full">
       {/* Main Architecture Canvas */}
-      <div className="flex-1 overflow-auto p-6 bg-surface-950">
+      <div className="flex-1 overflow-auto p-6 bg-surface-950 relative">
+        {/* Traffic Flow Visualization */}
+        <TrafficFlowLine isFlowing={isTrafficFlowing} />
+        <TrafficPacket isFlowing={isTrafficFlowing} direction="request" />
+        <TrafficPacket isFlowing={isTrafficFlowing} direction="response" />
+        
         <div className="max-w-6xl mx-auto space-y-8">
           
           {/* External Traffic Entry Point */}
           <div className="flex flex-col items-center">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-500/10 border border-primary-500/30">
-              <Globe className="w-5 h-5 text-primary-400" />
-              <span className="text-sm font-medium text-primary-300">External Traffic</span>
-              <span className="text-xs text-surface-400 ml-2">(app.example.com)</span>
+            <div className="flex items-center gap-4">
+              <div className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-lg border transition-all",
+                isTrafficFlowing 
+                  ? "bg-success-500/20 border-success-500/50 shadow-lg shadow-success-500/20" 
+                  : "bg-primary-500/10 border-primary-500/30"
+              )}>
+                <Globe className={cn("w-5 h-5", isTrafficFlowing ? "text-success-400" : "text-primary-400")} />
+                <span className={cn("text-sm font-medium", isTrafficFlowing ? "text-success-300" : "text-primary-300")}>External Traffic</span>
+                <span className="text-xs text-surface-400 ml-2">(app.example.com)</span>
+              </div>
+              <TrafficFlowControls 
+                isFlowing={isTrafficFlowing} 
+                onToggle={() => setIsTrafficFlowing(!isTrafficFlowing)} 
+              />
             </div>
-            <ArrowDown className="w-5 h-5 text-primary-500/50 my-2" />
+            <ArrowDown className={cn(
+              "w-5 h-5 my-2 transition-colors duration-300",
+              isTrafficFlowing ? "text-success-400 animate-bounce" : "text-primary-500/50"
+            )} />
           </div>
 
           {/* Ingress Layer */}
@@ -62,7 +83,8 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
                   className={cn(
                     'px-6 py-3 rounded-lg border-2 cursor-pointer transition-all',
                     'border-accent-500 bg-accent-500/10 hover:bg-accent-500/20',
-                    isSelected && 'ring-2 ring-primary-400 scale-105'
+                    isSelected && 'ring-2 ring-primary-400 scale-105',
+                    isTrafficFlowing && 'traffic-active border-success-500 bg-success-500/10'
                   )}
                 >
                   <div className="flex items-center gap-3">
@@ -172,7 +194,8 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
                     className={cn(
                       'p-3 rounded-lg border cursor-pointer transition-all duration-200',
                       'border-accent-500/30 bg-accent-500/5 hover:bg-accent-500/15',
-                      isSelected && 'ring-2 ring-primary-400 scale-105'
+                      isSelected && 'ring-2 ring-primary-400 scale-105',
+                      isTrafficFlowing && 'traffic-active border-success-500/50 bg-success-500/5'
                     )}
                   >
                     <p className="text-sm font-medium text-surface-200">{svc.name}</p>
