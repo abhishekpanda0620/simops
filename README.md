@@ -1,0 +1,62 @@
+# SimOps: Kubernetes Architecture Simulator
+
+![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Control Plane](https://img.shields.io/badge/K8s-Control_Plane-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
+
+SimOps is an interactive, visual platform designed to simulate and demonstrate Kubernetes internal operations, traffic flows, and control plane logic in real-time. It provides a "glass box" view of K8s clusters, helping engineers understand how components like the API Server, Scheduler, etcd, and Controllers interact.
+
+## 🚀 Features
+
+### 🧠 Control Plane Simulation
+Visualize the hidden "brain" of Kubernetes. Watch how the Control Plane components work together to manage the cluster state.
+- **Interactive Scenarios**: Run simulations for logic flows like `Pod Creation`, `Pod Deletion`, and `Get Pods`.
+- **Component Visualization**: See the exact sequence of operations between `kubectl`, `API Server`, `etcd`, `Scheduler`, and `Kubelet`.
+- **State Tracking**: Follow the request phases with a detailed status tracker.
+
+### 🌐 User Request Flow
+Simulate real-world traffic patterns through your architecture.
+- **Traffic Animation**: Watch packets travel from Ingress → Service → Pod.
+- **Latency Simulation**: Visual delays at each hop to represent processing time.
+- **Response Handling**: See the return path of the response data back to the user.
+
+### 🏗️ Architecture Topology
+- **Interactive Graph**: Drag, zoom, and inspect Nodes, Pods, Services, and Ingresses.
+- **Resource Inspection**: Click on any component to view detailed specs, status, and resource usage.
+- **Dynamic Updates**: The topology reacts in real-time to simulation events (e.g., new pods appearing on nodes).
+
+## 🛠️ Tech Stack
+
+- **Frontend Framework**: [React 19](https://react.dev/)
+- **Build Tool**: [Vite](https://vitejs.dev/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **State Management**: [Zustand](https://github.com/pmndrs/zustand)
+- **Visualization**: [XYFlow (React Flow)](https://xyflow.com/)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+
+## 📦 Getting Started
+
+1.  **Install dependencies**
+    ```bash
+    npm install
+    ```
+
+2.  **Run the development server**
+    ```bash
+    npm run dev
+    ```
+
+3.  **Build for production**
+    ```bash
+    npm run build
+    ```
+
+## 🤝 Simulation Modes
+
+| Mode | Description | Key Components |
+|------|-------------|----------------|
+| **User Request** | Simulates external traffic hitting the cluster. Best for understanding networking. | Ingress, Service, Endpoints, Pods |
+| **Control Plane** | Simulates internal K8s logic. Best for understanding scheduling and state reconciliation. | API Server, etcd, Scheduler, Controller Manager |
