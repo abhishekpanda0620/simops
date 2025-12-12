@@ -23,6 +23,16 @@ type SelectedItem =
 export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) {
   const [selected, setSelected] = useState<SelectedItem>(null);
   const [isTrafficFlowing, setIsTrafficFlowing] = useState(false);
+  const [animationKey, setAnimationKey] = useState(0);
+
+  const handleStartTraffic = () => {
+    setAnimationKey(prev => prev + 1); // Reset animations
+    setIsTrafficFlowing(true);
+  };
+
+  const handleStopTraffic = () => {
+    setIsTrafficFlowing(false);
+  };
 
   // Get pods for each node
   const podsByNode = useMemo(() => {
@@ -43,8 +53,8 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
       <div className="flex-1 overflow-auto p-6 bg-surface-950 relative">
         {/* Traffic Flow Visualization */}
         <TrafficFlowLine isFlowing={isTrafficFlowing} />
-        <TrafficPacket isFlowing={isTrafficFlowing} direction="request" />
-        <TrafficPacket isFlowing={isTrafficFlowing} direction="response" />
+        <TrafficPacket isFlowing={isTrafficFlowing} direction="request" animationKey={animationKey} />
+        <TrafficPacket isFlowing={isTrafficFlowing} direction="response" animationKey={animationKey} />
         
         <div className="max-w-6xl mx-auto space-y-8">
           
@@ -63,7 +73,8 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
               </div>
               <TrafficFlowControls 
                 isFlowing={isTrafficFlowing} 
-                onToggle={() => setIsTrafficFlowing(!isTrafficFlowing)} 
+                onToggle={handleStartTraffic}
+                onComplete={handleStopTraffic}
               />
             </div>
             <ArrowDown className={cn(
@@ -139,33 +150,14 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
             )} />
           </div>
 
-          {/* Control Plane */}
-          <div>
-            <h3 
-              onClick={() => setSelected({ type: 'info', data: { id: 'controlPlaneIntro' } })}
-              className="text-sm font-medium text-surface-400 mb-3 flex items-center gap-2 cursor-pointer hover:text-surface-200 transition-colors group"
-            >
-              <span className="w-2 h-2 rounded-full bg-primary-500" />
-              Control Plane Components
-              <Info className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />
-            </h3>
-            <ControlPlaneNode
-              controlPlane={cluster.controlPlane}
-              selectedComponent={selected?.type === 'controlPlane' ? selected.data : null}
-              onSelectComponent={(component) => setSelected({ type: 'controlPlane', data: component })}
-            />
-          </div>
-
-          <ArrowDown className="w-5 h-5 text-surface-500 mx-auto" />
-
-          {/* Worker Nodes */}
+          {/* Worker Nodes - Where the traffic actually goes */}
           <div>
             <h3 
               onClick={() => setSelected({ type: 'info', data: { id: 'workerNodesIntro' } })}
               className="text-sm font-medium text-surface-400 mb-3 flex items-center gap-2 cursor-pointer hover:text-surface-200 transition-colors group"
             >
-              <span className="w-2 h-2 rounded-full bg-success-500" />
-              Worker Nodes
+              <span className={cn("w-2 h-2 rounded-full", isTrafficFlowing ? "bg-success-500 animate-pulse" : "bg-success-500")} />
+              Worker Nodes (Pods)
               <Info className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -181,6 +173,26 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
                 />
               ))}
             </div>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-surface-700 my-4" />
+
+          {/* Control Plane - Separate section (not in traffic path) */}
+          <div>
+            <h3 
+              onClick={() => setSelected({ type: 'info', data: { id: 'controlPlaneIntro' } })}
+              className="text-sm font-medium text-surface-400 mb-3 flex items-center gap-2 cursor-pointer hover:text-surface-200 transition-colors group"
+            >
+              <span className="w-2 h-2 rounded-full bg-primary-500" />
+              Control Plane Components (Cluster Management)
+              <Info className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />
+            </h3>
+            <ControlPlaneNode
+              controlPlane={cluster.controlPlane}
+              selectedComponent={selected?.type === 'controlPlane' ? selected.data : null}
+              onSelectComponent={(component) => setSelected({ type: 'controlPlane', data: component })}
+            />
           </div>
 
           {/* Unscheduled Pods (Pending) */}
