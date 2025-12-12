@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Play, RotateCcw, Zap } from 'lucide-react';
+import { Play, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui';
 import './TrafficFlow.css';
 
@@ -22,22 +22,14 @@ export function TrafficFlowControls({ isFlowing, onToggle, onComplete }: Traffic
   }, [isFlowing, onComplete]);
 
   return (
-    <div className="flex items-center gap-2">
-      <Button
-        variant={isFlowing ? 'secondary' : 'primary'}
-        size="sm"
-        onClick={onToggle}
-        icon={isFlowing ? <RotateCcw className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
-      >
-        {isFlowing ? 'Simulating...' : 'Simulate Request'}
-      </Button>
-      {isFlowing && (
-        <span className="text-xs text-success-400 flex items-center gap-1">
-          <Zap className="w-3 h-3" />
-          Watch the flow →
-        </span>
-      )}
-    </div>
+    <Button
+      variant={isFlowing ? 'secondary' : 'primary'}
+      size="sm"
+      onClick={onToggle}
+      icon={isFlowing ? <RotateCcw className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
+    >
+      {isFlowing ? 'Simulating...' : 'Simulate Request'}
+    </Button>
   );
 }
 
