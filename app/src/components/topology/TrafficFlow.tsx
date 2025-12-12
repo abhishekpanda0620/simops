@@ -5,14 +5,18 @@ import { cn } from '@/utils';
 import type { K8sIngress, K8sService, K8sPod } from '@/types';
 import './TrafficFlow.css';
 
-// Traffic simulation state
+// Traffic simulation state - tracks the actual routing path
 export interface TrafficState {
   isFlowing: boolean;
   phase: 'idle' | 'ingress' | 'service' | 'pod' | 'response' | 'complete';
   endpoint: string;
+  // The actual path components
+  targetIngressId: string | null;
   targetServiceId: string | null;
   targetPodId: string | null;
   targetNodeId: string | null;
+  // Service name for display
+  targetServiceName: string | null;
 }
 
 interface TrafficFlowControlsProps {
@@ -40,7 +44,7 @@ export function TrafficFlowControls({
     
     const timer = setTimeout(() => {
       onComplete?.();
-    }, 8000); // 8 seconds for full animation
+    }, 6000); // 6 seconds for full animation
     
     return () => clearTimeout(timer);
   }, [isFlowing, onComplete]);
@@ -94,13 +98,13 @@ export function TrafficFlowControls({
         disabled={isFlowing}
         icon={isFlowing ? <RotateCcw className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
       >
-        {isFlowing ? 'Simulating...' : 'Send Request'}
+        {isFlowing ? 'Routing...' : 'Send Request'}
       </Button>
     </div>
   );
 }
 
-// Hook to manage traffic simulation
+// Hook to manage traffic simulation with real K8s routing logic
 export function useTrafficSimulation(
   ingresses: K8sIngress[],
   services: K8sService[],
@@ -109,13 +113,13 @@ export function useTrafficSimulation(
   const [state, setState] = useState<TrafficState>({
     isFlowing: false,
     phase: 'idle',
-    endpoint: '/api',
+    endpoint: '/',
+    targetIngressId: null,
     targetServiceId: null,
     targetPodId: null,
     targetNodeId: null,
+    targetServiceName: null,
   });
-
-  const [animationKey, setAnimationKey] = useState(0);
 
   // Available endpoints from ingress paths
   const endpoints = ingresses.flatMap(ing => 
@@ -127,44 +131,45 @@ export function useTrafficSimulation(
   }, []);
 
   const startSimulation = useCallback(() => {
-    // Find which service handles this endpoint
-    const ingress = ingresses[0]; // Assuming single ingress for now
-    const path = ingress?.paths.find(p => p.path === state.endpoint);
+    // Step 1: Find which ingress handles this host (we have one ingress)
+    const ingress = ingresses[0];
+    if (!ingress) return;
+
+    // Step 2: Find which path matches and get the service
+    const path = ingress.paths.find(p => p.path === state.endpoint);
     const serviceId = path?.serviceId;
     
-    // Find the service by ID
+    // Step 3: Find the service
     const service = services.find(s => s.id === serviceId);
+    if (!service) return;
     
-    // Pick a random pod from the service
-    const podIds = service?.podIds || [];
+    // Step 4: Service load-balances to one of its pods (random selection)
+    const podIds = service.podIds || [];
     const targetPodId = podIds[Math.floor(Math.random() * podIds.length)];
     
-    // Find the pod to get its node
+    // Step 5: Find the pod to get its node
     const targetPod = pods.find(p => p.id === targetPodId);
     const targetNodeId = targetPod?.nodeId || null;
 
-    console.log('Traffic simulation:', { 
-      endpoint: state.endpoint, 
-      service: service?.name, 
-      pod: targetPodId,
-      node: targetNodeId 
-    });
+    console.log(`🌐 Traffic: ${state.endpoint} → Ingress → ${service.name} → ${targetPod?.name} (on ${targetPod?.nodeName})`);
 
-    setAnimationKey(prev => prev + 1);
+    // Start the animation sequence
     setState(prev => ({
       ...prev,
       isFlowing: true,
       phase: 'ingress',
-      targetServiceId: service?.id || null,
+      targetIngressId: ingress.id,
+      targetServiceId: service.id,
       targetPodId,
       targetNodeId,
+      targetServiceName: service.name,
     }));
 
-    // Phase transitions
-    setTimeout(() => setState(prev => ({ ...prev, phase: 'service' })), 1500);
-    setTimeout(() => setState(prev => ({ ...prev, phase: 'pod' })), 3000);
-    setTimeout(() => setState(prev => ({ ...prev, phase: 'response' })), 5000);
-    setTimeout(() => setState(prev => ({ ...prev, phase: 'complete' })), 7500);
+    // Phase transitions - each phase highlights different components
+    setTimeout(() => setState(prev => ({ ...prev, phase: 'service' })), 1000);
+    setTimeout(() => setState(prev => ({ ...prev, phase: 'pod' })), 2000);
+    setTimeout(() => setState(prev => ({ ...prev, phase: 'response' })), 4000);
+    setTimeout(() => setState(prev => ({ ...prev, phase: 'complete' })), 5500);
   }, [state.endpoint, ingresses, services, pods]);
 
   const stopSimulation = useCallback(() => {
@@ -172,85 +177,121 @@ export function useTrafficSimulation(
       ...prev,
       isFlowing: false,
       phase: 'idle',
+      targetIngressId: null,
       targetServiceId: null,
       targetPodId: null,
       targetNodeId: null,
+      targetServiceName: null,
     }));
   }, []);
 
   return {
     state,
-    endpoints: endpoints.length > 0 ? endpoints : ['/api', '/frontend'],
-    animationKey,
+    endpoints: endpoints.length > 0 ? endpoints : ['/', '/api'],
     setEndpoint,
     startSimulation,
     stopSimulation,
   };
 }
 
-// Traffic packet with path info
-export function TrafficPacket({ 
-  isFlowing, 
-  direction, 
-  endpoint,
-  animationKey 
-}: { 
-  isFlowing: boolean; 
-  direction: 'request' | 'response';
-  endpoint?: string;
-  animationKey?: number;
-}) {
-  if (!isFlowing) return null;
-  
-  return (
-    <div 
-      key={animationKey}
-      className={`traffic-packet traffic-packet-${direction}`}
-    >
-      <div className={cn(
-        "px-2.5 py-1 rounded-md text-xs font-mono whitespace-nowrap shadow-lg",
-        direction === 'request' 
-          ? 'bg-success-500/90 text-white border border-success-400' 
-          : 'bg-accent-500/90 text-white border border-accent-400'
-      )}>
-        {direction === 'request' ? `📤 GET ${endpoint || '/api'}` : '📥 200 OK'}
-      </div>
-    </div>
-  );
-}
-
-// Flow line
-export function TrafficFlowLine({ isFlowing }: { isFlowing: boolean }) {
-  if (!isFlowing) return null;
-  
-  return (
-    <div className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-0.5 pointer-events-none overflow-hidden z-0">
-      <div className="traffic-flow-line h-full w-full bg-gradient-to-b from-success-500 via-accent-500 to-primary-500" />
-    </div>
-  );
-}
-
-// Helper to check if component is in active traffic path
+// Helper to check if a component should be highlighted in current traffic path
 export function isInTrafficPath(
   componentType: 'ingress' | 'service' | 'pod' | 'node',
   componentId: string,
   trafficState: TrafficState
 ): boolean {
-  if (!trafficState.isFlowing) return false;
+  if (!trafficState.isFlowing || trafficState.phase === 'idle' || trafficState.phase === 'complete') {
+    return false;
+  }
   
   switch (componentType) {
     case 'ingress':
-      return trafficState.phase !== 'idle' && trafficState.phase !== 'complete';
+      // Ingress highlights during ingress, service, pod, and response phases
+      return trafficState.targetIngressId === componentId && 
+             ['ingress', 'service', 'pod', 'response'].includes(trafficState.phase);
     case 'service':
+      // Service highlights during service, pod, and response phases
       return trafficState.targetServiceId === componentId && 
              ['service', 'pod', 'response'].includes(trafficState.phase);
     case 'pod':
+      // Pod highlights during pod and response phases
       return trafficState.targetPodId === componentId && 
              ['pod', 'response'].includes(trafficState.phase);
     case 'node':
+      // Node highlights when its pod is active
       return trafficState.targetNodeId === componentId && 
              ['pod', 'response'].includes(trafficState.phase);
     default:
       return false;
   }
+}
+
+// Traffic path indicator - shows which service was selected
+export function TrafficPathIndicator({ trafficState }: { trafficState: TrafficState }) {
+  if (!trafficState.isFlowing || trafficState.phase === 'idle') return null;
+  
+  return (
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-surface-800/95 border border-success-500/50 shadow-xl">
+      <div className="flex items-center gap-3 text-sm">
+        <span className="text-success-400 font-medium">Request:</span>
+        <code className="text-accent-400 font-mono">{trafficState.endpoint}</code>
+        <span className="text-surface-500">→</span>
+        <span className={cn(
+          "transition-colors duration-300",
+          trafficState.phase === 'ingress' ? "text-success-400 font-medium" : "text-surface-400"
+        )}>
+          Ingress
+        </span>
+        <span className="text-surface-500">→</span>
+        <span className={cn(
+          "transition-colors duration-300",
+          trafficState.phase === 'service' ? "text-success-400 font-medium" : "text-surface-400"
+        )}>
+          {trafficState.targetServiceName || 'Service'}
+        </span>
+        <span className="text-surface-500">→</span>
+        <span className={cn(
+          "transition-colors duration-300",
+          trafficState.phase === 'pod' ? "text-success-400 font-medium" : "text-surface-400"
+        )}>
+          Pod
+        </span>
+        {trafficState.phase === 'response' && (
+          <>
+            <span className="text-surface-500">→</span>
+            <span className="text-accent-400 font-medium animate-pulse">200 OK ✓</span>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Inline routing status that shows above the architecture
+export function RoutingStatus({ trafficState }: { trafficState: TrafficState }) {
+  if (!trafficState.isFlowing) return null;
+  
+  return (
+    <div className="mb-4 p-3 rounded-lg bg-success-500/10 border border-success-500/30">
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-success-400 font-medium">🔄 Routing:</span>
+        <span className="font-mono text-accent-400">{trafficState.endpoint}</span>
+        <span className="text-surface-500">→</span>
+        <span className={trafficState.phase === 'ingress' ? "text-success-400 font-medium" : "text-surface-400"}>
+          Ingress
+        </span>
+        <span className="text-surface-500">→</span>
+        <span className={trafficState.phase === 'service' ? "text-success-400 font-medium" : "text-surface-400"}>
+          {trafficState.targetServiceName || 'Service'}
+        </span>
+        <span className="text-surface-500">→</span>
+        <span className={trafficState.phase === 'pod' || trafficState.phase === 'response' ? "text-success-400 font-medium" : "text-surface-400"}>
+          Pod
+        </span>
+        {trafficState.phase === 'response' && (
+          <span className="ml-2 text-accent-400 font-medium">← 200 OK</span>
+        )}
+      </div>
+    </div>
+  );
 }

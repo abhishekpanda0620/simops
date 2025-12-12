@@ -1,44 +1,22 @@
-/* Traffic Flow Animations - Slower and Smoother */
+/* Traffic Flow Animations */
 
-/* Animated flow line */
-.traffic-flow-line {
-  animation: flowPulse 3s ease-in-out infinite;
-  opacity: 0.6;
-}
-
-@keyframes flowPulse {
-
-  0%,
-  100% {
-    opacity: 0.3;
-  }
-
-  50% {
-    opacity: 0.7;
-  }
-}
-
-/* Request packet animation (going down) - slower, goes to bottom */
+/* Request packet animation (going down) */
 .traffic-packet-request {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
   animation: requestFlow 4s ease-in-out forwards;
 }
 
 @keyframes requestFlow {
   0% {
-    top: 2%;
+    top: 5%;
     opacity: 0;
   }
 
-  5% {
+  10% {
     opacity: 1;
   }
 
   50% {
-    top: 75%;
+    top: 60%;
     opacity: 1;
   }
 
@@ -47,72 +25,68 @@
   }
 
   100% {
-    top: 75%;
+    top: 60%;
     opacity: 0;
   }
 }
 
-/* Response packet animation (going up) - starts hidden, appears after request arrives */
+/* Response packet animation (going up) - starts hidden */
 .traffic-packet-response {
-  position: absolute;
-  left: 55%;
-  top: 75%;
-  z-index: 20;
-  opacity: 0;
+  top: 60%;
   animation: responseFlow 4s ease-in-out forwards;
-  animation-delay: 2s;
+  animation-delay: 2.5s;
 }
 
 @keyframes responseFlow {
   0% {
-    top: 75%;
+    top: 60%;
     opacity: 0;
   }
 
-  5% {
-    top: 75%;
+  10% {
     opacity: 1;
   }
 
-  95% {
-    top: 2%;
+  90% {
+    top: 5%;
     opacity: 1;
   }
 
   100% {
-    top: 2%;
+    top: 5%;
     opacity: 0;
   }
 }
 
 /* Traffic glow effect on components */
 .traffic-active {
-  animation: trafficGlow 1.5s ease-in-out infinite alternate;
+  animation: trafficGlow 0.8s ease-in-out infinite alternate;
+  box-shadow: 0 0 20px 4px rgba(34, 197, 94, 0.3) !important;
 }
 
 @keyframes trafficGlow {
   0% {
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    box-shadow: 0 0 10px 2px rgba(34, 197, 94, 0.2);
   }
 
   100% {
-    box-shadow: 0 0 20px 4px rgba(34, 197, 94, 0.25);
+    box-shadow: 0 0 25px 6px rgba(34, 197, 94, 0.4);
   }
 }
 
-/* Staggered highlighting for components */
-.traffic-highlight-1 {
-  animation-delay: 0.5s;
+/* Highlight for target pod */
+.traffic-target-pod {
+  animation: podPulse 0.5s ease-in-out infinite alternate;
+  border-color: rgb(34, 197, 94) !important;
+  background-color: rgba(34, 197, 94, 0.2) !important;
 }
 
-.traffic-highlight-2 {
-  animation-delay: 1s;
-}
+@keyframes podPulse {
+  0% {
+    transform: scale(1);
+  }
 
-.traffic-highlight-3 {
-  animation-delay: 1.5s;
-}
-
-.traffic-highlight-4 {
-  animation-delay: 2s;
+  100% {
+    transform: scale(1.05);
+  }
 }

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ControlPlaneNode, WorkerNode } from './nodes';
 import { EnhancedInfoPanel } from './EnhancedInfoPanel';
-import { TrafficFlowControls, TrafficPacket, TrafficFlowLine, useTrafficSimulation, isInTrafficPath } from './TrafficFlow';
+import { TrafficFlowControls, RoutingStatus, useTrafficSimulation, isInTrafficPath } from './TrafficFlow';
 import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sNode } from '@/types';
 import { Globe, Network, ArrowDown, AlertCircle, Info } from 'lucide-react';
 import { cn } from '@/utils';
@@ -47,19 +47,26 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
     <div className="flex h-full">
       {/* Main Architecture Canvas */}
       <div className="flex-1 overflow-auto p-6 bg-surface-950 relative">
-        {/* Traffic Flow Visualization */}
-        <TrafficFlowLine isFlowing={traffic.state.isFlowing} />
-        <TrafficPacket 
-          isFlowing={traffic.state.isFlowing} 
-          direction="request" 
-          endpoint={traffic.state.endpoint}
-          animationKey={traffic.animationKey} 
-        />
-        <TrafficPacket 
-          isFlowing={traffic.state.isFlowing} 
-          direction="response" 
-          animationKey={traffic.animationKey} 
-        />
+        {/* Traffic Flow Animation - visual packets */}
+        {traffic.state.isFlowing && (
+          <>
+            {/* Request packet going down */}
+            <div className="traffic-packet-request absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+              <div className="px-2.5 py-1 rounded-md text-xs font-mono whitespace-nowrap shadow-lg bg-success-500/90 text-white border border-success-400">
+                📤 GET {traffic.state.endpoint}
+              </div>
+            </div>
+            {/* Response packet going up */}
+            <div className="traffic-packet-response absolute left-1/2 translate-x-8 z-30 pointer-events-none opacity-0">
+              <div className="px-2.5 py-1 rounded-md text-xs font-mono whitespace-nowrap shadow-lg bg-accent-500/90 text-white border border-accent-400">
+                📥 200 OK
+              </div>
+            </div>
+          </>
+        )}
+        
+        {/* Routing Status Bar */}
+        <RoutingStatus trafficState={traffic.state} />
         
         <div className="max-w-6xl mx-auto space-y-8">
           
@@ -175,6 +182,7 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
                   node={node}
                   pods={podsByNode[node.id] || []}
                   selectedPodId={selected?.type === 'pod' ? selected.data.id : null}
+                  trafficTargetPodId={traffic.state.isFlowing && ['pod', 'response'].includes(traffic.state.phase) ? traffic.state.targetPodId : null}
                   isSelected={selected?.type === 'node' && selected.data.id === node.id}
                   onSelectNode={() => setSelected({ type: 'node', data: node })}
                   onSelectPod={(pod) => setSelected({ type: 'pod', data: pod })}

@@ -7,6 +7,7 @@ interface WorkerNodeProps {
   node: K8sNode;
   pods: K8sPod[];
   selectedPodId: string | null;
+  trafficTargetPodId?: string | null;
   isSelected: boolean;
   onSelectNode: (nodeId: string) => void;
   onSelectPod: (pod: K8sPod) => void;
@@ -16,6 +17,7 @@ function WorkerNodeComponent({
   node,
   pods,
   selectedPodId,
+  trafficTargetPodId,
   isSelected,
   onSelectNode,
   onSelectPod,
@@ -127,7 +129,8 @@ function WorkerNodeComponent({
                 'p-2 rounded-lg border cursor-pointer transition-all duration-200',
                 podStatusColors[pod.status] || podStatusColors.unknown,
                 selectedPodId === pod.id && 'ring-2 ring-primary-400 scale-105',
-                selectedPodId !== pod.id && 'hover:scale-102'
+                selectedPodId !== pod.id && 'hover:scale-102',
+                trafficTargetPodId === pod.id && 'traffic-target-pod'
               )}
             >
               <div className="flex items-center gap-1.5 mb-1">
