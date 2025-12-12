@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { ControlPlaneNode, WorkerNode } from './nodes';
 import { EnhancedInfoPanel } from './EnhancedInfoPanel';
 import { TrafficFlowControls, RoutingStatus, useTrafficSimulation, isInTrafficPath } from './TrafficFlow';
+import { FlowModeSelector, type FlowMode } from './FlowModeSelector';
 import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sNode } from '@/types';
 import { Globe, Network, ArrowDown, AlertCircle, Info } from 'lucide-react';
 import { cn } from '@/utils';
@@ -22,6 +23,7 @@ type SelectedItem =
 
 export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) {
   const [selected, setSelected] = useState<SelectedItem>(null);
+  const [flowMode, setFlowMode] = useState<FlowMode>('user-request');
 
   // Traffic simulation
   const traffic = useTrafficSimulation(
@@ -78,21 +80,114 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
           </>
         )}
         
-        {/* Traffic Controls - Above routing status */}
-        <div className="mb-3">
-          <TrafficFlowControls 
-            isFlowing={traffic.state.isFlowing}
-            endpoints={traffic.endpoints}
-            selectedEndpoint={traffic.state.endpoint}
-            onEndpointChange={traffic.setEndpoint}
-            onStart={traffic.startSimulation}
-            onComplete={traffic.stopSimulation}
-          />
+        {/* Flow Mode Selector */}
+        <div className="mb-4">
+          <FlowModeSelector mode={flowMode} onModeChange={setFlowMode} />
         </div>
         
-        {/* Routing Status Bar */}
-        <RoutingStatus trafficState={traffic.state} />
+        {/* User Request Flow Controls - only show in user-request mode */}
+        {flowMode === 'user-request' && (
+          <>
+            <div className="mb-3">
+              <TrafficFlowControls 
+                isFlowing={traffic.state.isFlowing}
+                endpoints={traffic.endpoints}
+                selectedEndpoint={traffic.state.endpoint}
+                onEndpointChange={traffic.setEndpoint}
+                onStart={traffic.startSimulation}
+                onComplete={traffic.stopSimulation}
+              />
+            </div>
+            
+            {/* Routing Status Bar */}
+            <RoutingStatus trafficState={traffic.state} />
+          </>
+        )}
         
+        {/* Control Plane Flow View */}
+        {flowMode === 'control-plane' && (
+          <div className="max-w-6xl mx-auto space-y-8">
+            {/* kubectl Entry Point */}
+            <div className="flex flex-col items-center">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-lg border bg-surface-800 border-surface-600">
+                <span className="text-accent-400 font-mono text-sm">$</span>
+                <span className="text-sm font-medium text-surface-200">kubectl get pods</span>
+              </div>
+              <ArrowDown className="w-5 h-5 my-2 text-accent-500/50" />
+            </div>
+
+            {/* API Server */}
+            <div className="flex flex-col items-center">
+              <div 
+                onClick={() => setSelected({ type: 'controlPlane', data: cluster.controlPlane.apiServer })}
+                className="px-6 py-4 rounded-lg border-2 border-primary-500 bg-primary-500/10 cursor-pointer hover:bg-primary-500/20 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary-500/20 flex items-center justify-center">
+                    <Globe className="w-5 h-5 text-primary-400" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-surface-100">API Server</p>
+                    <p className="text-xs text-surface-400">Authentication → Authorization → Validation</p>
+                  </div>
+                </div>
+              </div>
+              <ArrowDown className="w-5 h-5 my-2 text-primary-500/50" />
+            </div>
+
+            {/* Control Plane Components */}
+            <div className="grid grid-cols-3 gap-4">
+              {/* etcd */}
+              <div 
+                onClick={() => setSelected({ type: 'controlPlane', data: cluster.controlPlane.etcd })}
+                className="p-4 rounded-lg border-2 border-accent-500 bg-accent-500/10 cursor-pointer hover:bg-accent-500/20 transition-all"
+              >
+                <div className="text-center">
+                  <p className="font-semibold text-surface-100">etcd</p>
+                  <p className="text-xs text-surface-400 mt-1">Cluster state store</p>
+                  <p className="text-xs text-accent-400 mt-2">Read/Write data</p>
+                </div>
+              </div>
+
+              {/* Controller Manager */}
+              <div 
+                onClick={() => setSelected({ type: 'controlPlane', data: cluster.controlPlane.controllerManager })}
+                className="p-4 rounded-lg border-2 border-warning-500 bg-warning-500/10 cursor-pointer hover:bg-warning-500/20 transition-all"
+              >
+                <div className="text-center">
+                  <p className="font-semibold text-surface-100">Controller Manager</p>
+                  <p className="text-xs text-surface-400 mt-1">Reconciliation loops</p>
+                  <p className="text-xs text-warning-400 mt-2">Desired → Actual state</p>
+                </div>
+              </div>
+
+              {/* Scheduler */}
+              <div 
+                onClick={() => setSelected({ type: 'controlPlane', data: cluster.controlPlane.scheduler })}
+                className="p-4 rounded-lg border-2 border-success-500 bg-success-500/10 cursor-pointer hover:bg-success-500/20 transition-all"
+              >
+                <div className="text-center">
+                  <p className="font-semibold text-surface-100">Scheduler</p>
+                  <p className="text-xs text-surface-400 mt-1">Pod placement</p>
+                  <p className="text-xs text-success-400 mt-2">Node selection</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Explanation */}
+            <div className="p-4 rounded-lg bg-surface-800/50 border border-surface-700">
+              <p className="text-sm text-surface-300">
+                <span className="text-primary-400 font-medium">Control Plane Flow:</span>{' '}
+                Every kubectl command goes through the API Server. The API Server authenticates, authorizes, 
+                and validates requests, then interacts with etcd for storage. Controllers watch for changes 
+                and reconcile actual state with desired state.
+              </p>
+            </div>
+          </div>
+        )}
+        
+        {/* User Request Flow Content */}
+        {flowMode === 'user-request' && (
         <div className="max-w-6xl mx-auto space-y-8">
           
           {/* External Traffic Entry Point */}
@@ -258,6 +353,7 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
             </div>
           )}
         </div>
+        )}
       </div>
 
       {/* Enhanced Info Panel */}
