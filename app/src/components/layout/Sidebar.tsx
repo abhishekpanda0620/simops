@@ -10,7 +10,7 @@ import {
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/topology', icon: Network, label: 'Topology' },
+  { to: '/topology', icon: Network, label: 'K8s Architecture' },
   { to: '/pipeline', icon: GitBranch, label: 'Pipeline' },
   { to: '/labs', icon: BookOpen, label: 'Labs' },
   { to: '/settings', icon: Settings, label: 'Settings' },
