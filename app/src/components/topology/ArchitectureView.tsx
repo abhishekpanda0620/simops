@@ -50,18 +50,31 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
         {/* Traffic Flow Animation - visual packets */}
         {traffic.state.isFlowing && (
           <>
-            {/* Request packet going down */}
-            <div className="traffic-packet-request absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none">
-              <div className="px-2.5 py-1 rounded-md text-xs font-mono whitespace-nowrap shadow-lg bg-success-500/90 text-white border border-success-400">
-                📤 GET {traffic.state.endpoint}
+            {/* Request packet - moves DOWN based on phase */}
+            {['ingress', 'service', 'pod'].includes(traffic.state.phase) && (
+              <div className={cn(
+                "absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-all duration-700 ease-in-out",
+                traffic.state.phase === 'ingress' && "top-[12%]",
+                traffic.state.phase === 'service' && "top-[35%]",
+                traffic.state.phase === 'pod' && "top-[55%]"
+              )}>
+                <div className="px-3 py-1.5 rounded-md text-xs font-mono whitespace-nowrap shadow-lg bg-success-500 text-white border border-success-400 flex items-center gap-2">
+                  <span>📤</span>
+                  <span>GET {traffic.state.endpoint}</span>
+                  <span className="animate-bounce">▼</span>
+                </div>
               </div>
-            </div>
-            {/* Response packet going up */}
-            <div className="traffic-packet-response absolute left-1/2 translate-x-8 z-30 pointer-events-none opacity-0">
-              <div className="px-2.5 py-1 rounded-md text-xs font-mono whitespace-nowrap shadow-lg bg-accent-500/90 text-white border border-accent-400">
-                📥 200 OK
+            )}
+            {/* Response packet - moves UP based on phase */}
+            {traffic.state.phase === 'response' && (
+              <div className="absolute left-1/2 translate-x-12 z-30 pointer-events-none top-[55%] animate-[moveUp_3s_ease-in-out_forwards]">
+                <div className="px-3 py-1.5 rounded-md text-xs font-mono whitespace-nowrap shadow-lg bg-accent-500 text-white border border-accent-400 flex items-center gap-2">
+                  <span className="animate-bounce">▲</span>
+                  <span>200 OK</span>
+                  <span>📥</span>
+                </div>
               </div>
-            </div>
+            )}
           </>
         )}
         

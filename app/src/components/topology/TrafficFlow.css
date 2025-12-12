@@ -102,6 +102,25 @@
   }
 }
 
+/* Response moving up animation - used by React */
+@keyframes moveUp {
+  0% {
+    top: 55%;
+  }
+
+  30% {
+    top: 35%;
+  }
+
+  60% {
+    top: 20%;
+  }
+
+  100% {
+    top: 8%;
+  }
+}
+
 /* Traffic glow effect on active components */
 .traffic-active {
   animation: trafficGlow 0.8s ease-in-out infinite alternate;
