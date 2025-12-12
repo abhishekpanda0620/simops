@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { ControlPlaneNode, WorkerNode } from './nodes';
 import { EnhancedInfoPanel } from './EnhancedInfoPanel';
 import { TrafficFlowControls, RoutingStatus, useTrafficSimulation, isInTrafficPath } from './TrafficFlow';
+import { ControlPlaneFlowControls, useControlPlaneSimulation, isControlPlaneActive } from './ControlPlaneFlow';
 import { FlowModeSelector, type FlowMode } from './FlowModeSelector';
 import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sNode } from '@/types';
 import { Globe, Network, ArrowDown, AlertCircle, Info } from 'lucide-react';
@@ -31,6 +32,9 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
     cluster.services,
     cluster.pods
   );
+
+  // Control Plane simulation
+  const controlPlane = useControlPlaneSimulation();
 
   // Get pods for each node
   const podsByNode = useMemo(() => {
@@ -107,9 +111,25 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
         {/* Control Plane Flow View */}
         {flowMode === 'control-plane' && (
           <div className="max-w-6xl mx-auto space-y-8">
+            {/* Control Plane Flow Controls */}
+            <div className="flex justify-center mb-6">
+              <ControlPlaneFlowControls
+                isFlowing={controlPlane.state.isFlowing}
+                phase={controlPlane.state.phase}
+                message={controlPlane.state.message}
+                onStart={controlPlane.startSimulation}
+                onStop={controlPlane.stopSimulation}
+              />
+            </div>
+
             {/* kubectl Entry Point */}
             <div className="flex flex-col items-center">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-lg border bg-surface-800 border-surface-600">
+              <div className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-lg border transition-all duration-300",
+                isControlPlaneActive('kubectl', controlPlane.state.phase)
+                  ? "bg-accent-500/20 border-accent-500/50 shadow-lg shadow-accent-500/20 scale-105"
+                  : "bg-surface-800 border-surface-600"
+              )}>
                 <span className="text-accent-400 font-mono text-sm">$</span>
                 <span className="text-sm font-medium text-surface-200">kubectl get pods</span>
               </div>
@@ -120,11 +140,16 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
             <div className="flex flex-col items-center">
               <div 
                 onClick={() => setSelected({ type: 'controlPlane', data: cluster.controlPlane.apiServer })}
-                className="px-6 py-4 rounded-lg border-2 border-primary-500 bg-primary-500/10 cursor-pointer hover:bg-primary-500/20 transition-all"
+                className={cn(
+                  "px-6 py-4 rounded-lg border-2 transition-all duration-300 cursor-pointer",
+                  isControlPlaneActive('api-server', controlPlane.state.phase)
+                    ? "border-primary-500 bg-primary-500/20 shadow-[0_0_20px_rgba(59,130,246,0.5)] scale-105"
+                    : "border-primary-500 bg-primary-500/10 hover:bg-primary-500/20"
+                )}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-primary-500/20 flex items-center justify-center">
-                    <Globe className="w-5 h-5 text-primary-400" />
+                    <Globe className={cn("w-5 h-5 transition-colors", isControlPlaneActive('api-server', controlPlane.state.phase) ? "text-primary-300" : "text-primary-400")} />
                   </div>
                   <div>
                     <p className="font-semibold text-surface-100">API Server</p>
@@ -132,7 +157,10 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
                   </div>
                 </div>
               </div>
-              <ArrowDown className="w-5 h-5 my-2 text-primary-500/50" />
+              <ArrowDown className={cn(
+                "w-5 h-5 my-2 transition-colors duration-300",
+                isControlPlaneActive('api-server', controlPlane.state.phase) ? "text-primary-400 animate-bounce" : "text-primary-500/50"
+              )} />
             </div>
 
             {/* Control Plane Components */}
@@ -140,7 +168,12 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
               {/* etcd */}
               <div 
                 onClick={() => setSelected({ type: 'controlPlane', data: cluster.controlPlane.etcd })}
-                className="p-4 rounded-lg border-2 border-accent-500 bg-accent-500/10 cursor-pointer hover:bg-accent-500/20 transition-all"
+                className={cn(
+                  "p-4 rounded-lg border-2 transition-all duration-300 cursor-pointer",
+                  isControlPlaneActive('etcd', controlPlane.state.phase)
+                    ? "border-accent-500 bg-accent-500/20 shadow-[0_0_15px_rgba(168,85,247,0.5)] scale-105"
+                    : "border-accent-500 bg-accent-500/10 hover:bg-accent-500/20"
+                )}
               >
                 <div className="text-center">
                   <p className="font-semibold text-surface-100">etcd</p>
@@ -152,7 +185,12 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
               {/* Controller Manager */}
               <div 
                 onClick={() => setSelected({ type: 'controlPlane', data: cluster.controlPlane.controllerManager })}
-                className="p-4 rounded-lg border-2 border-warning-500 bg-warning-500/10 cursor-pointer hover:bg-warning-500/20 transition-all"
+                className={cn(
+                  "p-4 rounded-lg border-2 transition-all duration-300 cursor-pointer",
+                  isControlPlaneActive('controller', controlPlane.state.phase)
+                    ? "border-warning-500 bg-warning-500/20 shadow-[0_0_15px_rgba(234,179,8,0.5)] scale-105"
+                    : "border-warning-500 bg-warning-500/10 hover:bg-warning-500/20"
+                )}
               >
                 <div className="text-center">
                   <p className="font-semibold text-surface-100">Controller Manager</p>
@@ -164,7 +202,12 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
               {/* Scheduler */}
               <div 
                 onClick={() => setSelected({ type: 'controlPlane', data: cluster.controlPlane.scheduler })}
-                className="p-4 rounded-lg border-2 border-success-500 bg-success-500/10 cursor-pointer hover:bg-success-500/20 transition-all"
+                className={cn(
+                  "p-4 rounded-lg border-2 transition-all duration-300 cursor-pointer",
+                  isControlPlaneActive('scheduler', controlPlane.state.phase)
+                    ? "border-success-500 bg-success-500/20 shadow-[0_0_15px_rgba(34,197,94,0.5)] scale-105"
+                    : "border-success-500 bg-success-500/10 hover:bg-success-500/20"
+                )}
               >
                 <div className="text-center">
                   <p className="font-semibold text-surface-100">Scheduler</p>
