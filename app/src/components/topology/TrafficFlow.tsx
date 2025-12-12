@@ -105,6 +105,7 @@ export function TrafficFlowControls({
 }
 
 // Hook to manage traffic simulation with real K8s routing logic
+// eslint-disable-next-line react-refresh/only-export-components
 export function useTrafficSimulation(
   ingresses: K8sIngress[],
   services: K8sService[],
@@ -196,6 +197,7 @@ export function useTrafficSimulation(
 }
 
 // Helper to check if a component should be highlighted in current traffic path
+// eslint-disable-next-line react-refresh/only-export-components
 export function isInTrafficPath(
   componentType: 'ingress' | 'service' | 'pod' | 'node',
   componentId: string,

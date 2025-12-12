@@ -81,29 +81,31 @@ export function ArchitectureView({ cluster, onKillPod }: ArchitectureViewProps) 
         {/* Routing Status Bar */}
         <RoutingStatus trafficState={traffic.state} />
         
+        {/* Traffic Controls - Fixed top right */}
+        <div className="absolute top-4 right-4 z-40">
+          <TrafficFlowControls 
+            isFlowing={traffic.state.isFlowing}
+            endpoints={traffic.endpoints}
+            selectedEndpoint={traffic.state.endpoint}
+            onEndpointChange={traffic.setEndpoint}
+            onStart={traffic.startSimulation}
+            onComplete={traffic.stopSimulation}
+          />
+        </div>
+        
         <div className="max-w-6xl mx-auto space-y-8">
           
           {/* External Traffic Entry Point */}
           <div className="flex flex-col items-center">
-            <div className="flex items-center gap-4">
-              <div className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-lg border transition-all",
-                traffic.state.isFlowing 
-                  ? "bg-success-500/20 border-success-500/50 shadow-lg shadow-success-500/20" 
-                  : "bg-primary-500/10 border-primary-500/30"
-              )}>
-                <Globe className={cn("w-5 h-5", traffic.state.isFlowing ? "text-success-400" : "text-primary-400")} />
-                <span className={cn("text-sm font-medium", traffic.state.isFlowing ? "text-success-300" : "text-primary-300")}>External Traffic</span>
-                <span className="text-xs text-surface-400 ml-2">(app.example.com)</span>
-              </div>
-              <TrafficFlowControls 
-                isFlowing={traffic.state.isFlowing}
-                endpoints={traffic.endpoints}
-                selectedEndpoint={traffic.state.endpoint}
-                onEndpointChange={traffic.setEndpoint}
-                onStart={traffic.startSimulation}
-                onComplete={traffic.stopSimulation}
-              />
+            <div className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-lg border transition-all",
+              traffic.state.isFlowing 
+                ? "bg-success-500/20 border-success-500/50 shadow-lg shadow-success-500/20" 
+                : "bg-primary-500/10 border-primary-500/30"
+            )}>
+              <Globe className={cn("w-5 h-5", traffic.state.isFlowing ? "text-success-400" : "text-primary-400")} />
+              <span className={cn("text-sm font-medium", traffic.state.isFlowing ? "text-success-300" : "text-primary-300")}>External Traffic</span>
+              <span className="text-xs text-surface-400 ml-2">(app.example.com)</span>
             </div>
             <ArrowDown className={cn(
               "w-5 h-5 my-2 transition-colors duration-300",
