@@ -120,16 +120,19 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
 
             {/* kubectl Entry Point / Event Display */}
             <div className="flex flex-col items-center">
-              {controlPlane.state.scenario === 'node-failure' ? (
+              {['node-failure', 'worker-flow'].includes(controlPlane.state.scenario) ? (
                  <div className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-lg border transition-all duration-300",
                   !['idle', 'kubectl'].includes(controlPlane.state.phase)
-                    ? "bg-error-500/10 border-error-500/50 shadow-lg shadow-error-500/20" 
+                    ? controlPlane.state.scenario === 'node-failure' 
+                        ? "bg-error-500/10 border-error-500/50 shadow-lg shadow-error-500/20"
+                        : "bg-surface-800 border-accent-500/50 shadow-lg shadow-accent-500/20"
                     : "bg-surface-800 border-surface-600"
                 )}>
-                  <AlertCircle className="w-4 h-4 text-error-500" />
+                  <AlertCircle className={cn("w-4 h-4", controlPlane.state.scenario === 'node-failure' ? "text-error-500" : "text-accent-400")} />
                   <span className="text-sm font-medium text-surface-200">
-                    # Simulating Power Failure...
+                    {controlPlane.state.scenario === 'node-failure' && '# Simulating Power Failure...'}
+                    {controlPlane.state.scenario === 'worker-flow' && '# Simulating Kube-Proxy & Kubelet Flow...'}
                   </span>
                 </div>
               ) : (
@@ -413,6 +416,45 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
                 </div>
             )}
 
+            {/* Visual Feedback (Worker Node Flow) */}
+            {controlPlane.state.scenario === 'worker-flow' && (
+               <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
+                 <div className={cn(
+                   "p-4 rounded-lg border-2 transition-all duration-500",
+                   ['kube-proxy', 'node-flow'].includes(controlPlane.state.phase) 
+                     ? "bg-accent-500/20 border-accent-500 shadow-[0_0_20px_rgba(168,85,247,0.3)] scale-105" 
+                     : "bg-surface-800 border-surface-700 opacity-50"
+                 )}>
+                   <h4 className="font-semibold text-accent-300 mb-2">kube-proxy</h4>
+                   <p className="text-xs text-surface-300 mb-2">
+                     Maintains network rules on nodes. Handles Service abstraction.
+                   </p>
+                   {['kube-proxy', 'node-flow'].includes(controlPlane.state.phase) && (
+                     <div className="text-xs font-mono text-accent-200 bg-accent-500/10 p-2 rounded">
+                       $ iptables -t nat -A KUBE-SERVICES...
+                     </div>
+                   )}
+                 </div>
+                 
+                 <div className={cn(
+                   "p-4 rounded-lg border-2 transition-all duration-500",
+                   ['kubelet'].includes(controlPlane.state.phase) 
+                     ? "bg-primary-500/20 border-primary-500 shadow-[0_0_20px_rgba(59,130,246,0.3)] scale-105" 
+                     : "bg-surface-800 border-surface-700 opacity-50"
+                 )}>
+                   <h4 className="font-semibold text-primary-300 mb-2">kubelet</h4>
+                   <p className="text-xs text-surface-300 mb-2">
+                     Primary "node agent". Syncs PodSpecs with container runtime.
+                   </p>
+                   {['kubelet'].includes(controlPlane.state.phase) && (
+                     <div className="text-xs font-mono text-primary-200 bg-primary-500/10 p-2 rounded">
+                       SyncLoop: Pod status update → Running
+                     </div>
+                   )}
+                 </div>
+               </div>
+            )}
+
             {/* Explanation */}
             <div className="p-4 rounded-lg bg-surface-800/50 border border-surface-700 mt-8">
               <p className="text-sm text-surface-300">
@@ -557,6 +599,12 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
                   isSelected={selected?.type === 'node' && selected.data.id === node.id}
                   onSelectNode={() => setSelected({ type: 'node', data: node })}
                   onSelectPod={(pod) => setSelected({ type: 'pod', data: pod })}
+                  activeComponent={
+                    controlPlane.state.scenario === 'worker-flow'
+                      ? (['kube-proxy', 'node-flow'].includes(controlPlane.state.phase) ? 'kube-proxy' :
+                         ['kubelet'].includes(controlPlane.state.phase) ? 'kubelet' : null)
+                      : null
+                  }
                 />
               ))}
             </div>

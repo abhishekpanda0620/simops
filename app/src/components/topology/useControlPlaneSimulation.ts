@@ -81,6 +81,8 @@ function runScenario(
     return runScaleDeploymentScenario(setState, stopSimulation);
   } else if (scenario === 'node-failure') {
     return runNodeFailureScenario(setState, stopSimulation);
+  } else if (scenario === 'worker-flow') {
+    return runWorkerFlowScenario(setState, stopSimulation);
   }
   return [];
 }
@@ -92,6 +94,7 @@ function getStartMessage(scenario: ControlPlaneScenario) {
     case 'delete-pod': return '$ kubectl delete pod nginx';
     case 'scale-deployment': return '$ kubectl scale deploy nginx --replicas=5';
     case 'node-failure': return '# Simulating Node Power Failure...';
+    case 'worker-flow': return '# Simulating Kube-Proxy & Kubelet Flow...';
     default: return '';
   }
 }
@@ -201,5 +204,32 @@ function runNodeFailureScenario(
   timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'complete', message: 'Recovery Complete' })), 16000));
   timeouts.push(setTimeout(stop, 18000));
   
+  return timeouts;
+}
+
+function runWorkerFlowScenario(
+  setState: React.Dispatch<React.SetStateAction<ControlPlaneState>>,
+  stop: () => void
+): ReturnType<typeof setTimeout>[] {
+  const timeouts: ReturnType<typeof setTimeout>[] = [];
+  
+  // 1. API Server (Service Update)
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'api-server', message: 'API Server: Service endpoints updated...' })), 2000));
+  
+  // 2. Kube-Proxy (Watch & Update)
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'kube-proxy', message: 'kube-proxy: Watching API Server for Service changes...' })), 4500));
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'kube-proxy', message: 'kube-proxy: Updating iptables/IPVS rules...' })), 7000));
+
+  // 3. Kubelet (Pod Sync)
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'kubelet', message: 'kubelet: Syncing Pod status with API Server...' })), 10000));
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'kubelet', message: 'kubelet: Ensuring containers are healthy...' })), 12500));
+
+  // 4. Node Flow (Traffic Simulation)
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'node-flow', message: 'Node: Traffic routing rules active' })), 15000));
+
+  // 5. Complete
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'complete', message: 'Worker Node Sync Complete' })), 17500));
+  timeouts.push(setTimeout(stop, 19500));
+
   return timeouts;
 }

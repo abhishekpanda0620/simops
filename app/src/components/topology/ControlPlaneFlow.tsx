@@ -31,7 +31,8 @@ export function ControlPlaneFlowControls({
             {scenario === 'get-pods' && 'Get Pods'}
             {scenario === 'delete-pod' && 'Delete Pod'}
             {scenario === 'scale-deployment' && 'Scale Deployment'}
-            {scenario === 'node-failure' && 'Node Failure'}
+            {scenario === 'node-failure' && 'Node Failure (Recovery)'}
+            {scenario === 'worker-flow' && 'Worker Node Flow'}
           </span>
           <ChevronDown className="w-4 h-4" />
         </button>
@@ -45,6 +46,7 @@ export function ControlPlaneFlowControls({
                <button onClick={() => onScenarioChange('delete-pod')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Delete Pod</button>
                <button onClick={() => onScenarioChange('scale-deployment')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Scale Deployment</button>
                <button onClick={() => onScenarioChange('node-failure')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Node Failure (Recovery)</button>
+               <button onClick={() => onScenarioChange('worker-flow')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Worker Node Flow</button>
              </>
            )}
         </div>
