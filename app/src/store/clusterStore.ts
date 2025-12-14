@@ -36,6 +36,11 @@ interface ClusterState {
   triggerCrashLoop: (podId: string) => void;
   toggleNodeFailure: (nodeId: string) => void;
   scaleDeployment: (deploymentId: string, replicas: number) => void;
+  // Generic Actions
+  addPod: (pod: K8sPod) => void;
+  addPVC: (pvc: K8sPVC) => void;
+  addStatefulSet: (sts: K8sStatefulSet) => void;
+  addDaemonSet: (ds: K8sDaemonSet) => void;
 }
 
 export const useClusterStore = create<ClusterState>((set, get) => ({
@@ -396,6 +401,7 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
 
   // Simulation: Scale Deployment
   scaleDeployment: (deploymentId, replicas) => {
+    // ... existing implementation ...
     const cluster = get().currentCluster;
     if (!cluster) return;
 
@@ -465,21 +471,15 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       }
       
     } else if (replicas < currentReplicas) {
-      // Scale DOWN: Remove pods
+      // Scale DOWN
       const countToRemove = currentReplicas - replicas;
-      // Remove the last N pods associated with this deployment
       const podIdsToRemove = deployment.podIds.slice(-countToRemove);
-      
       updatedPods = updatedPods.filter(p => !podIdsToRemove.includes(p.id));
-      
-      // Update Deployment
       updatedDeployments = updatedDeployments.map(d => 
         d.id === deploymentId 
             ? { ...d, podIds: d.podIds.filter(id => !podIdsToRemove.includes(id)) } 
             : d
       );
-      
-      // Update Services
       updatedServices = updatedServices.map(s => ({
           ...s,
           podIds: s.podIds.filter(id => !podIdsToRemove.includes(id))
@@ -492,9 +492,52 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
             deployments: updatedDeployments,
             pods: updatedPods,
             services: updatedServices,
-            // (Ideally we should also update Nodes.pods list, but the visualization mostly relies on Pod.nodeId)
         }
     });
 
+  },
+
+  addPod: (pod) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    set({
+      currentCluster: {
+        ...cluster,
+        pods: [...cluster.pods, pod],
+      },
+    });
+  },
+
+  addPVC: (pvc) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    set({
+      currentCluster: {
+        ...cluster,
+        pvcs: [...(cluster.pvcs || []), pvc],
+      },
+    });
+  },
+
+  addStatefulSet: (sts) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    set({
+      currentCluster: {
+        ...cluster,
+        statefulSets: [...(cluster.statefulSets || []), sts],
+      },
+    });
+  },
+
+  addDaemonSet: (ds) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    set({
+      currentCluster: {
+        ...cluster,
+        daemonSets: [...(cluster.daemonSets || []), ds],
+      },
+    });
   },
 }));

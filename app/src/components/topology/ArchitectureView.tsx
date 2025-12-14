@@ -4,6 +4,7 @@ import { TrafficFlowControls, RoutingStatus, useTrafficSimulation, isInTrafficPa
 import { ControlPlaneFlowControls, ControlPlaneStatus } from './ControlPlaneFlow';
 import { StorageLayer } from './StorageLayer';
 import { EnhancedInfoPanel } from './EnhancedInfoPanel';
+import { useClusterStore } from '@/store';
 import { useControlPlaneSimulation } from './useControlPlaneSimulation';
 import { isControlPlaneActive } from './ControlPlaneUtils';
 import { FlowModeSelector, type FlowMode } from './FlowModeSelector';
@@ -35,15 +36,21 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
   const [selected, setSelected] = useState<SelectedItem>(null);
   const [flowMode, setFlowMode] = useState<FlowMode>('user-request');
 
-  // Traffic simulation
+  // Get actions from store for simulation
+  const { addPod, addPVC } = useClusterStore();
+  
+  // Local state for traffic simulation (visual only)
   const traffic = useTrafficSimulation(
     cluster.ingresses,
     cluster.services,
     cluster.pods
   );
 
-  // Control Plane simulation
-  const controlPlane = useControlPlaneSimulation();
+  // Control Plane Simulation State
+  const controlPlane = useControlPlaneSimulation({ 
+    addPod, 
+    addPVC 
+  });
 
   // Reset selection when switching modes
   useEffect(() => {
@@ -154,6 +161,8 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
                     {controlPlane.state.scenario === 'get-pods' && 'kubectl get pods'}
                     {controlPlane.state.scenario === 'delete-pod' && 'kubectl delete pod nginx'}
                     {controlPlane.state.scenario === 'scale-deployment' && 'kubectl scale deploy nginx --replicas=5'}
+                    {controlPlane.state.scenario === 'deploy-statefulset' && 'kubectl apply -f statefulset.yaml'}
+                    {controlPlane.state.scenario === 'deploy-daemonset' && 'kubectl apply -f daemonset.yaml'}
                   </span>
                 </div>
               )}
@@ -358,6 +367,73 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* Visual Feedback (StatefulSet Scenario) */}
+            {controlPlane.state.scenario === 'deploy-statefulset' && (
+                <div className="flex flex-col items-center gap-4">
+                     <p className="text-sm text-surface-400">
+                        {cluster.pods.filter(p => p.labels['app'] === 'web').length === 0 
+                            ? 'Waiting for StatefulSet...' 
+                            : `Deployed ${cluster.pods.filter(p => p.labels['app'] === 'web').length} Pods (Ordered)`}
+                     </p>
+                     <div className="flex gap-4">
+                        {cluster.pods.filter(p => p.labels['app'] === 'web').sort((a,b) => a.name.localeCompare(b.name)).map(pod => (
+                            <div key={pod.id} className="flex items-center gap-3 p-3 rounded-lg bg-surface-800 border-2 border-primary-500/50 shadow-[0_0_30px_rgba(59,130,246,0.2)] animate-in slide-in-from-left duration-700">
+                                <div className="relative">
+                                    <div className="w-10 h-10 bg-surface-900 rounded-lg flex items-center justify-center border border-surface-700">
+                                        <Box className="w-6 h-6 text-primary-400" />
+                                    </div>
+                                    <div className="absolute -top-2 -right-2 bg-success-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold shadow-lg">
+                                        {pod.name.split('-')[1]}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-surface-100">{pod.name}</p>
+                                    <p className="text-xs text-primary-400">{pod.nodeName}</p>
+                                </div>
+                            </div>
+                        ))}
+                     </div>
+                     {/* Show PVCs too if possible? */}
+                     {cluster.pvcs && cluster.pvcs.length > 0 && (
+                         <div className="flex gap-4 mt-2">
+                             {cluster.pvcs.filter(p => p.namespace === 'default').map(pvc => (
+                                 <div key={pvc.id} className="px-2 py-1 bg-surface-800 rounded border border-surface-600 text-[10px] text-surface-300">
+                                     💾 {pvc.name}
+                                 </div>
+                             ))}
+                         </div>
+                     )}
+                </div>
+            )}
+
+            {/* Visual Feedback (DaemonSet Scenario) */}
+            {controlPlane.state.scenario === 'deploy-daemonset' && (
+                <div className="flex flex-col items-center gap-4">
+                     <div className="grid grid-cols-3 gap-4">
+                        {/* Show all worker nodes, and any DS pods on them */}
+                        {cluster.nodes.filter(n => n.role === 'worker').map(node => {
+                            const dsPod = cluster.pods.find(p => p.nodeId === node.id && p.labels['app'] === 'monitoring');
+                            return (
+                                <div key={node.id} className="p-4 rounded-lg bg-surface-800 border border-surface-700 flex flex-col items-center gap-2 w-32">
+                                    <span className="text-xs font-semibold text-surface-300">{node.name}</span>
+                                    
+                                    {dsPod ? (
+                                        <div className="flex items-center gap-2 p-2 bg-surface-900 rounded border border-primary-500/50 animate-in zoom-in duration-500">
+                                            <Box className="w-4 h-4 text-primary-400" />
+                                            <span className="text-xs text-primary-200">agent</span>
+                                        </div>
+                                    ) : (
+                                        <div className="w-full h-8 bg-surface-900/50 rounded border border-dashed border-surface-700 flex items-center justify-center">
+                                            <span className="text-[10px] text-surface-500">Waiting...</span>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                     </div>
                 </div>
             )}
 
