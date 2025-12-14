@@ -214,6 +214,24 @@ export interface K8sDaemonSet {
   podIds: string[];
 }
 
+// ============ CONFIGURATION ============
+export interface K8sConfigMap {
+  id: string;
+  name: string;
+  namespace: string;
+  data: Record<string, string>;
+  createdAt: string;
+}
+
+export interface K8sSecret {
+  id: string;
+  name: string;
+  namespace: string;
+  type: 'Opaque' | 'kubernetes.io/service-account-token' | 'kubernetes.io/dockerconfigjson';
+  data: Record<string, string>; // Base64 encoded values
+  createdAt: string;
+}
+
 // ============ CLUSTER SNAPSHOT ============
 export interface ClusterSnapshot {
   id: string;
@@ -230,6 +248,8 @@ export interface ClusterSnapshot {
   daemonSets: K8sDaemonSet[];
   pvs: K8sPV[];
   pvcs: K8sPVC[];
+  configMaps: K8sConfigMap[];
+  secrets: K8sSecret[];
 }
 
 // ============ SCENARIO ACTIONS ============

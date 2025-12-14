@@ -12,6 +12,7 @@ interface WorkerNodeProps {
   activeComponent?: 'kubelet' | 'kube-proxy' | null;
   onSelectNode: (nodeId: string) => void;
   onSelectPod: (pod: K8sPod) => void;
+  onSelectComponent?: (component: 'kubelet' | 'kube-proxy') => void;
 }
 
 function WorkerNodeComponent({
@@ -23,6 +24,7 @@ function WorkerNodeComponent({
   activeComponent,
   onSelectNode,
   onSelectPod,
+  onSelectComponent,
 }: WorkerNodeProps) {
   const cpuPercent = percentage(node.cpu.used, node.cpu.total);
   const memPercent = percentage(node.memory.used, node.memory.total);
@@ -126,17 +128,23 @@ function WorkerNodeComponent({
       
       {/* System Components */}
       <div className="grid grid-cols-2 gap-2 mb-4">
-          <div className={cn(
-             "p-2 rounded bg-surface-900 border text-center transition-all duration-300",
-             activeComponent === 'kubelet' ? "border-primary-500 shadow-[0_0_10px_rgba(59,130,246,0.3)] bg-primary-500/10" : "border-surface-700"
-          )}>
+          <div 
+             onClick={(e) => { e.stopPropagation(); onSelectComponent?.('kubelet'); }}
+             className={cn(
+               "p-2 rounded bg-surface-900 border text-center transition-all duration-300 cursor-pointer hover:border-surface-600",
+               activeComponent === 'kubelet' ? "border-primary-500 shadow-[0_0_10px_rgba(59,130,246,0.3)] bg-primary-500/10" : "border-surface-700"
+             )}
+          >
              <div className="text-[10px] font-mono text-surface-300 uppercase tracking-wider mb-1">Node Agent</div>
              <div className={cn("font-semibold text-xs", activeComponent === 'kubelet' ? "text-primary-300" : "text-surface-200")}>kubelet</div>
           </div>
-          <div className={cn(
-             "p-2 rounded bg-surface-900 border text-center transition-all duration-300",
-             activeComponent === 'kube-proxy' ? "border-accent-500 shadow-[0_0_10px_rgba(168,85,247,0.3)] bg-accent-500/10" : "border-surface-700"
-          )}>
+          <div 
+             onClick={(e) => { e.stopPropagation(); onSelectComponent?.('kube-proxy'); }}
+             className={cn(
+               "p-2 rounded bg-surface-900 border text-center transition-all duration-300 cursor-pointer hover:border-surface-600",
+               activeComponent === 'kube-proxy' ? "border-accent-500 shadow-[0_0_10px_rgba(168,85,247,0.3)] bg-accent-500/10" : "border-surface-700"
+             )}
+          >
              <div className="text-[10px] font-mono text-surface-300 uppercase tracking-wider mb-1">Network</div>
              <div className={cn("font-semibold text-xs", activeComponent === 'kube-proxy' ? "text-accent-300" : "text-surface-200")}>kube-proxy</div>
           </div>

@@ -1,7 +1,7 @@
-import { X, Lightbulb, Trash2, Box, Server, Database, Cog, Calendar, AlertTriangle, Network, Globe, ImageOff, RotateCcw, HardDrive } from 'lucide-react';
+import { X, Lightbulb, Trash2, Box, Server, Database, Cog, Calendar, AlertTriangle, Network, Globe, ImageOff, RotateCcw, HardDrive, FileJson, Lock } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { useClusterStore } from '@/store';
-import type { K8sPod, K8sNode, K8sService, K8sIngress, ControlPlaneComponent, ClusterSnapshot, K8sPV, K8sPVC } from '@/types';
+import type { K8sPod, K8sNode, K8sService, K8sIngress, ControlPlaneComponent, ClusterSnapshot, K8sPV, K8sPVC, K8sConfigMap, K8sSecret } from '@/types';
 import { formatMemory } from '@/utils';
 
 type SelectedItem =
@@ -12,7 +12,10 @@ type SelectedItem =
   | { type: 'ingress'; data: K8sIngress }
   | { type: 'pv'; data: K8sPV }
   | { type: 'pvc'; data: K8sPVC }
+  | { type: 'configMap'; data: K8sConfigMap }
+  | { type: 'secret'; data: K8sSecret }
   | { type: 'info'; data: { id: 'controlPlaneIntro' | 'workerNodesIntro' } }
+  | { type: 'nodeComponent'; data: { nodeId: string; component: 'kubelet' | 'kube-proxy'; nodeName: string } }
   | null;
 
 interface EnhancedInfoPanelProps {
@@ -657,6 +660,126 @@ export function EnhancedInfoPanel({ selected, cluster, onClose, onKillPod }: Enh
               </div>
           </div>
       );
+  }
+
+  // ConfigMap
+  if (selected.type === 'configMap') {
+      const cm = selected.data;
+      return (
+          <div className="w-96 bg-surface-900 border-l border-surface-700 flex flex-col overflow-hidden">
+              <PanelHeader title={cm.name} icon={FileJson} status="healthy" onClose={onClose} />
+              <div className="flex-1 overflow-auto p-4 space-y-5">
+                   <p className="text-sm text-surface-300 leading-relaxed">
+                     A ConfigMap is an API object used to store non-confidential data in key-value pairs. Pods can consume ConfigMaps as environment variables, command-line arguments, or as configuration files in a volume.
+                   </p>
+
+                   <AnalogyBox analogy="📝 Think of a ConfigMap like a settings file for a game. You can change the difficulty or graphics settings without rewriting the game code." />
+
+                   <div>
+                       <h4 className="text-xs font-medium text-surface-400 uppercase tracking-wide mb-2">Metadata</h4>
+                       <div className="space-y-1 text-sm">
+                           <InfoRow label="Namespace" value={cm.namespace} />
+                           <InfoRow label="Items" value={Object.keys(cm.data).length.toString()} />
+                       </div>
+                   </div>
+
+                   <div>
+                       <h4 className="text-xs font-medium text-surface-400 uppercase tracking-wide mb-2">Data</h4>
+                       <div className="space-y-2">
+                           {Object.entries(cm.data).map(([key, value]) => (
+                               <div key={key} className="bg-surface-800 rounded p-2 border border-surface-700">
+                                   <div className="text-xs text-info-400 font-medium mb-1">{key}</div>
+                                   <pre className="text-[10px] text-surface-300 overflow-x-auto whitespace-pre-wrap font-mono bg-surface-900 p-1 rounded">{value}</pre>
+                               </div>
+                           ))}
+                       </div>
+                   </div>
+              </div>
+          </div>
+      );
+  }
+
+  // Secret
+  if (selected.type === 'secret') {
+      const secret = selected.data;
+      return (
+          <div className="w-96 bg-surface-900 border-l border-surface-700 flex flex-col overflow-hidden">
+              <PanelHeader title={secret.name} icon={Lock} status="healthy" onClose={onClose} />
+              <div className="flex-1 overflow-auto p-4 space-y-5">
+                   <p className="text-sm text-surface-300 leading-relaxed">
+                     A Secret is an object that contains a small amount of sensitive data such as a password, a token, or a key. Using a Secret means you don't need to put confidential data in your application code.
+                   </p>
+
+                   <AnalogyBox analogy="🔒 Think of a Secret like a safe deposit box. It holds keys and valuable credentials securely, and only authorized people (Pods) can open it." />
+
+                   <div>
+                       <h4 className="text-xs font-medium text-surface-400 uppercase tracking-wide mb-2">Metadata</h4>
+                       <div className="space-y-1 text-sm">
+                           <InfoRow label="Namespace" value={secret.namespace} />
+                           <InfoRow label="Type" value={secret.type} />
+                           <InfoRow label="Items" value={Object.keys(secret.data).length.toString()} />
+                       </div>
+                   </div>
+
+                   <div>
+                       <h4 className="text-xs font-medium text-surface-400 uppercase tracking-wide mb-2">Data (Base64 Encoded)</h4>
+                       <div className="space-y-2">
+                           {Object.entries(secret.data).map(([key]) => (
+                               <div key={key} className="bg-surface-800 rounded p-2 border border-surface-700 flex items-center justify-between">
+                                   <div className="text-xs text-error-400 font-medium">{key}</div>
+                                   <div className="text-[10px] text-surface-500 font-mono">****************</div>
+                               </div>
+                           ))}
+                       </div>
+                       <p className="text-[10px] text-surface-500 mt-2 italic text-center">* Values hidden for security</p>
+                   </div>
+              </div>
+          </div>
+      );
+  }
+
+  // Node Component
+  if (selected.type === 'nodeComponent') {
+    const { component, nodeName } = selected.data;
+    const isKubelet = component === 'kubelet';
+    
+    return (
+      <div className="w-96 bg-surface-900 border-l border-surface-700 flex flex-col overflow-hidden">
+        <PanelHeader 
+           title={isKubelet ? 'kubelet' : 'kube-proxy'} 
+           icon={isKubelet ? Box : Network} 
+           status="healthy" 
+           onClose={onClose} 
+        />
+        <div className="flex-1 overflow-auto p-4 space-y-5">
+           <div className="text-xs font-mono text-surface-400 mb-2">Running on {nodeName}</div>
+           
+           <p className="text-sm text-surface-300 leading-relaxed">
+             {isKubelet 
+               ? "The kubelet is the primary 'node agent' that runs on each node. It works in terms of a PodSpec. A PodSpec is a YAML or JSON object that describes a pod. The kubelet takes a set of PodSpecs that are provided through various mechanisms (primarily through the apiserver) and ensures that the containers described in those PodSpecs are running and healthy."
+               : "kube-proxy is a network proxy that runs on each node in your cluster, implementing part of the Kubernetes Service concept. It maintains network rules on nodes. These network rules allow network communication to your Pods from network sessions inside or outside of your cluster."
+             }
+           </p>
+
+           <AnalogyBox analogy={isKubelet 
+              ? "👷 Think of the kubelet as the Floor Manager of a hotel floor (Node). The General Manager (Control Plane) sends instructions, and the Floor Manager ensures the rooms (Pods) are set up correctly and guests are happy."
+              : "🚦 Think of kube-proxy as the hotel's Switchboard Operator. When a call comes in for 'Room Service' (a Service), the operator looks up which specific room extensions (Pods) are available and connects the call."
+           } />
+
+           <KeyPointsList points={isKubelet ? [
+               'Registers the node with the API server',
+               'Mounts volumes for pods',
+               'Runs readiness/liveness probes',
+               'Reports node status and resource usage'
+           ] : [
+               'Manages iptables or IPVS rules',
+               'Load balances traffic between pods of a service',
+               'Does not actually pass traffic in IPVS mode (high perf)',
+               'Essential for Service discovery'
+           ]} />
+        </div>
+      </div>
+    );
   }
 
   return null;

@@ -1,4 +1,4 @@
-import type { ClusterSnapshot, ControlPlane, K8sNode, K8sPod, K8sService, K8sIngress, K8sDeployment, K8sPV, K8sPVC } from '@/types';
+import type { ClusterSnapshot, ControlPlane, K8sNode, K8sPod, K8sService, K8sIngress, K8sDeployment, K8sPV, K8sPVC, K8sConfigMap, K8sSecret } from '@/types';
 
 // ============ CONTROL PLANE ============
 const healthyControlPlane: ControlPlane = {
@@ -298,6 +298,55 @@ const createPVCs = (): K8sPVC[] => [
     }
 ];
 
+// ============ CONFIGURATION ============
+const createConfigMaps = (): K8sConfigMap[] => [
+    {
+        id: 'cm-nginx',
+        name: 'nginx-config',
+        namespace: 'default',
+        data: {
+             'nginx.conf': 'server { listen 80; location / { root /usr/share/nginx/html; } }',
+             'extra-settings': 'gzip on;'
+        },
+        createdAt: '2024-12-11T10:00:00Z',
+    },
+    {
+        id: 'cm-game',
+        name: 'game-settings',
+        namespace: 'default',
+        data: {
+             'difficulty': 'hard',
+             'max_players': '10'
+        },
+        createdAt: '2024-12-11T10:00:00Z',
+    }
+];
+
+const createSecrets = (): K8sSecret[] => [
+    {
+        id: 'secret-db',
+        name: 'db-credentials',
+        namespace: 'default',
+        type: 'Opaque',
+        data: {
+             'username': 'YWRtaW4=', // admin
+             'password': 'cGFzc3dvcmQxMjM=' // password123
+        },
+        createdAt: '2024-12-11T10:00:00Z',
+    },
+    {
+        id: 'secret-tls',
+        name: 'tls-cert',
+        namespace: 'default',
+        type: 'Opaque',
+        data: {
+             'tls.crt': 'LS0tLS1CRUdJTiBDRV...',
+             'tls.key': 'LS0tLS1CRUdJTiBQUkk...'
+        },
+        createdAt: '2024-12-11T10:00:00Z',
+    }
+];
+
 // ============ SCENARIO: HEALTHY CLUSTER ============
 export const healthyCluster: ClusterSnapshot = {
   id: 'healthy-cluster',
@@ -314,6 +363,8 @@ export const healthyCluster: ClusterSnapshot = {
   daemonSets: [],
   pvs: createPVs(),
   pvcs: createPVCs(),
+  configMaps: createConfigMaps(),
+  secrets: createSecrets(),
 };
 
 // ============ SCENARIO: CRASHLOOPBACKOFF ============

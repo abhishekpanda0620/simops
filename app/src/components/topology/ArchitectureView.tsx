@@ -3,13 +3,14 @@ import { ControlPlaneNode, WorkerNode } from './nodes';
 import { TrafficFlowControls, RoutingStatus, useTrafficSimulation, isInTrafficPath } from './TrafficFlow';
 import { ControlPlaneFlowControls, ControlPlaneStatus } from './ControlPlaneFlow';
 import { StorageLayer } from './StorageLayer';
+import { ConfigurationLayer } from './ConfigurationLayer';
 import { EnhancedInfoPanel } from './EnhancedInfoPanel';
 import { useClusterStore } from '@/store';
 import { useControlPlaneSimulation } from './useControlPlaneSimulation';
 import { isControlPlaneActive } from './ControlPlaneUtils';
 import { FlowModeSelector, type FlowMode } from './FlowModeSelector';
 import { ScenarioSelector, ScenarioDescription } from './ScenarioSelector';
-import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sNode, K8sPV, K8sPVC } from '@/types';
+import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sNode, K8sPV, K8sPVC, K8sConfigMap, K8sSecret } from '@/types';
 import type { ScenarioId } from '@/data';
 import { Globe, Network, ArrowDown, AlertCircle, Info, Box } from 'lucide-react';
 import { cn } from '@/utils';
@@ -29,7 +30,10 @@ type SelectedItem =
   | { type: 'ingress'; data: K8sIngress }
   | { type: 'pv'; data: K8sPV }
   | { type: 'pvc'; data: K8sPVC }
+  | { type: 'configMap'; data: K8sConfigMap }
+  | { type: 'secret'; data: K8sSecret }
   | { type: 'info'; data: { id: 'controlPlaneIntro' | 'workerNodesIntro' } }
+  | { type: 'nodeComponent'; data: { nodeId: string; component: 'kubelet' | 'kube-proxy'; nodeName: string } }
   | null;
 
 export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario, onKillPod }: ArchitectureViewProps) {
@@ -681,6 +685,7 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
                   isSelected={selected?.type === 'node' && selected.data.id === node.id}
                   onSelectNode={() => setSelected({ type: 'node', data: node })}
                   onSelectPod={(pod) => setSelected({ type: 'pod', data: pod })}
+                  onSelectComponent={(component) => setSelected({ type: 'nodeComponent', data: { nodeId: node.id, component, nodeName: node.name } })}
                   activeComponent={
                     controlPlane.state.scenario === 'worker-flow'
                       ? (['kube-proxy', 'node-flow'].includes(controlPlane.state.phase) ? 'kube-proxy' :
@@ -758,6 +763,18 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
               }}
               selectedPVId={selected?.type === 'pv' ? selected.data.id : null}
               selectedPVCId={selected?.type === 'pvc' ? selected.data.id : null}
+            />
+          )}
+
+          {/* Configuration Layer */}
+          {cluster && (cluster.configMaps?.length > 0 || cluster.secrets?.length > 0) && (
+            <ConfigurationLayer 
+              configMaps={cluster.configMaps}
+              secrets={cluster.secrets}
+              onSelectConfigMap={(cm) => setSelected({ type: 'configMap', data: cm })}
+              onSelectSecret={(secret) => setSelected({ type: 'secret', data: secret })}
+              selectedConfigMapId={selected?.type === 'configMap' ? selected.data.id : null}
+              selectedSecretId={selected?.type === 'secret' ? selected.data.id : null}
             />
           )}
 
