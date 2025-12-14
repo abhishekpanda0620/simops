@@ -142,6 +142,44 @@ const createHealthyPods = (): K8sPod[] => [
   createHealthyPod('pod-api-2', 'api-5c4d3b2a1-jkl78', 'node-worker-2', 'worker-2', 'api', 'myapp/api:v2.1.0', ['svc-api'], { app: 'api', tier: 'backend' }),
   createHealthyPod('pod-db-1', 'postgres-0', 'node-worker-2', 'worker-2', 'postgres', 'postgres:15', ['svc-postgres'], { app: 'postgres', tier: 'database' }),
   createHealthyPod('pod-cache-1', 'redis-0', 'node-worker-2', 'worker-2', 'redis', 'redis:7', ['svc-redis'], { app: 'redis', tier: 'cache' }),
+  
+  // DEMO: Pod with Init Container
+  {
+    ...createHealthyPod('pod-demo-init', 'job-processor-init', 'node-worker-1', 'worker-1', 'processor', 'myapp/processor:v1', [], { app: 'processor' }),
+    initContainers: [
+        {
+            name: 'init-schema',
+            image: 'busybox',
+            state: 'terminated',
+            terminatedReason: 'Completed',
+            ready: true,
+            restarts: 0,
+        }
+    ]
+  },
+
+  // DEMO: Pod with Sidecar (Multi-container)
+  {
+    ...createHealthyPod('pod-demo-sidecar', 'logging-stack-v1', 'node-worker-2', 'worker-2', 'main-app', 'myapp/server:v1', [], { app: 'logging-stack' }),
+    containers: [
+        {
+            name: 'main-app',
+            image: 'myapp/server:v1',
+            state: 'running',
+            ready: true,
+            restarts: 0,
+            resources: { requests: { cpu: '100m', memory: '128Mi' }, limits: { cpu: '200m', memory: '256Mi' } }
+        },
+        {
+            name: 'log-shipper',
+            image: 'fluentd:v1.16',
+            state: 'running',
+            ready: true,
+            restarts: 0,
+             resources: { requests: { cpu: '50m', memory: '64Mi' }, limits: { cpu: '100m', memory: '128Mi' } }
+        }
+    ]
+  }
 ];
 
 // ============ SERVICES ============

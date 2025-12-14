@@ -115,6 +115,8 @@ export function useTrafficSimulation(
     isFlowing: false,
     phase: 'idle',
     endpoint: '/',
+    status: 'success',
+    responseCode: 200,
     targetIngressId: null,
     targetServiceId: null,
     targetPodId: null,
@@ -144,30 +146,57 @@ export function useTrafficSimulation(
     const service = services.find(s => s.id === serviceId);
     if (!service) return;
     
-    // Step 4: Service load-balances to one of its pods (random selection)
+    // Step 4: Service load-balances to one of its pods
+    // FIX: Check for HEALTHY pods only!
     const podIds = service.podIds || [];
-    const targetPodId = podIds[Math.floor(Math.random() * podIds.length)];
+    const candidates = pods.filter(p => podIds.includes(p.id) && p.status === 'running');
     
-    // Step 5: Find the pod to get its node
-    const targetPod = pods.find(p => p.id === targetPodId);
+    if (candidates.length === 0) {
+        // ERROR: No healthy pods -> 503 Service Unavailable
+        console.log(`🌐 Traffic: ${state.endpoint} → Ingress → ${service.name} → ❌ 503 (No endpoints)`);
+        
+        setState(prev => ({
+            ...prev,
+            isFlowing: true,
+            status: 'error',
+            responseCode: 503,
+            phase: 'ingress',
+            targetIngressId: ingress.id,
+            targetServiceId: service.id,
+            targetPodId: null,
+            targetNodeId: null,
+            targetServiceName: service.name,
+        }));
+
+        // Short-circuit animation for error
+        setTimeout(() => setState(prev => ({ ...prev, phase: 'service' })), 2000);
+        setTimeout(() => setState(prev => ({ ...prev, phase: 'response' })), 4000); // Skip pod phase
+        setTimeout(() => setState(prev => ({ ...prev, phase: 'complete' })), 7000);
+        
+        return;
+    }
+
+    // Success case
+    const targetPod = candidates[Math.floor(Math.random() * candidates.length)];
     const targetNodeId = targetPod?.nodeId || null;
 
-    console.log(`🌐 Traffic: ${state.endpoint} → Ingress → ${service.name} → ${targetPod?.name} (on ${targetPod?.nodeName})`);
+    console.log(`🌐 Traffic: ${state.endpoint} → Ingress → ${service.name} → ${targetPod.name}`);
 
     // Start the animation sequence
     setState(prev => ({
       ...prev,
       isFlowing: true,
+      status: 'success',
+      responseCode: 200,
       phase: 'ingress',
       targetIngressId: ingress.id,
       targetServiceId: service.id,
-      targetPodId,
+      targetPodId: targetPod.id,
       targetNodeId,
       targetServiceName: service.name,
     }));
 
-    // Phase transitions - longer pauses at each component for understanding
-    // Ingress: 0-2s, Service: 2-4s, Pod processing: 4-7s, Response: 7-10s
+    // Phase transitions
     setTimeout(() => setState(prev => ({ ...prev, phase: 'service' })), 2000);
     setTimeout(() => setState(prev => ({ ...prev, phase: 'pod' })), 4000);
     setTimeout(() => setState(prev => ({ ...prev, phase: 'response' })), 7000);
@@ -179,6 +208,8 @@ export function useTrafficSimulation(
       ...prev,
       isFlowing: false,
       phase: 'idle',
+      status: 'success', 
+      responseCode: 200,
       targetIngressId: null,
       targetServiceId: null,
       targetPodId: null,
@@ -233,10 +264,15 @@ export function isInTrafficPath(
 export function TrafficPathIndicator({ trafficState }: { trafficState: TrafficState }) {
   if (!trafficState.isFlowing || trafficState.phase === 'idle') return null;
   
+  const isError = trafficState.status === 'error';
+
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-surface-800/95 border border-success-500/50 shadow-xl">
+    <div className={cn(
+        "fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg backdrop-blur-md shadow-xl border",
+        isError ? "bg-error-500/10 border-error-500/50" : "bg-surface-800/95 border-success-500/50"
+    )}>
       <div className="flex items-center gap-3 text-sm">
-        <span className="text-success-400 font-medium">Request:</span>
+        <span className={cn("font-medium", isError ? "text-error-400" : "text-success-400")}>Request:</span>
         <code className="text-accent-400 font-mono">{trafficState.endpoint}</code>
         <span className="text-surface-500">→</span>
         <span className={cn(
@@ -248,21 +284,30 @@ export function TrafficPathIndicator({ trafficState }: { trafficState: TrafficSt
         <span className="text-surface-500">→</span>
         <span className={cn(
           "transition-colors duration-300",
-          trafficState.phase === 'service' ? "text-success-400 font-medium" : "text-surface-400"
+          trafficState.phase === 'service' ? (isError ? "text-error-400 font-medium" : "text-success-400 font-medium") : "text-surface-400"
         )}>
           {trafficState.targetServiceName || 'Service'}
         </span>
-        <span className="text-surface-500">→</span>
-        <span className={cn(
-          "transition-colors duration-300",
-          trafficState.phase === 'pod' ? "text-success-400 font-medium" : "text-surface-400"
-        )}>
-          Pod
-        </span>
+        
+        {/* Only show Pod step if not error (or if we failed AT the pod, but here we fail at service level) */}
+        {!isError && (
+            <>
+                <span className="text-surface-500">→</span>
+                <span className={cn(
+                  "transition-colors duration-300",
+                  trafficState.phase === 'pod' ? "text-success-400 font-medium" : "text-surface-400"
+                )}>
+                  Pod
+                </span>
+            </>
+        )}
+
         {trafficState.phase === 'response' && (
           <>
             <span className="text-surface-500">→</span>
-            <span className="text-accent-400 font-medium animate-pulse">200 OK ✓</span>
+            <span className={cn("font-medium animate-pulse", isError ? "text-error-400" : "text-accent-400")}>
+                {trafficState.responseCode} {isError ? 'Service Unavailable' : 'OK'} {isError ? '❌' : '✓'}
+            </span>
           </>
         )}
       </div>
@@ -275,11 +320,15 @@ export function RoutingStatus({ trafficState }: { trafficState: TrafficState }) 
   if (!trafficState.isFlowing) return null;
   
   const arrow = trafficState.phase === 'response' ? '←' : '→';
+  const isError = trafficState.status === 'error';
 
   return (
-    <div className="mb-4 p-3 rounded-lg bg-success-500/10 border border-success-500/30">
+    <div className={cn(
+        "mb-4 p-3 rounded-lg border",
+        isError ? "bg-error-500/10 border-error-500/30" : "bg-success-500/10 border-success-500/30"
+    )}>
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-success-400 font-medium">
+        <span className={cn("font-medium", isError ? "text-error-400" : "text-success-400")}>
           {trafficState.phase === 'response' ? '📥 Response:' : '🔄 Routing:'}
         </span>
         <span className="font-mono text-accent-400">{trafficState.endpoint}</span>
@@ -292,18 +341,23 @@ export function RoutingStatus({ trafficState }: { trafficState: TrafficState }) 
         
         <span className="text-surface-500">{arrow}</span>
         
-        <span className={trafficState.phase === 'service' ? "text-success-400 font-medium" : "text-surface-400"}>
+        <span className={trafficState.phase === 'service' ? (isError ? "text-error-400 font-medium" : "text-success-400 font-medium") : "text-surface-400"}>
           {trafficState.targetServiceName || 'Service'}
         </span>
         
-        <span className="text-surface-500">{arrow}</span>
-        
-        <span className={trafficState.phase === 'pod' || trafficState.phase === 'response' ? "text-success-400 font-medium" : "text-surface-400"}>
-          Pod
-        </span>
+        {!isError && (
+            <>
+                <span className="text-surface-500">{arrow}</span>
+                <span className={trafficState.phase === 'pod' || trafficState.phase === 'response' ? "text-success-400 font-medium" : "text-surface-400"}>
+                  Pod
+                </span>
+            </>
+        )}
         
         {trafficState.phase === 'response' && (
-          <span className="ml-2 text-accent-400 font-medium">200 OK</span>
+          <span className={cn("ml-2 font-medium", isError ? "text-error-400" : "text-accent-400")}>
+            {trafficState.responseCode} {isError ? 'Error' : 'OK'}
+          </span>
         )}
       </div>
     </div>

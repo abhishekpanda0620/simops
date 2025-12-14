@@ -172,21 +172,45 @@ function WorkerNodeComponent({
               </div>
               
               {/* Internal Container Visualization */}
-              <div className="flex gap-1 mb-1.5 px-0.5">
-                {pod.containers.map((c, i) => (
-                  <div 
-                    key={i} 
-                    className={cn(
-                      "h-1.5 w-1.5 rounded-sm",
-                      c.state === 'running' ? "bg-accent-400" : "bg-surface-600 animate-pulse"
-                    )} 
-                    title={c.name}
-                  />
-                ))}
-                {/* Fallback if no containers array yet */}
-                {(!pod.containers || pod.containers.length === 0) && (
-                   <div className="h-1.5 w-1.5 rounded-sm bg-accent-400/50" />
+              <div className="flex flex-col gap-1 mb-1.5 px-0.5">
+                {/* Init Containers */}
+                {pod.initContainers && pod.initContainers.length > 0 && (
+                   <div className="flex gap-1 items-center">
+                      <span className="text-[8px] text-surface-400 uppercase tracking-tight mr-1">Init</span>
+                      {pod.initContainers.map((c, i) => (
+                        <div
+                          key={`init-${i}`}
+                          className={cn(
+                            "h-1.5 w-1.5 rounded-sm transition-all duration-300",
+                            c.state === 'terminated' && c.terminatedReason === 'Completed' ? "bg-success-500" : 
+                            c.state === 'running' ? "bg-accent-400 animate-pulse" : "bg-surface-600"
+                          )}
+                          title={`Init: ${c.name} (${c.state})`}
+                        />
+                      ))}
+                   </div>
                 )}
+                
+                {/* App Containers */}
+                <div className="flex gap-1 flex-wrap">
+                  {pod.containers.map((c, i) => (
+                    <div
+                      key={i}
+                      className={cn(
+                        "h-2 w-2 rounded-sm transition-all duration-300 border-[0.5px] border-surface-950",
+                        c.state === 'running' ? "bg-success-400 shadow-[0_0_4px_rgba(74,222,128,0.4)]" :
+                        c.state === 'waiting' ? "bg-warning-400 animate-pulse" :
+                        c.state === 'terminated' ? "bg-surface-500" :
+                        "bg-surface-600"
+                      )}
+                      title={`${c.name} (${c.state})`}
+                    />
+                  ))}
+                  {/* Fallback if no containers array yet */}
+                  {(!pod.containers || pod.containers.length === 0) && (
+                     <div className="h-2 w-2 rounded-sm bg-accent-400/50" />
+                  )}
+                </div>
               </div>
 
               <div className="flex flex-col gap-0.5">

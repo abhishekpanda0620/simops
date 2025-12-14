@@ -86,9 +86,12 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
             {/* Response packet - moves UP based on phase */}
             {traffic.state.phase === 'response' && (
               <div className="absolute left-1/2 translate-x-12 z-30 pointer-events-none top-[78%] animate-[moveUp_3s_ease-in-out_forwards]">
-                <div className="px-3 py-1.5 rounded-md text-xs font-mono whitespace-nowrap shadow-lg bg-accent-500 text-white border border-accent-400 flex items-center gap-2">
+                <div className={cn(
+                  "px-3 py-1.5 rounded-md text-xs font-mono whitespace-nowrap shadow-lg text-white border flex items-center gap-2",
+                  traffic.state.status === 'error' ? "bg-error-500 border-error-400" : "bg-accent-500 border-accent-400"
+                )}>
                   <span className="animate-bounce">▲</span>
-                  <span>200 OK</span>
+                  <span>{traffic.state.responseCode} {traffic.state.status === 'error' ? 'Error' : 'OK'}</span>
                   <span>📥</span>
                 </div>
               </div>

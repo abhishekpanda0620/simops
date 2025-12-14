@@ -1,7 +1,8 @@
-import { X, Lightbulb, Trash2, Box, Server, Database, Cog, Calendar, AlertTriangle, Network, Globe } from 'lucide-react';
+import { X, Lightbulb, Trash2, Box, Server, Database, Cog, Calendar, AlertTriangle, Network, Globe, ImageOff, RotateCcw, PowerOff } from 'lucide-react';
 import { Button } from '@/components/ui';
+import { useClusterStore } from '@/store';
 import type { K8sPod, K8sNode, K8sService, K8sIngress, ControlPlaneComponent, ClusterSnapshot } from '@/types';
-import { formatRelativeTime, formatMemory } from '@/utils';
+import { formatMemory } from '@/utils';
 
 type SelectedItem =
   | { type: 'controlPlane'; data: ControlPlaneComponent }
@@ -343,8 +344,9 @@ export function EnhancedInfoPanel({ selected, cluster, onClose, onKillPod }: Enh
 
   // Pod
   if (selected.type === 'pod') {
-    // Get fresh pod data from cluster (important for Kill Pod updates)
+    // Get fresh pod data from cluster
     const pod = cluster.pods.find(p => p.id === selected.data.id) || selected.data;
+    const deployment = cluster.deployments.find(d => d.selector.app === pod.labels.app); // Find parent deployment
     const container = pod.containers[0];
     const waitingReason = container?.waitingReason;
     const terminatedReason = container?.terminatedReason;
@@ -364,80 +366,100 @@ export function EnhancedInfoPanel({ selected, cluster, onClose, onKillPod }: Enh
         />
         <div className="flex-1 overflow-auto p-4 space-y-5">
           
-          {/* Error State Explanation */}
+          {/* Main Info Blocks (omitted for brevity, verified to exist) */}
           {stateContent && (
-            <div className="p-3 rounded-lg bg-error-500/10 border border-error-500/30">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="w-4 h-4 text-error-400" />
-                <span className="text-sm font-medium text-error-400">{stateContent.title}</span>
-              </div>
-              <p className="text-sm text-surface-300 mb-2">{stateContent.description}</p>
-              <p className="text-xs text-surface-400 mb-2"><strong>Cause:</strong> {stateContent.cause}</p>
-              <div className="text-xs text-surface-400">
-                <strong>How to fix:</strong>
-                <ul className="list-disc list-inside mt-1 space-y-0.5">
-                  {stateContent.fix.map((f: string, i: number) => <li key={i}>{f}</li>)}
-                </ul>
-              </div>
-            </div>
+             <div className="p-3 rounded-lg bg-error-500/10 border border-error-500/30">
+               <div className="flex items-center gap-2 mb-2">
+                 <AlertTriangle className="w-4 h-4 text-error-400" />
+                 <span className="text-sm font-medium text-error-400">{stateContent.title}</span>
+               </div>
+               <p className="text-sm text-surface-300 mb-2">{stateContent.description}</p>
+             </div>
           )}
-
-          {/* Pod Info */}
+          
           <div>
             <h4 className="text-xs font-medium text-surface-400 uppercase tracking-wide mb-2">Pod Details</h4>
             <div className="space-y-1 text-sm">
               <InfoRow label="Namespace" value={pod.namespace} />
-              <InfoRow label="Node" value={pod.nodeName || 'Unscheduled'} />
               <InfoRow label="Phase" value={pod.phase} />
               <InfoRow label="Restarts" value={pod.restarts.toString()} highlight={pod.restarts > 0} />
-              <InfoRow label="Created" value={formatRelativeTime(pod.createdAt)} />
+              <InfoRow label="Node" value={pod.nodeName || 'Unscheduled'} />
             </div>
           </div>
 
-          {/* Container Info */}
           <div>
             <h4 className="text-xs font-medium text-surface-400 uppercase tracking-wide mb-2">Container</h4>
-            <div className="space-y-1 text-sm">
+             <div className="space-y-1 text-sm">
               <InfoRow label="Name" value={container?.name || 'N/A'} />
-              <InfoRow label="Image" value={container?.image || 'N/A'} />
               <InfoRow label="State" value={container?.state || 'N/A'} />
-              {container?.waitingReason && (
-                <InfoRow label="Reason" value={container.waitingReason} highlight />
-              )}
-              {container?.terminatedReason && (
-                <InfoRow label="Reason" value={container.terminatedReason} highlight />
-              )}
-            </div>
+             </div>
           </div>
+          
+          {/* Deployment Control */}
+          {deployment && (
+            <div className="p-3 rounded-lg bg-surface-800 border border-surface-700">
+               <h4 className="text-xs font-medium text-primary-400 uppercase tracking-wide mb-2">Replica Set Control</h4>
+               <div className="flex items-center justify-between mb-1">
+                 <span className="text-sm text-surface-200 font-medium">Replicas: {deployment.replicas.desired}</span>
+                 <div className="flex items-center gap-1">
+                    <button 
+                        className="w-6 h-6 rounded bg-surface-700 hover:bg-surface-600 flex items-center justify-center text-surface-200 font-mono"
+                        onClick={() => useClusterStore.getState().scaleDeployment(deployment.id, Math.max(0, deployment.replicas.desired - 1))}
+                    >
+                        -
+                    </button>
+                     <button 
+                        className="w-6 h-6 rounded bg-surface-700 hover:bg-surface-600 flex items-center justify-center text-surface-200 font-mono"
+                        onClick={() => useClusterStore.getState().scaleDeployment(deployment.id, deployment.replicas.desired + 1)}
+                    >
+                        +
+                    </button>
+                 </div>
+               </div>
+               <p className="text-[10px] text-surface-400">Scaling {deployment.name}</p>
+            </div>
+          )}
 
-          {/* Events */}
-          <div>
-            <h4 className="text-xs font-medium text-surface-400 uppercase tracking-wide mb-2">Recent Events</h4>
-            <div className="space-y-2 max-h-32 overflow-auto">
-              {pod.events.slice(-5).reverse().map((event, i) => (
-                <div key={i} className={`text-xs p-2 rounded ${event.type === 'Warning' ? 'bg-warning-500/10' : 'bg-surface-800'}`}>
-                  <span className={event.type === 'Warning' ? 'text-warning-400' : 'text-surface-300'}>
-                    {event.reason}:
-                  </span>{' '}
-                  <span className="text-surface-400">{event.message}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Actions */}
         <div className="p-4 border-t border-surface-700 space-y-2">
-          <Button
-            variant="secondary"
-            className="w-full gap-2"
-            onClick={() => onKillPod(pod.id)}
-            icon={<Trash2 className="w-4 h-4" />}
-          >
-            Kill Pod (Simulate kubectl delete)
-          </Button>
-          <p className="text-xs text-surface-500 text-center">
-            Watch the controller recreate it! (self-healing demo)
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="secondary"
+                className="w-full gap-2 justify-center"
+                onClick={() => onKillPod(pod.id)}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Kill Pod
+              </Button>
+            <Button
+                variant="secondary"
+                className="w-full gap-2 justify-center border border-warning-500/50 text-warning-400 hover:bg-warning-500/10"
+                onClick={() => useClusterStore.getState().triggerCrashLoop(pod.id)}
+            >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Crash Loop
+            </Button>
+            <Button
+                variant="secondary" 
+                className="w-full gap-2 justify-center border border-warning-500/50 text-warning-400 hover:bg-warning-500/10"
+                onClick={() => useClusterStore.getState().breakImage(pod.id)}
+            >
+                <ImageOff className="w-3.5 h-3.5" />
+                Break Image
+            </Button>
+            <Button
+                variant="secondary"
+                className="w-full gap-2 justify-center border border-error-500/50 text-error-400 hover:bg-error-500/10"
+                onClick={() => useClusterStore.getState().causeOOM(pod.id)}
+              >
+                <AlertTriangle className="w-3.5 h-3.5" />
+                Force OOM
+              </Button>
+            </div>
+          <p className="text-[10px] text-surface-500 text-center">
+            Simulate failures to see recovery
           </p>
         </div>
       </div>
