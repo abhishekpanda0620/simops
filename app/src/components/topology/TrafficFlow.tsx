@@ -17,6 +17,8 @@ export interface TrafficState {
   targetNodeId: string | null;
   // Service name for display
   targetServiceName: string | null;
+  status: 'success' | 'error';
+  responseCode: number;
 }
 
 interface TrafficFlowControlsProps {

@@ -170,6 +170,50 @@ export interface K8sDeployment {
   strategy: 'RollingUpdate' | 'Recreate';
 }
 
+// ============ STORAGE ============
+export interface K8sPV {
+  id: string;
+  name: string;
+  capacity: string;
+  accessModes: Array<'ReadWriteOnce' | 'ReadOnlyMany' | 'ReadWriteMany'>;
+  reclaimPolicy: 'Retain' | 'Recycle' | 'Delete';
+  status: 'Available' | 'Bound' | 'Released' | 'Failed';
+  claimId?: string;
+  storageClass: string;
+}
+
+export interface K8sPVC {
+  id: string;
+  name: string;
+  namespace: string;
+  volumeName?: string;
+  status: 'Pending' | 'Bound' | 'Lost';
+  capacity: string;
+  accessModes: Array<'ReadWriteOnce' | 'ReadOnlyMany' | 'ReadWriteMany'>;
+  storageClass: string;
+}
+
+// ============ STATEFULSETS ============
+export interface K8sStatefulSet {
+  id: string;
+  name: string;
+  namespace: string;
+  replicas: { desired: number; ready: number; current: number };
+  selector: Record<string, string>;
+  serviceName: string; // Governing service
+  podIds: string[];
+}
+
+// ============ DAEMONSETS ============
+export interface K8sDaemonSet {
+  id: string;
+  name: string;
+  namespace: string;
+  replicas: { desired: number; current: number; ready: number; available: number };
+  selector: Record<string, string>;
+  podIds: string[];
+}
+
 // ============ CLUSTER SNAPSHOT ============
 export interface ClusterSnapshot {
   id: string;
@@ -182,6 +226,10 @@ export interface ClusterSnapshot {
   services: K8sService[];
   ingresses: K8sIngress[];
   deployments: K8sDeployment[];
+  statefulSets: K8sStatefulSet[];
+  daemonSets: K8sDaemonSet[];
+  pvs: K8sPV[];
+  pvcs: K8sPVC[];
 }
 
 // ============ SCENARIO ACTIONS ============

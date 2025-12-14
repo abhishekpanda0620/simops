@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent } from '@/types';
+import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sStatefulSet, K8sDaemonSet, K8sPV, K8sPVC } from '@/types';
 import { scenarios, type ScenarioId } from '@/data';
 
 interface ClusterState {
@@ -10,6 +10,10 @@ interface ClusterState {
   selectedIngress: K8sIngress | null;
   selectedControlPlane: ControlPlaneComponent | null;
   selectedNodeId: string | null;
+  selectedStatefulSet: K8sStatefulSet | null;
+  selectedDaemonSet: K8sDaemonSet | null;
+  selectedPV: K8sPV | null;
+  selectedPVC: K8sPVC | null;
   
   // Actions
   loadScenario: (scenarioId: ScenarioId) => void;
@@ -18,6 +22,10 @@ interface ClusterState {
   selectIngress: (ingress: K8sIngress | null) => void;
   selectControlPlane: (component: ControlPlaneComponent | null) => void;
   selectNode: (nodeId: string | null) => void;
+  selectStatefulSet: (sts: K8sStatefulSet | null) => void;
+  selectDaemonSet: (ds: K8sDaemonSet | null) => void;
+  selectPV: (pv: K8sPV | null) => void;
+  selectPVC: (pvc: K8sPVC | null) => void;
   clearSelection: () => void;
   
   // Simulation actions
@@ -38,6 +46,10 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
   selectedIngress: null,
   selectedControlPlane: null,
   selectedNodeId: null,
+  selectedStatefulSet: null,
+  selectedDaemonSet: null,
+  selectedPV: null,
+  selectedPVC: null,
   
   loadScenario: (scenarioId) => {
     set({
@@ -48,6 +60,10 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedIngress: null,
       selectedControlPlane: null,
       selectedNodeId: null,
+      selectedStatefulSet: null,
+      selectedDaemonSet: null,
+      selectedPV: null,
+      selectedPVC: null,
     });
   },
   
@@ -58,6 +74,10 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedIngress: null,
       selectedControlPlane: null,
       selectedNodeId: null,
+      selectedStatefulSet: null,
+      selectedDaemonSet: null,
+      selectedPV: null,
+      selectedPVC: null,
     });
   },
   
@@ -68,6 +88,10 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedIngress: null,
       selectedControlPlane: null,
       selectedNodeId: null,
+      selectedStatefulSet: null,
+      selectedDaemonSet: null,
+      selectedPV: null,
+      selectedPVC: null,
     });
   },
   
@@ -75,9 +99,13 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
     set({ 
       selectedIngress: ingress, 
       selectedPod: null, 
-      selectedService: null,
+      selectedService: null, 
       selectedControlPlane: null,
       selectedNodeId: null,
+      selectedStatefulSet: null,
+      selectedDaemonSet: null,
+      selectedPV: null,
+      selectedPVC: null,
     });
   },
   
@@ -88,6 +116,10 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedService: null,
       selectedIngress: null,
       selectedNodeId: null,
+      selectedStatefulSet: null,
+      selectedDaemonSet: null,
+      selectedPV: null,
+      selectedPVC: null,
     });
   },
   
@@ -98,6 +130,66 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedService: null,
       selectedIngress: null,
       selectedControlPlane: null,
+      selectedStatefulSet: null,
+      selectedDaemonSet: null,
+      selectedPV: null,
+      selectedPVC: null,
+    });
+  },
+
+  selectStatefulSet: (sts) => {
+    set({
+      selectedStatefulSet: sts,
+      selectedPod: null,
+      selectedService: null,
+      selectedIngress: null,
+      selectedControlPlane: null,
+      selectedNodeId: null,
+      selectedDaemonSet: null,
+      selectedPV: null,
+      selectedPVC: null,
+    });
+  },
+
+  selectDaemonSet: (ds) => {
+    set({
+      selectedDaemonSet: ds,
+      selectedPod: null,
+      selectedService: null,
+      selectedIngress: null,
+      selectedControlPlane: null,
+      selectedNodeId: null,
+      selectedStatefulSet: null,
+      selectedPV: null,
+      selectedPVC: null,
+    });
+  },
+
+  selectPV: (pv) => {
+    set({
+      selectedPV: pv,
+      selectedPod: null,
+      selectedService: null,
+      selectedIngress: null,
+      selectedControlPlane: null,
+      selectedNodeId: null,
+      selectedStatefulSet: null,
+      selectedDaemonSet: null,
+      selectedPVC: null,
+    });
+  },
+
+  selectPVC: (pvc) => {
+    set({
+      selectedPVC: pvc,
+      selectedPod: null,
+      selectedService: null,
+      selectedIngress: null,
+      selectedControlPlane: null,
+      selectedNodeId: null,
+      selectedStatefulSet: null,
+      selectedDaemonSet: null,
+      selectedPV: null,
     });
   },
   
@@ -108,6 +200,10 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedIngress: null,
       selectedControlPlane: null,
       selectedNodeId: null,
+      selectedStatefulSet: null,
+      selectedDaemonSet: null,
+      selectedPV: null,
+      selectedPVC: null,
     });
   },
   

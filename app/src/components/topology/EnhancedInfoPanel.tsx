@@ -1,7 +1,7 @@
-import { X, Lightbulb, Trash2, Box, Server, Database, Cog, Calendar, AlertTriangle, Network, Globe, ImageOff, RotateCcw, PowerOff } from 'lucide-react';
+import { X, Lightbulb, Trash2, Box, Server, Database, Cog, Calendar, AlertTriangle, Network, Globe, ImageOff, RotateCcw, HardDrive } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { useClusterStore } from '@/store';
-import type { K8sPod, K8sNode, K8sService, K8sIngress, ControlPlaneComponent, ClusterSnapshot } from '@/types';
+import type { K8sPod, K8sNode, K8sService, K8sIngress, ControlPlaneComponent, ClusterSnapshot, K8sPV, K8sPVC } from '@/types';
 import { formatMemory } from '@/utils';
 
 type SelectedItem =
@@ -10,6 +10,8 @@ type SelectedItem =
   | { type: 'pod'; data: K8sPod }
   | { type: 'service'; data: K8sService }
   | { type: 'ingress'; data: K8sIngress }
+  | { type: 'pv'; data: K8sPV }
+  | { type: 'pvc'; data: K8sPVC }
   | { type: 'info'; data: { id: 'controlPlaneIntro' | 'workerNodesIntro' } }
   | null;
 
@@ -591,7 +593,70 @@ export function EnhancedInfoPanel({ selected, cluster, onClose, onKillPod }: Enh
           ]} />
         </div>
       </div>
+
     );
+  }
+
+  // PersistentVolume
+  if (selected.type === 'pv') {
+      const pv = selected.data;
+      return (
+          <div className="w-96 bg-surface-900 border-l border-surface-700 flex flex-col overflow-hidden">
+              <PanelHeader title={pv.name} icon={HardDrive} status={pv.status === 'Bound' || pv.status === 'Available' ? 'healthy' : 'degraded'} onClose={onClose} />
+              <div className="flex-1 overflow-auto p-4 space-y-5">
+                   <p className="text-sm text-surface-300 leading-relaxed">
+                     A PersistentVolume (PV) is a piece of storage in the cluster that has been provisioned by an administrator or dynamically using Storage Classes.
+                   </p>
+                   
+                   <AnalogyBox analogy="🅿️ Think of a PV like a physical parking spot. It exists whether there is a car parked in it or not. It's a resource provided by the facility (cluster)." />
+
+                   <div>
+                       <h4 className="text-xs font-medium text-surface-400 uppercase tracking-wide mb-2">PV Details</h4>
+                       <div className="space-y-1 text-sm">
+                           <InfoRow label="Capacity" value={pv.capacity} />
+                           <InfoRow label="Access Modes" value={pv.accessModes?.join(', ') || '-'} />
+                           <InfoRow label="Reclaim Policy" value={pv.reclaimPolicy} />
+                           <InfoRow label="Storage Class" value={pv.storageClass} />
+                           <InfoRow label="Status" value={pv.status} highlight={pv.status !== 'Bound' && pv.status !== 'Available'} />
+                       </div>
+                   </div>
+              </div>
+          </div>
+      );
+  }
+
+  // PersistentVolumeClaim
+  if (selected.type === 'pvc') {
+      const pvc = selected.data;
+      return (
+          <div className="w-96 bg-surface-900 border-l border-surface-700 flex flex-col overflow-hidden">
+              <PanelHeader title={pvc.name} icon={Database} status={pvc.status === 'Bound' ? 'healthy' : 'degraded'} onClose={onClose} />
+              <div className="flex-1 overflow-auto p-4 space-y-5">
+                   <p className="text-sm text-surface-300 leading-relaxed">
+                     A PersistentVolumeClaim (PVC) is a request for storage by a user. It is similar to a Pod. Pods consume node resources and PVCs consume PV resources.
+                   </p>
+
+                   <AnalogyBox analogy="🎫 Think of a PVC like a parking permit. You (the Pod) request a permit for a specific type of spot. The system matches your permit (PVC) with an available spot (PV)." />
+
+                   <div>
+                       <h4 className="text-xs font-medium text-surface-400 uppercase tracking-wide mb-2">PVC Details</h4>
+                       <div className="space-y-1 text-sm">
+                           <InfoRow label="Namespace" value={pvc.namespace} />
+                           <InfoRow label="Requested" value={pvc.capacity} />
+                           <InfoRow label="Access Modes" value={pvc.accessModes?.join(', ') || '-'} />
+                           <InfoRow label="Storage Class" value={pvc.storageClass} />
+                           <InfoRow label="Status" value={pvc.status} highlight={pvc.status !== 'Bound'} />
+                       </div>
+                   </div>
+                   {pvc.status === 'Bound' && (
+                       <div className="p-3 bg-surface-800 rounded border border-surface-700">
+                           <span className="text-xs text-surface-400 block mb-1">Bound Volume</span>
+                           <span className="text-sm font-mono text-primary-400">{pvc.volumeName}</span>
+                       </div>
+                   )}
+              </div>
+          </div>
+      );
   }
 
   return null;

@@ -1,4 +1,4 @@
-import type { ClusterSnapshot, ControlPlane, K8sNode, K8sPod, K8sService, K8sIngress, K8sDeployment } from '@/types';
+import type { ClusterSnapshot, ControlPlane, K8sNode, K8sPod, K8sService, K8sIngress, K8sDeployment, K8sPV, K8sPVC } from '@/types';
 
 // ============ CONTROL PLANE ============
 const healthyControlPlane: ControlPlane = {
@@ -262,6 +262,42 @@ const createDeployments = (): K8sDeployment[] => [
   },
 ];
 
+// ============ STORAGE ============
+const createPVs = (): K8sPV[] => [
+    {
+        id: 'pv-postgres',
+        name: 'pv-postgres-data-0',
+        capacity: '10Gi',
+        accessModes: ['ReadWriteOnce'],
+        reclaimPolicy: 'Retain',
+        status: 'Bound',
+        storageClass: 'standard',
+        claimId: 'pvc-postgres'
+    },
+    {
+        id: 'pv-redis',
+        name: 'pv-redis-data-0',
+        capacity: '5Gi',
+        accessModes: ['ReadWriteOnce'],
+        reclaimPolicy: 'Delete',
+        status: 'Available',
+        storageClass: 'fast-ssd',
+    }
+];
+
+const createPVCs = (): K8sPVC[] => [
+    {
+        id: 'pvc-postgres',
+        name: 'postgres-data-claim',
+        namespace: 'default',
+        status: 'Bound',
+        capacity: '10Gi',
+        accessModes: ['ReadWriteOnce'],
+        storageClass: 'standard',
+        volumeName: 'pv-postgres-data-0'
+    }
+];
+
 // ============ SCENARIO: HEALTHY CLUSTER ============
 export const healthyCluster: ClusterSnapshot = {
   id: 'healthy-cluster',
@@ -274,6 +310,10 @@ export const healthyCluster: ClusterSnapshot = {
   services: createServices(),
   ingresses: createIngresses(),
   deployments: createDeployments(),
+  statefulSets: [],
+  daemonSets: [],
+  pvs: createPVs(),
+  pvcs: createPVCs(),
 };
 
 // ============ SCENARIO: CRASHLOOPBACKOFF ============

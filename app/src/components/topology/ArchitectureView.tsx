@@ -1,13 +1,14 @@
 import { useMemo, useState, useEffect } from 'react';
 import { ControlPlaneNode, WorkerNode } from './nodes';
-import { EnhancedInfoPanel } from './EnhancedInfoPanel';
-import { useTrafficSimulation, isInTrafficPath, TrafficFlowControls, RoutingStatus } from './TrafficFlow';
+import { TrafficFlowControls, RoutingStatus, useTrafficSimulation, isInTrafficPath } from './TrafficFlow';
 import { ControlPlaneFlowControls, ControlPlaneStatus } from './ControlPlaneFlow';
+import { StorageLayer } from './StorageLayer';
+import { EnhancedInfoPanel } from './EnhancedInfoPanel';
 import { useControlPlaneSimulation } from './useControlPlaneSimulation';
 import { isControlPlaneActive } from './ControlPlaneUtils';
 import { FlowModeSelector, type FlowMode } from './FlowModeSelector';
 import { ScenarioSelector, ScenarioDescription } from './ScenarioSelector';
-import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sNode } from '@/types';
+import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sNode, K8sPV, K8sPVC } from '@/types';
 import type { ScenarioId } from '@/data';
 import { Globe, Network, ArrowDown, AlertCircle, Info, Box } from 'lucide-react';
 import { cn } from '@/utils';
@@ -25,6 +26,8 @@ type SelectedItem =
   | { type: 'pod'; data: K8sPod }
   | { type: 'service'; data: K8sService }
   | { type: 'ingress'; data: K8sIngress }
+  | { type: 'pv'; data: K8sPV }
+  | { type: 'pvc'; data: K8sPVC }
   | { type: 'info'; data: { id: 'controlPlaneIntro' | 'workerNodesIntro' } }
   | null;
 
@@ -664,6 +667,24 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
               </div>
             </div>
           )}
+          {/* Storage Layer */}
+          {cluster && (cluster.pvs?.length > 0 || cluster.pvcs?.length > 0) && (
+            <StorageLayer 
+              pvs={cluster.pvs} 
+              pvcs={cluster.pvcs}
+              onSelectPV={(pv) => {
+                console.log('Selected PV:', pv);
+                setSelected({ type: 'pv', data: pv });
+              }}
+              onSelectPVC={(pvc) => {
+                console.log('Selected PVC:', pvc);
+                setSelected({ type: 'pvc', data: pvc });
+              }}
+              selectedPVId={selected?.type === 'pv' ? selected.data.id : null}
+              selectedPVCId={selected?.type === 'pvc' ? selected.data.id : null}
+            />
+          )}
+
         </div>
         )}
       </div>
