@@ -1,4 +1,4 @@
-import { Database, HardDrive, Link } from 'lucide-react';
+import { Database, HardDrive } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { K8sPV, K8sPVC } from '@/types';
 import { cn } from '@/utils/cn';

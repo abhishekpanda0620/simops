@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sStatefulSet, K8sDaemonSet, K8sPV, K8sPVC } from '@/types';
+import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sStatefulSet, K8sDaemonSet, K8sPV, K8sPVC, ResourceStatus } from '@/types';
 import { scenarios, type ScenarioId } from '@/data';
 
 interface ClusterState {
@@ -393,7 +393,7 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
     set({
         currentCluster: {
             ...cluster,
-            nodes: cluster.nodes.map(n => n.id === nodeId ? { ...n, status: newStatus as any } : n),
+            nodes: cluster.nodes.map(n => n.id === nodeId ? { ...n, status: newStatus as unknown as ResourceStatus } : n),
             // If node fails, pods become unknown/terminating logic (simplified for viz)
         }
     });
