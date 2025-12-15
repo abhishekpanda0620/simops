@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Play, RotateCcw, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { cn } from '@/utils';
@@ -46,7 +46,7 @@ export function TrafficFlowControls({
     
     const timer = setTimeout(() => {
       onComplete?.();
-    }, 11000); // 11 seconds for full animation with pauses
+    }, 8500); // 8.5 seconds for full animation (clears faster after response)
     
     return () => clearTimeout(timer);
   }, [isFlowing, onComplete]);
@@ -59,19 +59,21 @@ export function TrafficFlowControls({
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           disabled={isFlowing}
           className={cn(
-            "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm",
+            "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm w-[240px] justify-between",
             "bg-surface-800 border border-surface-600 text-surface-200",
             "hover:bg-surface-700 transition-colors",
             isFlowing && "opacity-50 cursor-not-allowed"
           )}
         >
-          <span className="text-surface-400">Path:</span>
-          <span className="font-mono text-accent-400">{selectedEndpoint}</span>
-          <ChevronDown className="w-3.5 h-3.5 text-surface-400" />
+          <div className="flex items-center gap-2 overflow-hidden">
+            <span className="text-surface-400 shrink-0">Path:</span>
+            <span className="font-mono text-accent-400 truncate">{selectedEndpoint}</span>
+          </div>
+          <ChevronDown className="w-3.5 h-3.5 text-surface-400 shrink-0" />
         </button>
         
         {isDropdownOpen && !isFlowing && (
-          <div className="absolute top-full left-0 mt-1 bg-surface-800 border border-surface-600 rounded-md shadow-xl z-50 min-w-[150px]">
+          <div className="absolute top-full left-0 mt-1 bg-surface-800 border border-surface-600 rounded-md shadow-xl z-50 w-full min-w-[240px]">
             {endpoints.map((ep) => (
               <button
                 key={ep}
@@ -131,11 +133,26 @@ export function useTrafficSimulation(
     ing.paths.map(p => p.path)
   );
 
+  const timeoutRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const clearTimeouts = useCallback(() => {
+    timeoutRefs.current.forEach(clearTimeout);
+    timeoutRefs.current = [];
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => clearTimeouts();
+  }, [clearTimeouts]);
+
   const setEndpoint = useCallback((endpoint: string) => {
     setState(prev => ({ ...prev, endpoint }));
   }, []);
 
   const startSimulation = useCallback(() => {
+    // Clear any existing simulation timeouts
+    clearTimeouts();
+
     // Step 1: Find which ingress handles this host (we have one ingress)
     const ingress = ingresses[0];
     if (!ingress) return;
@@ -171,9 +188,9 @@ export function useTrafficSimulation(
         }));
 
         // Short-circuit animation for error
-        setTimeout(() => setState(prev => ({ ...prev, phase: 'service' })), 2000);
-        setTimeout(() => setState(prev => ({ ...prev, phase: 'response' })), 4000); // Skip pod phase
-        setTimeout(() => setState(prev => ({ ...prev, phase: 'complete' })), 7000);
+        timeoutRefs.current.push(setTimeout(() => setState(prev => ({ ...prev, phase: 'service' })), 2000));
+        timeoutRefs.current.push(setTimeout(() => setState(prev => ({ ...prev, phase: 'response' })), 4000)); // Skip pod phase
+        timeoutRefs.current.push(setTimeout(() => setState(prev => ({ ...prev, phase: 'complete' })), 7000));
         
         return;
     }
@@ -199,13 +216,14 @@ export function useTrafficSimulation(
     }));
 
     // Phase transitions
-    setTimeout(() => setState(prev => ({ ...prev, phase: 'service' })), 2000);
-    setTimeout(() => setState(prev => ({ ...prev, phase: 'pod' })), 4000);
-    setTimeout(() => setState(prev => ({ ...prev, phase: 'response' })), 7000);
-    setTimeout(() => setState(prev => ({ ...prev, phase: 'complete' })), 10000);
-  }, [state.endpoint, ingresses, services, pods]);
+    timeoutRefs.current.push(setTimeout(() => setState(prev => ({ ...prev, phase: 'service' })), 2000));
+    timeoutRefs.current.push(setTimeout(() => setState(prev => ({ ...prev, phase: 'pod' })), 4000));
+    timeoutRefs.current.push(setTimeout(() => setState(prev => ({ ...prev, phase: 'response' })), 7000));
+    timeoutRefs.current.push(setTimeout(() => setState(prev => ({ ...prev, phase: 'complete' })), 8000));
+  }, [state.endpoint, ingresses, services, pods, clearTimeouts]);
 
   const stopSimulation = useCallback(() => {
+    clearTimeouts();
     setState(prev => ({
       ...prev,
       isFlowing: false,
@@ -218,7 +236,7 @@ export function useTrafficSimulation(
       targetNodeId: null,
       targetServiceName: null,
     }));
-  }, []);
+  }, [clearTimeouts]);
 
   return {
     state,

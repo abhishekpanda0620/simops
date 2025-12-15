@@ -5,4 +5,5 @@ export {
   LabsPage,
   SettingsPage,
 } from './PlaceholderPages';
+export { LoginPage } from './LoginPage';
 

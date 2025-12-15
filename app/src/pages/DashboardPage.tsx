@@ -106,7 +106,7 @@ export function DashboardPage() {
       description: "Visual simulation of build, test, and deploy workflows. Learn how code goes from commit to production.",
       icon: GitBranch,
       to: "/pipeline",
-      status: "available",
+      status: "coming-soon",
       difficulty: "Beginner",
       duration: "1.5 Hours",
       tags: ["cicd", "automation", "devops"]
@@ -116,7 +116,7 @@ export function DashboardPage() {
       description: "Hands-on labs for Docker basics, container lifecycle, and resource isolation mechanics.",
       icon: Box,
       to: "/labs",
-      status: "beta",
+      status: "coming-soon",
       difficulty: "Beginner",
       duration: "1 Hour",
       tags: ["docker", "containers", "process"]

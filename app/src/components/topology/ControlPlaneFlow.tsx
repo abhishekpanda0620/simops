@@ -24,9 +24,9 @@ export function ControlPlaneFlowControls({
       <div className="relative group">
         <button 
           disabled={isFlowing}
-          className="flex items-center gap-2 px-3 py-2 bg-surface-700 hover:bg-surface-600 disabled:opacity-50 disabled:cursor-not-allowed text-surface-200 rounded-md transition-colors text-sm font-medium min-w-[140px] justify-between"
+          className="flex items-center gap-2 px-3 py-2 bg-surface-700 hover:bg-surface-600 disabled:opacity-50 disabled:cursor-not-allowed text-surface-200 rounded-md transition-colors text-sm font-medium w-[240px] justify-between"
         >
-          <span>
+          <span className="truncate text-left flex-1">
             {scenario === 'create-pod' && 'Create Pod'}
             {scenario === 'get-pods' && 'Get Pods'}
             {scenario === 'delete-pod' && 'Delete Pod'}
@@ -36,7 +36,7 @@ export function ControlPlaneFlowControls({
             {scenario === 'deploy-statefulset' && 'Deploy StatefulSet'}
             {scenario === 'deploy-daemonset' && 'Deploy DaemonSet'}
           </span>
-          <ChevronDown className="w-4 h-4" />
+          <ChevronDown className="w-4 h-4 shrink-0" />
         </button>
         
         {/* Dropdown Menu */}

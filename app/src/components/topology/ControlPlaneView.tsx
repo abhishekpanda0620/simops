@@ -112,12 +112,13 @@ export function ControlPlaneView({
       {/* Control Plane Components */}
       <div className="grid grid-cols-3 gap-4">
         {/* etcd */}
+        {/* etcd */}
         <div 
           onClick={() => onSelect({ type: 'controlPlane', data: cluster.controlPlane.etcd })}
           className={cn(
-            "p-4 rounded-lg border-2 transition-all duration-300 cursor-pointer",
+            "p-4 rounded-lg border-2 transition-all duration-300 cursor-pointer relative hover:z-50",
             isControlPlaneActive('etcd', controlPlaneState.phase)
-              ? "border-accent-500 bg-accent-500/20 shadow-[0_0_15px_rgba(168,85,247,0.5)] scale-105"
+              ? "border-accent-500 bg-accent-500/20 shadow-[0_0_15px_rgba(168,85,247,0.5)] scale-105 z-40"
               : "border-accent-500 bg-accent-500/10 hover:bg-accent-500/20"
           )}
         >
@@ -132,9 +133,9 @@ export function ControlPlaneView({
         <div 
           onClick={() => onSelect({ type: 'controlPlane', data: cluster.controlPlane.controllerManager })}
           className={cn(
-            "p-4 rounded-lg border-2 transition-all duration-300 cursor-pointer",
+            "p-4 rounded-lg border-2 transition-all duration-300 cursor-pointer relative hover:z-50",
             isControlPlaneActive('controller', controlPlaneState.phase)
-              ? "border-warning-500 bg-warning-500/20 shadow-[0_0_15px_rgba(234,179,8,0.5)] scale-105"
+              ? "border-warning-500 bg-warning-500/20 shadow-[0_0_15px_rgba(234,179,8,0.5)] scale-105 z-40"
               : "border-warning-500 bg-warning-500/10 hover:bg-warning-500/20"
           )}
         >
@@ -149,9 +150,9 @@ export function ControlPlaneView({
         <div 
           onClick={() => onSelect({ type: 'controlPlane', data: cluster.controlPlane.scheduler })}
           className={cn(
-            "p-4 rounded-lg border-2 transition-all duration-300 cursor-pointer",
+            "p-4 rounded-lg border-2 transition-all duration-300 cursor-pointer relative hover:z-50",
             isControlPlaneActive('scheduler', controlPlaneState.phase)
-              ? "border-success-500 bg-success-500/20 shadow-[0_0_15px_rgba(34,197,94,0.5)] scale-105"
+              ? "border-success-500 bg-success-500/20 shadow-[0_0_15px_rgba(34,197,94,0.5)] scale-105 z-40"
               : "border-success-500 bg-success-500/10 hover:bg-success-500/20"
           )}
         >

@@ -34,7 +34,7 @@ export function PipelinePage() {
   return (
     <PlaceholderPage
       title="CI/CD Pipeline"
-      description="DAG-based pipeline visualization with logs. Week 4 milestone."
+      description="Calculate build metrics, visualize DAGs, and explore deployment logs in this interactive module."
     />
   );
 }
@@ -43,7 +43,7 @@ export function LabsPage() {
   return (
     <PlaceholderPage
       title="Interactive Labs"
-      description="Guided hands-on labs with auto-grading. Phase 1B milestone."
+      description="Practice your skills with guided, hands-on scenarios and real-time feedback."
     />
   );
 }

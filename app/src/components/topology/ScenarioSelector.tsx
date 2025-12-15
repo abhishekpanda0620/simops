@@ -60,7 +60,7 @@ export function ScenarioSelector({ currentScenarioId, onSelectScenario }: Scenar
         <select
           value={currentScenarioId || 'healthy'}
           onChange={(e) => onSelectScenario(e.target.value as ScenarioId)}
-          className="appearance-none bg-surface-800 border border-surface-600 text-surface-200 text-sm rounded-md pl-3 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500/50 cursor-pointer min-w-[200px]"
+          className="appearance-none bg-surface-800 border border-surface-600 text-surface-200 text-sm rounded-md pl-3 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500/50 cursor-pointer w-[240px] truncate"
         >
           {scenariosList.map((scenario) => (
             <option key={scenario.id} value={scenario.id}>

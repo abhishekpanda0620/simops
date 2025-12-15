@@ -1,9 +1,9 @@
-```javascript
 import { Bell, Search, User, MessageSquare, LogOut, Settings, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/utils';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
 
 interface HeaderProps {
   title: string;
@@ -11,6 +11,7 @@ interface HeaderProps {
 }
 
 export function Header({ title, subtitle }: HeaderProps) {
+  const { logout } = useAuth();
   const [activeDropdown, setActiveDropdown] = useState<'none' | 'notifications' | 'user'>('none');
   const notificationRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
@@ -52,6 +53,11 @@ export function Header({ title, subtitle }: HeaderProps) {
           <input
             type="text"
             placeholder="Search modules..."
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                alert('Search functionality coming soon!');
+              }
+            }}
             className="pl-10 pr-4 py-2 w-64 bg-surface-950/50 border border-surface-800 rounded-lg text-sm text-surface-100 placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500/50 transition-all duration-200"
           />
         </div>
@@ -61,7 +67,7 @@ export function Header({ title, subtitle }: HeaderProps) {
           variant="ghost" 
           size="sm" 
           className="hidden md:flex gap-2 text-surface-400 hover:text-primary-400"
-          onClick={() => window.location.href = 'mailto:feedback@simops.academy?subject=SimOps Beta Feedback'}
+          onClick={() => alert('Feedback form coming soon!')}
         >
           <MessageSquare className="w-4 h-4" />
           <span>Feedback</span>
@@ -118,6 +124,7 @@ export function Header({ title, subtitle }: HeaderProps) {
             <p className="text-xs text-primary-400">Student</p>
           </div>
           <button 
+            type="button"
             className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center ring-2 ring-surface-900 transition-transform hover:scale-105 active:scale-95"
             onClick={() => setActiveDropdown(activeDropdown === 'user' ? 'none' : 'user')}
           >
@@ -138,18 +145,25 @@ export function Header({ title, subtitle }: HeaderProps) {
                       <p className="text-xs text-surface-400 truncate">abhishek@simops.academy</p>
                   </div>
                   
-                  <button className="w-full text-left px-4 py-2 text-sm text-surface-300 hover:bg-surface-800 hover:text-primary-400 flex items-center gap-2 transition-colors">
+                  <button type="button" className="w-full text-left px-4 py-2 text-sm text-surface-300 hover:bg-surface-800 hover:text-primary-400 flex items-center gap-2 transition-colors">
                     <UserCircle className="w-4 h-4" />
                     <span>My Profile</span>
                   </button>
-                  <button className="w-full text-left px-4 py-2 text-sm text-surface-300 hover:bg-surface-800 hover:text-primary-400 flex items-center gap-2 transition-colors">
+                  <button type="button" className="w-full text-left px-4 py-2 text-sm text-surface-300 hover:bg-surface-800 hover:text-primary-400 flex items-center gap-2 transition-colors">
                     <Settings className="w-4 h-4" />
                     <span>Settings</span>
                   </button>
                   
                   <div className="border-t border-surface-800 my-1"></div>
                   
-                  <button className="w-full text-left px-4 py-2 text-sm text-error-400 hover:bg-error-500/10 hover:text-error-300 flex items-center gap-2 transition-colors">
+                  <button 
+                    type="button" 
+                    className="w-full text-left px-4 py-2 text-sm text-error-400 hover:bg-error-500/10 hover:text-error-300 flex items-center gap-2 transition-colors"
+                    onClick={() => {
+                      logout();
+                      setActiveDropdown('none');
+                    }}
+                  >
                     <LogOut className="w-4 h-4" />
                     <span>Log out</span>
                   </button>
