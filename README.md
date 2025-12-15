@@ -12,7 +12,7 @@ SimOps is an interactive, visual platform designed to simulate and demonstrate K
 
 ### 🧠 Control Plane Simulation
 Visualize the hidden "brain" of Kubernetes. Watch how the Control Plane components work together to manage the cluster state.
-- **Interactive Scenarios**: Run simulations for logic flows like `Pod Creation`, `Pod Deletion`, and `Get Pods`.
+- **Interactive Scenarios**: Run simulations for logic flows like `Pod Creation`, `Pod Deletion`, `Scale Deployment`, `Node Failure`, and `DaemonSet/StatefulSet` logic.
 - **Component Visualization**: See the exact sequence of operations between `kubectl`, `API Server`, `etcd`, `Scheduler`, and `Kubelet`.
 - **State Tracking**: Follow the request phases with a detailed status tracker.
 
@@ -36,6 +36,22 @@ Simulate real-world traffic patterns through your architecture.
 - **Visualization**: [XYFlow (React Flow)](https://xyflow.com/)
 - **Animations**: [Framer Motion](https://www.framer.com/motion/)
 - **Icons**: [Lucide React](https://lucide.dev/)
+- **Build Optimization**: Custom chunk splitting strategy for optimal production performance.
+
+## 📂 Project Structure
+
+The project is organized into modular components to handle the complexity of simulations:
+
+### Core Topologies
+- **`ArchitectureView.tsx`**: The main container utilizing a layered approach.
+    - **`ControlPlaneView.tsx`**: Handles the logic and visualization of the Kubernetes Control Plane (API Server, Scheduler, etc.).
+    - **`UserRequestView.tsx`**: Manages the traffic simulation, Worker Nodes, and User → Ingress → Service → Pod packet flows.
+    - **`TrafficAnimationLayer.tsx`**: Specialized layer for rendering moving traffic packets directly on top of the topology.
+
+### Information Panels
+- **`EnhancedInfoPanel.tsx`**: A context-aware panel providing deep-dive information for selected resources.
+    - **`enhancedContent.ts`**: Centralized educational content for all K8s resources.
+    - **`EnhancedPanelComponents.tsx`**: Reusable UI blocks for analogies, key points, and troubleshooting tips.
 
 ## 📦 Getting Started
 
