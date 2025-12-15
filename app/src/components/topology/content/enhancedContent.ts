@@ -133,3 +133,59 @@ export const educationalContent = {
       },
     },
   };
+
+  export const generalContent = {
+    controlPlaneIntro: {
+        title: 'Control Plane (The Brain)',
+        description: 'The Control Plane manages the worker nodes and the Pods in the cluster. It makes global decisions about the cluster (like scheduling), as well as detecting and responding to cluster events.',
+        analogy: '🧠 The Brain: It doesn\'t do the heavy lifting (lifting boxes), but it tells the muscles (Worker Nodes) what to do.',
+        keyPoints: [
+            'Maintains the desired state of the cluster',
+            'Completely separate from where your apps run',
+            'Can run across multiple machines for high availability'
+        ]
+    },
+    workerNodesIntro: {
+        title: 'Worker Nodes (The Muscle)',
+        description: 'Worker nodes are the machines (VMs or physical servers) that actually run your applications. Each node is managed by the control plane.',
+        analogy: '💪 The Muscle: These do the actual heavy lifting. If you add more apps, you might need more muscle.',
+        keyPoints: [
+            'Runs the Kubelet agent to talk to the Control Plane',
+            'Contains the Container Runtime (like Docker/containerd)',
+            'Maintains network rules via kube-proxy'
+        ]
+    }
+  };
+
+  export const nodeComponentContent = {
+    kubelet: {
+        title: 'Kubelet',
+        description: 'An agent that runs on each node in the cluster. It ensures that containers are running in a Pod according to the PodSpec.',
+        analogy: '👷 Site Foreman: Reads the blueprints (PodSpec) sent from HQ (Control Plane) and ensures the workers (Container Runtime) build it exactly right.',
+        keyPoints: [
+            'Registers the node with the API Server',
+            'Reports node status and health',
+            'Manages Pod lifecycle on the node'
+        ],
+        troubleshooting: [
+            'If Pods are stuck in "Pending" on a node, check Kubelet logs',
+            'Kubelet needs valid certificates to talk to API Server',
+            'High CPU usage by Kubelet can indicate node stress'
+        ]
+    },
+    'kube-proxy': {
+        title: 'kube-proxy',
+        description: 'A network proxy that runs on each node. It maintains network rules on nodes which allow network communication to your Pods from inside or outside of the cluster.',
+        analogy: '🚦 Traffic Controller: Updates the road signs (iptables/IPVS) so traffic knows how to reach the new Service IPs.',
+        keyPoints: [
+            'Implements the Kubernetes Service concept',
+            'Load balances traffic across Pods',
+            'Updates iptables or IPVS rules'
+        ],
+        troubleshooting: [
+            'If Services are unreachable, check kube-proxy logs',
+            'Often uses iptables - check for rule limits',
+            'Essential for Service Discovery'
+        ]
+    }
+  };

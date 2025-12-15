@@ -114,8 +114,8 @@ const createHealthyPod = (
       ready: true,
       restarts: 0,
       resources: {
-        requests: { cpu: '100m', memory: '128Mi' },
-        limits: { cpu: '500m', memory: '512Mi' },
+        requests: { cpu: '500m', memory: '512Mi' },
+        limits: { cpu: '1000m', memory: '1024Mi' },
         usage: { cpu: 50, memory: 200 },
       },
     },

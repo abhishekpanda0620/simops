@@ -55,7 +55,7 @@ const scenariosList: { id: ScenarioId; label: string; icon: typeof CheckCircle; 
 export function ScenarioSelector({ currentScenarioId, onSelectScenario }: ScenarioSelectorProps) {
   return (
     <div className="flex items-center gap-3">
-      <span className="text-sm font-medium text-surface-300 whitespace-nowrap">Scenario:</span>
+      <span className="text-sm font-medium text-surface-300 whitespace-nowrap">Presets:</span>
       <div className="relative">
         <select
           value={currentScenarioId || 'healthy'}

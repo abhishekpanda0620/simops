@@ -1,4 +1,4 @@
-import { Server, X, Lightbulb, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Server, X, Lightbulb, CheckCircle, AlertTriangle, FileCode } from 'lucide-react';
 import { cn } from '@/utils';
 
 // Helper Components
@@ -114,4 +114,86 @@ export function InfoRow({ label, value, highlight }: { label: string; value: str
       </span>
     </div>
   );
+}
+
+// Simple YAML serializer (since we can't use js-yaml)
+function toYaml(obj: unknown, indent = 0): string {
+    const spacer = ' '.repeat(indent);
+    if (!obj) return '';
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return Object.entries(obj as Record<string, any>).map(([key, value]) => {
+        if (value === undefined || value === null) return '';
+        
+        if (Array.isArray(value)) {
+            if (value.length === 0) return `${spacer}${key}: []`;
+            return `${spacer}${key}:\n` + value.map(v => {
+                if (typeof v === 'object') {
+                    // Start array item with dash, indent subsequent lines
+                    const str = toYaml(v, indent + 2);
+                    return `${spacer}- ${str.trimStart()}`; 
+                }
+                return `${spacer}- ${v}`;
+            }).join('\n');
+        }
+        
+        if (typeof value === 'object') {
+            if (Object.keys(value as object).length === 0) return `${spacer}${key}: {}`;
+            return `${spacer}${key}:\n${toYaml(value, indent + 2)}`;
+        }
+        
+        return `${spacer}${key}: ${value}`;
+    }).filter(Boolean).join('\n');
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function YamlBlock({ data, kind }: { data: any; kind: string }) {
+    // Construct K8s-like object
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const k8sObj: any = {
+        apiVersion: kind === 'Deployment' ? 'apps/v1' : 'v1',
+        kind: kind,
+        metadata: {
+            name: data.name,
+            namespace: data.namespace || 'default',
+            labels: data.selector || data.labels || undefined,
+            ...(data.strategy ? { strategy: data.strategy } : {}) // deployment specific really but fit into metadata sometimes or spec
+        },
+        spec: {
+            ...data
+        }
+    };
+
+    // Cleanup internal fields from Spec
+    const internalKeys = ['id', 'name', 'namespace', 'status', 'conditions', 'events', 'podIds', 'createdAt', 'startedAt', 'strategy', 'selector', 'labels'];
+    internalKeys.forEach(key => delete k8sObj.spec[key]);
+    
+    // Move specific fields to spec where appropriate if they were effectively root in our model
+    if (kind === 'Deployment') {
+         if (data.replicas) k8sObj.spec.replicas = data.replicas.desired;
+         if (data.selector) k8sObj.spec.selector = { matchLabels: data.selector };
+         if (data.strategy) k8sObj.spec.strategy = { type: data.strategy };
+    }
+    if (kind === 'Service') {
+         if (data.type) k8sObj.spec.type = data.type;
+         if (data.ports) k8sObj.spec.ports = data.ports;
+         if (data.selector) k8sObj.spec.selector = data.selector;
+         if (data.clusterIP) k8sObj.spec.clusterIP = data.clusterIP;
+    }
+
+    // Sort of hacky cleanup to make it look nicer
+    if (Object.keys(k8sObj.spec).length === 0) delete k8sObj.spec;
+
+    const yamlString = toYaml(k8sObj);
+
+    return (
+        <div className="mt-8">
+            <h3 className="text-sm font-medium text-surface-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <FileCode className="w-4 h-4" /> YAML Configuration
+            </h3>
+            <div className="bg-surface-950 p-4 rounded-lg font-mono text-xs text-surface-300 overflow-x-auto border border-surface-800 max-h-[300px] overflow-y-auto">
+                <pre>{yamlString}</pre>
+            </div>
+        </div>
+    );
 }

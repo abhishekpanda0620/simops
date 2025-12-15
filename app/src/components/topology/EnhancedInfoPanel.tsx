@@ -4,13 +4,14 @@ import { useClusterStore } from '@/store';
 import type { ClusterSnapshot } from '@/types';
 import { formatMemory } from '@/utils';
 import type { SelectedItem } from './SelectionTypes';
-import { educationalContent } from './content/enhancedContent';
+import { educationalContent, generalContent, nodeComponentContent } from './content/enhancedContent';
 import { 
   PanelHeader, 
   AnalogyBox, 
   KeyPointsList, 
   TroubleshootingSection, 
-  InfoRow 
+  InfoRow,
+  YamlBlock
 } from './panels/EnhancedPanelComponents';
 import { cn } from '@/utils';
 
@@ -22,7 +23,7 @@ interface EnhancedInfoPanelProps {
 }
 
 export function EnhancedInfoPanel({ selected, cluster, onClose }: EnhancedInfoPanelProps) {
-  const { killPod, triggerCrashLoop, breakImage, causeOOM, restartPod } = useClusterStore();
+  const { killPod, triggerCrashLoop, breakImage, causeOOM, restartPod, scaleDeployment } = useClusterStore();
 
   if (!selected) return null;
 
@@ -62,10 +63,10 @@ export function EnhancedInfoPanel({ selected, cluster, onClose }: EnhancedInfoPa
 
   // 2. Pods
   if (selected.type === 'pod') {
-    const pod = selected.data;
+    const pod = cluster.pods.find(p => p.id === selected.data.id) || selected.data;
     const isCrashLoop = (pod.status as string) === 'CrashLoopBackOff';
     const isError = ['CrashLoopBackOff', 'OOMKilled', 'ImagePullBackOff'].includes(pod.status as string);
-    const isPending = (pod.status as string) === 'Pending';
+    const isPending = (pod.status as string).toLowerCase() === 'pending';
     
     // Get educational content based on status
     const statusInfo = educationalContent.pod.states[pod.status as keyof typeof educationalContent.pod.states];
@@ -75,7 +76,7 @@ export function EnhancedInfoPanel({ selected, cluster, onClose }: EnhancedInfoPa
         <PanelHeader 
           title={pod.name} 
           icon={Box} 
-          status={(pod.status as string) === 'Running' ? 'healthy' : isPending ? 'degraded' : 'unhealthy'} 
+          status={(pod.status as string).toLowerCase() === 'running' ? 'healthy' : isPending ? 'degraded' : 'unhealthy'} 
           onClose={onClose} 
         />
 
@@ -132,8 +133,8 @@ export function EnhancedInfoPanel({ selected, cluster, onClose }: EnhancedInfoPa
             <h3 className="text-sm font-medium text-error-400 uppercase tracking-wider mb-4">Chaos Engineering</h3>
             <div className="grid grid-cols-2 gap-3">
               <Button 
-                variant="danger" 
-                className="border-error-500/30 hover:bg-error-500/10 text-error-400 justify-start"
+                variant="ghost" 
+                className="border border-error-500/50 hover:bg-error-500/10 text-error-400 justify-start w-full"
                 onClick={() => killPod(pod.id)}
               >
                 <Trash2 className="w-4 h-4 mr-2" /> Kill Pod
@@ -171,7 +172,7 @@ export function EnhancedInfoPanel({ selected, cluster, onClose }: EnhancedInfoPa
 
   // 3. Worker Nodes
   if (selected.type === 'node') {
-    const node = selected.data;
+    const node = cluster.nodes.find(n => n.id === selected.data.id) || selected.data;
     const info = educationalContent.node;
     const podsOnNode = cluster.pods.filter(p => p.nodeId === node.id);
     const memoryUsage = podsOnNode.reduce((acc, p) => acc + Number(p.containers[0].resources?.requests?.memory || 256), 0);
@@ -276,6 +277,7 @@ export function EnhancedInfoPanel({ selected, cluster, onClose }: EnhancedInfoPa
                 {info.types[service.type as keyof typeof info.types]}
               </p>
             </div>
+            <YamlBlock data={service} kind="Service" />
          </div>
        </div>
      );
@@ -319,8 +321,9 @@ export function EnhancedInfoPanel({ selected, cluster, onClose }: EnhancedInfoPa
                  </div>
                ))}
              </div>
-           </div>
-        </div>
+            </div>
+            <YamlBlock data={ingress} kind="Ingress" />
+         </div>
       </div>
     );
   }
@@ -345,6 +348,7 @@ export function EnhancedInfoPanel({ selected, cluster, onClose }: EnhancedInfoPa
                     <pre>{JSON.stringify(selected.data.data, null, 2)}</pre>
                 </div>
             </div>
+            <YamlBlock data={selected.data} kind="ConfigMap" />
         </div>
       </div>
     );
@@ -380,6 +384,7 @@ export function EnhancedInfoPanel({ selected, cluster, onClose }: EnhancedInfoPa
                     ))}
                 </div>
             </div>
+            <YamlBlock data={selected.data} kind="Secret" />
         </div>
       </div>
     );
@@ -405,7 +410,8 @@ export function EnhancedInfoPanel({ selected, cluster, onClose }: EnhancedInfoPa
                         <InfoRow label="Reclaim Policy" value={pv.reclaimPolicy} />
                         <InfoRow label="Status" value={pv.status} highlight={pv.status === 'Bound'} />
                     </div>
-                </div>
+                 </div>
+                 <YamlBlock data={pv} kind="PersistentVolume" />
             </div>
           </div>
         );
@@ -437,14 +443,143 @@ export function EnhancedInfoPanel({ selected, cluster, onClose }: EnhancedInfoPa
                             'Capacity and AccessModes must be compatible'
                         ]} />
                     )}
-                </div>
+                 </div>
+                 <YamlBlock data={pvc} kind="PersistentVolumeClaim" />
             </div>
           </div>
         );
       }
 
 
-  // 10. Default Intro (When 'info' is selected) or Fallback
-  // If 'selected' is not one of the above but exists, we might show a generic message or just null
+  // 10. Deployments
+  if (selected.type === 'deployment') {
+    const deployment = cluster.deployments?.find(d => d.id === selected.data.id) || selected.data;
+    
+    // Safety check - if deployment or replicas is undefined, don't render
+    if (!deployment || !deployment.replicas) return null;
+    
+    return (
+        <div className="fixed right-0 top-0 h-full w-[450px] bg-surface-900 border-l border-surface-700 shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300">
+        <PanelHeader 
+          title={deployment.name} 
+          icon={Box} 
+          status={deployment.replicas.ready === deployment.replicas.desired ? 'healthy' : 'degraded'} 
+          onClose={onClose} 
+        />
+        <div className="flex-1 overflow-auto p-6">
+            <AnalogyBox analogy="🏭 Think of a Deployment as a factory manager. You tell them 'I want 3 replicas of this product', and they ensure exactly 3 are always available." />
+             
+             <div className="bg-surface-800/50 p-4 rounded-xl space-y-4 mb-6">
+                <h3 className="text-sm font-medium text-surface-400 uppercase tracking-wider">Replica Status</h3>
+                <div className="flex items-center justify-between bg-surface-900/50 p-3 rounded-lg border border-surface-700">
+                    <div className="text-center">
+                        <span className="block text-2xl font-bold text-surface-100">{deployment.replicas.desired}</span>
+                        <span className="text-xs text-surface-400 uppercase">Desired</span>
+                    </div>
+                    <div className="text-center">
+                        <span className="block text-2xl font-bold text-success-400">{deployment.replicas.ready}</span>
+                        <span className="text-xs text-surface-400 uppercase">Ready</span>
+                    </div>
+                    <div className="text-center">
+                        <span className="block text-2xl font-bold text-primary-400">{deployment.replicas.available}</span>
+                        <span className="text-xs text-surface-400 uppercase">Available</span>
+                    </div>
+                </div>
+
+                <div className="flex gap-2">
+                    <Button 
+                        variant="secondary" 
+                        className="flex-1"
+                        onClick={() => scaleDeployment(deployment.id, deployment.replicas.desired - 1)}
+                        disabled={deployment.replicas.desired <= 0}
+                    >
+                        <span className="mr-2">Scale Down</span>
+                    </Button>
+                    <Button 
+                        variant="primary" 
+                        className="flex-1"
+                        onClick={() => scaleDeployment(deployment.id, deployment.replicas.desired + 1)}
+                    >
+                         <span className="mr-2">Scale Up</span>
+                    </Button>
+                </div>
+            </div>
+
+             <div className="space-y-6">
+                <div className="bg-surface-800/50 p-4 rounded-xl space-y-2">
+                    <InfoRow label="Namespace" value={deployment.namespace} />
+                    <InfoRow label="Strategy" value={deployment.strategy} />
+                    <InfoRow label="Selector" value={Object.entries(deployment.selector || {}).map(([k, v]) => `${k}=${v}`).join(', ')} />
+                </div>
+            </div>
+            <YamlBlock data={deployment} kind="Deployment" />
+        </div>
+      </div>
+    );
+  }
+
+  // 11. General Info (Headers)
+  if (selected.type === 'info') {
+    const info = generalContent[selected.data.id];
+    if (!info) return null;
+
+    return (
+      <div className="fixed right-0 top-0 h-full w-[450px] bg-surface-900 border-l border-surface-700 shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300">
+        <PanelHeader 
+          title={info.title} 
+          icon={Globe} 
+          status="healthy" 
+          onClose={onClose} 
+        />
+        <div className="flex-1 overflow-auto p-6">
+            <AnalogyBox analogy={info.analogy} />
+            <div className="mb-6">
+                <p className="text-sm text-surface-300 leading-relaxed bg-surface-800/50 p-4 rounded-lg border border-surface-700">
+                    {info.description}
+                </p>
+            </div>
+            <KeyPointsList points={info.keyPoints} />
+        </div>
+      </div>
+    );
+  }
+
+  // 12. Node Components (Kubelet / Kube-proxy)
+  if (selected.type === 'nodeComponent') {
+      const { component, nodeName } = selected.data;
+      const info = nodeComponentContent[component];
+      
+      return (
+        <div className="fixed right-0 top-0 h-full w-[450px] bg-surface-900 border-l border-surface-700 shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300">
+          <PanelHeader 
+            title={`${info.title} (${nodeName})`}
+            icon={Server} 
+            status="healthy" 
+            onClose={onClose} 
+          />
+          <div className="flex-1 overflow-auto p-6">
+              <AnalogyBox analogy={info.analogy} />
+              
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                    <span className={cn(
+                        "px-2 py-0.5 rounded text-xs font-mono font-medium",
+                        component === 'kubelet' ? "bg-primary-500/20 text-primary-300" : "bg-accent-500/20 text-accent-300"
+                    )}>
+                        System Component
+                    </span>
+                </div>
+                <p className="text-sm text-surface-300 leading-relaxed">
+                    {info.description}
+                </p>
+              </div>
+  
+              <KeyPointsList points={info.keyPoints} />
+              <TroubleshootingSection items={info.troubleshooting} />
+          </div>
+        </div>
+      );
+  }
+
   return null;
 }

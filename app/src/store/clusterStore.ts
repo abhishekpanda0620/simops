@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sStatefulSet, K8sDaemonSet, K8sPV, K8sPVC, ResourceStatus } from '@/types';
+import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sStatefulSet, K8sDaemonSet, K8sPV, K8sPVC, ResourceStatus, K8sDeployment } from '@/types';
 import { scenarios, type ScenarioId } from '@/data';
 
 interface ClusterState {
@@ -12,6 +12,7 @@ interface ClusterState {
   selectedNodeId: string | null;
   selectedStatefulSet: K8sStatefulSet | null;
   selectedDaemonSet: K8sDaemonSet | null;
+  selectedDeployment: K8sDeployment | null;
   selectedPV: K8sPV | null;
   selectedPVC: K8sPVC | null;
   
@@ -24,6 +25,7 @@ interface ClusterState {
   selectNode: (nodeId: string | null) => void;
   selectStatefulSet: (sts: K8sStatefulSet | null) => void;
   selectDaemonSet: (ds: K8sDaemonSet | null) => void;
+  selectDeployment: (deploy: K8sDeployment | null) => void;
   selectPV: (pv: K8sPV | null) => void;
   selectPVC: (pvc: K8sPVC | null) => void;
   clearSelection: () => void;
@@ -53,6 +55,7 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
   selectedNodeId: null,
   selectedStatefulSet: null,
   selectedDaemonSet: null,
+  selectedDeployment: null,
   selectedPV: null,
   selectedPVC: null,
   
@@ -81,6 +84,7 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedNodeId: null,
       selectedStatefulSet: null,
       selectedDaemonSet: null,
+      selectedDeployment: null,
       selectedPV: null,
       selectedPVC: null,
     });
@@ -95,6 +99,7 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedNodeId: null,
       selectedStatefulSet: null,
       selectedDaemonSet: null,
+      selectedDeployment: null,
       selectedPV: null,
       selectedPVC: null,
     });
@@ -109,6 +114,7 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedNodeId: null,
       selectedStatefulSet: null,
       selectedDaemonSet: null,
+      selectedDeployment: null,
       selectedPV: null,
       selectedPVC: null,
     });
@@ -123,6 +129,7 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedNodeId: null,
       selectedStatefulSet: null,
       selectedDaemonSet: null,
+      selectedDeployment: null,
       selectedPV: null,
       selectedPVC: null,
     });
@@ -165,6 +172,22 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedControlPlane: null,
       selectedNodeId: null,
       selectedStatefulSet: null,
+      selectedDeployment: null,
+      selectedPV: null,
+      selectedPVC: null,
+    });
+  },
+
+  selectDeployment: (deploy) => {
+    set({
+      selectedDeployment: deploy,
+      selectedPod: null,
+      selectedService: null,
+      selectedIngress: null,
+      selectedControlPlane: null,
+      selectedNodeId: null,
+      selectedStatefulSet: null,
+      selectedDaemonSet: null,
       selectedPV: null,
       selectedPVC: null,
     });
@@ -207,6 +230,7 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedNodeId: null,
       selectedStatefulSet: null,
       selectedDaemonSet: null,
+      selectedDeployment: null,
       selectedPV: null,
       selectedPVC: null,
     });
@@ -423,24 +447,72 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       // Scale UP: Add new pods
       const countToAdd = replicas - currentReplicas;
       const workerNodes = cluster.nodes.filter(n => n.role === 'worker');
-      const templatePod = cluster.pods.find(p => deployment.podIds.includes(p.id)) || cluster.pods[0]; // Fallback if 0 pods
+      // 1. Resolve Template Pod (Critical for scaling from 0)
+      let templatePod = cluster.pods.find(p => deployment.podIds.includes(p.id));
+      
+      if (!templatePod) {
+          // If no running pods, fallback to original scenario to find what a pod "should" look like
+          const currentScenarioId = get().currentScenarioId || 'healthy';
+          const originalScenario = scenarios[currentScenarioId];
+          const originalDeploy = originalScenario?.deployments.find(d => d.id === deploymentId);
+          if (originalDeploy && originalDeploy.podIds.length > 0) {
+              templatePod = originalScenario.pods.find(p => p.id === originalDeploy.podIds[0]);
+          }
+      }
+      
+      // Safety fallback (should rarely be hit if data is correct)
+      templatePod = templatePod || cluster.pods[0];
+
+
+      // Helpers for resource parsing
+      const parseCpu = (val: string) => val.endsWith('m') ? parseInt(val) / 1000 : parseFloat(val);
+      const parseMem = (val: string) => {
+        if (val.endsWith('Gi')) return parseFloat(val) * 1024;
+        if (val.endsWith('Mi')) return parseFloat(val);
+        return parseFloat(val); // Assume Mi if no unit (simplification)
+      };
 
       for (let i = 0; i < countToAdd; i++) {
         const newId = `${deployment.name}-${Math.random().toString(36).substr(2, 5)}`;
-        // Round-robin node assignment
-        const node = workerNodes[i % workerNodes.length];
+        
+        // Find a node with available resources
+        let selectedNode: typeof workerNodes[0] | undefined;
+        
+        // Shuffle start index for simple load balancing distribution
+        const startIndex = Math.floor(Math.random() * workerNodes.length);
+        
+        for (let j = 0; j < workerNodes.length; j++) {
+            const node = workerNodes[(startIndex + j) % workerNodes.length];
+            
+            // Calculate current usage
+            const nodePods = updatedPods.filter(p => p.nodeId === node.id);
+            const usedCpu = nodePods.reduce((acc, p) => acc + parseCpu(p.containers[0].resources?.requests.cpu || '0'), 0);
+            const usedMem = nodePods.reduce((acc, p) => acc + parseMem(p.containers[0].resources?.requests.memory || '0'), 0);
+            
+            const requestedCpu = parseCpu(templatePod.containers[0].resources?.requests.cpu || '100m');
+            const requestedMem = parseMem(templatePod.containers[0].resources?.requests.memory || '128Mi');
+            
+            if (usedCpu + requestedCpu <= node.cpu.total && usedMem + requestedMem <= node.memory.total) {
+                selectedNode = node;
+                break;
+            }
+        }
+
+        const isPending = !selectedNode;
         
         const newPod: K8sPod = {
             ...templatePod,
             id: newId,
             name: newId,
-            nodeId: node.id,
-            nodeName: node.name,
-            phase: 'Running',
-            status: 'running',
+            nodeId: selectedNode?.id || '',  // No node if pending
+            nodeName: selectedNode?.name || '',
+            phase: isPending ? 'Pending' : 'Running',
+            status: isPending ? 'pending' : 'running',
             createdAt: new Date().toISOString(),
             restarts: 0,
-            conditions: [
+            conditions: isPending ? [
+                 { type: 'PodScheduled', status: 'False', reason: 'Unschedulable', message: '0/3 nodes are available: 3 Insufficient cpu.' }
+            ] : [
                 { type: 'Initialized', status: 'True' },
                 { type: 'Ready', status: 'True' },
                 { type: 'ContainersReady', status: 'True' },
@@ -448,13 +520,17 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
             ],
             containers: templatePod.containers.map(c => ({ 
                 ...c, 
-                state: 'running', 
-                ready: true, 
+                state: isPending ? 'waiting' : 'running', 
+                ready: !isPending, 
                 restarts: 0,
-                waitingReason: undefined,
+                waitingReason: isPending ? 'ContainerCreating' : undefined,
                 terminatedReason: undefined
             })),
-            events: [{ type: 'Normal', reason: 'Scheduled', message: `Successfully assigned to ${node.name}`, timestamp: new Date().toISOString(), count: 1 }]
+            events: isPending ? [
+                { type: 'Warning', reason: 'FailedScheduling', message: '0/3 nodes are available: 3 Insufficient cpu.', timestamp: new Date().toISOString(), count: 1 }
+            ] : [
+                { type: 'Normal', reason: 'Scheduled', message: `Successfully assigned to ${selectedNode?.name}`, timestamp: new Date().toISOString(), count: 1 }
+            ]
         };
 
         updatedPods.push(newPod);
@@ -464,10 +540,18 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
             d.id === deploymentId ? { ...d, podIds: [...d.podIds, newId] } : d
          );
          
-         // Update Service pod list (naive: add to all services that selected the template pod)
-         updatedServices = updatedServices.map(s => 
-            s.podIds.includes(templatePod.id) ? { ...s, podIds: [...s.podIds, newId] } : s
-         );
+         // Update Service pod list using LABEL SELECTORS (Correct K8s Behavior)
+         if (!isPending) {
+             updatedServices = updatedServices.map(s => {
+                // Check if service selector matches the deployment selector (which the pod inherits)
+                const isMatch = s.selector && Object.entries(s.selector).every(([key, val]) => deployment.selector[key] === val);
+                
+                if (isMatch) {
+                    return { ...s, podIds: [...s.podIds, newId] };
+                }
+                return s;
+             });
+         }
       }
       
     } else if (replicas < currentReplicas) {
@@ -485,6 +569,18 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
           podIds: s.podIds.filter(id => !podIdsToRemove.includes(id))
       }));
     }
+    
+    // Recalculate Ready/Available counts for the deployment
+    const finalDeploymentPods = updatedPods.filter(p => 
+        updatedDeployments.find(d => d.id === deploymentId)?.podIds.includes(p.id)
+    );
+    const readyCount = finalDeploymentPods.filter(p => p.status === 'running' || p.phase === 'Running').length;
+    
+    updatedDeployments = updatedDeployments.map(d => 
+        d.id === deploymentId 
+            ? { ...d, replicas: { ...d.replicas, ready: readyCount, available: readyCount } }
+            : d
+    );
 
     set({
         currentCluster: {
@@ -494,7 +590,6 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
             services: updatedServices,
         }
     });
-
   },
 
   addPod: (pod) => {

@@ -1,4 +1,4 @@
-import type { ControlPlaneComponent, K8sNode, K8sPod, K8sService, K8sIngress, K8sPV, K8sPVC, K8sConfigMap, K8sSecret } from '@/types';
+import type { ControlPlaneComponent, K8sNode, K8sPod, K8sService, K8sIngress, K8sPV, K8sPVC, K8sConfigMap, K8sSecret, K8sDeployment } from '@/types';
 
 export type SelectedItem =
   | { type: 'controlPlane'; data: ControlPlaneComponent }
@@ -12,4 +12,5 @@ export type SelectedItem =
   | { type: 'secret'; data: K8sSecret }
   | { type: 'info'; data: { id: 'controlPlaneIntro' | 'workerNodesIntro' } }
   | { type: 'nodeComponent'; data: { nodeId: string; component: 'kubelet' | 'kube-proxy'; nodeName: string } }
+  | { type: 'deployment'; data: K8sDeployment }
   | null;

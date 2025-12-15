@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/', icon: LayoutDashboard, label: 'Catalog' },
   { to: '/topology', icon: Network, label: 'K8s Architecture' },
   { to: '/pipeline', icon: GitBranch, label: 'Pipeline' },
   { to: '/labs', icon: BookOpen, label: 'Labs' },
@@ -56,8 +56,8 @@ export function Sidebar() {
       {/* Footer */}
       <div className="p-4 border-t border-surface-700">
         <div className="px-3 py-2 rounded-lg bg-surface-800/50 text-center">
-          <p className="text-xs text-surface-400">Phase 1A</p>
-          <p className="text-sm text-surface-300 font-medium">Static Visualization</p>
+          <p className="text-xs text-surface-400">SimOps Academy</p>
+          <p className="text-sm text-surface-300 font-medium">v1.0.0 Beta</p>
         </div>
       </div>
     </aside>
