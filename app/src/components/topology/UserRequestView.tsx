@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { Globe, ArrowDown, Network, Info, AlertCircle } from 'lucide-react';
 import { cn } from '@/utils';
-import { TrafficFlowControls, RoutingStatus, isInTrafficPath } from './TrafficFlow';
+import { TrafficFlowControls, RoutingStatus } from './TrafficFlow';
+import { isInTrafficPath, type TrafficState } from './TrafficUtils';
 import { ScenarioSelector, ScenarioDescription } from './ScenarioSelector';
 import { WorkerNode, ControlPlaneNode } from './nodes';
 import { StorageLayer } from './StorageLayer';
@@ -9,7 +10,6 @@ import { ConfigurationLayer } from './ConfigurationLayer';
 import type { ClusterSnapshot, K8sPod } from '@/types';
 import type { ScenarioId } from '@/data';
 import type { SelectedItem } from './SelectionTypes';
-import type { TrafficState } from './TrafficFlow';
 import type { ControlPlaneState, ControlPlaneScenario } from './ControlPlaneUtils';
 
 interface UserRequestViewProps {

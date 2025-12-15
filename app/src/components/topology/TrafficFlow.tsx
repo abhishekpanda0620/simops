@@ -4,22 +4,10 @@ import { Button } from '@/components/ui';
 import { cn } from '@/utils';
 import type { K8sIngress, K8sService, K8sPod } from '@/types';
 import './TrafficFlow.css';
+import { type TrafficState } from './TrafficUtils';
 
-// Traffic simulation state - tracks the actual routing path
-export interface TrafficState {
-  isFlowing: boolean;
-  phase: 'idle' | 'ingress' | 'service' | 'pod' | 'response' | 'complete';
-  endpoint: string;
-  // The actual path components
-  targetIngressId: string | null;
-  targetServiceId: string | null;
-  targetPodId: string | null;
-  targetNodeId: string | null;
-  // Service name for display
-  targetServiceName: string | null;
-  status: 'success' | 'error';
-  responseCode: number;
-}
+// Re-export TrafficState for convenience if needed, or consumers should import from Utils. 
+// For now, let's rely on consumers importing from Utils to solve HMR.
 
 interface TrafficFlowControlsProps {
   isFlowing: boolean;
@@ -247,38 +235,7 @@ export function useTrafficSimulation(
   };
 }
 
-// Helper to check if a component should be highlighted in current traffic path
-// eslint-disable-next-line react-refresh/only-export-components
-export function isInTrafficPath(
-  componentType: 'ingress' | 'service' | 'pod' | 'node',
-  componentId: string,
-  trafficState: TrafficState
-): boolean {
-  if (!trafficState.isFlowing || trafficState.phase === 'idle' || trafficState.phase === 'complete') {
-    return false;
-  }
-  
-  switch (componentType) {
-    case 'ingress':
-      // Ingress highlights during ingress, service, pod, and response phases
-      return trafficState.targetIngressId === componentId && 
-             ['ingress', 'service', 'pod', 'response'].includes(trafficState.phase);
-    case 'service':
-      // Service highlights during service, pod, and response phases
-      return trafficState.targetServiceId === componentId && 
-             ['service', 'pod', 'response'].includes(trafficState.phase);
-    case 'pod':
-      // Pod highlights during pod and response phases
-      return trafficState.targetPodId === componentId && 
-             ['pod', 'response'].includes(trafficState.phase);
-    case 'node':
-      // Node highlights when its pod is active
-      return trafficState.targetNodeId === componentId && 
-             ['pod', 'response'].includes(trafficState.phase);
-    default:
-      return false;
-  }
-}
+
 
 // Traffic path indicator - shows which service was selected
 export function TrafficPathIndicator({ trafficState }: { trafficState: TrafficState }) {
