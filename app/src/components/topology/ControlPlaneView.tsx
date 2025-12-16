@@ -76,6 +76,7 @@ export function ControlPlaneView({
               {controlPlaneScenario === 'scale-deployment' && 'kubectl scale deploy nginx --replicas=5'}
               {controlPlaneScenario === 'deploy-statefulset' && 'kubectl apply -f statefulset.yaml'}
               {controlPlaneScenario === 'deploy-daemonset' && 'kubectl apply -f daemonset.yaml'}
+              {controlPlaneScenario === 'run-job' && 'kubectl apply -f job.yaml'}
             </span>
           </div>
         )}
@@ -445,6 +446,63 @@ export function ControlPlaneView({
                 </div>
               )}
             </div>
+          </div>
+      )}
+
+      {/* Visual Feedback (Run Job Scenario) */}
+      {controlPlaneScenario === 'run-job' && (
+          <div className="flex flex-col items-center gap-4">
+              {/* Job Resource */}
+              <div className={cn(
+                  "p-3 rounded-lg border-2 transition-all duration-500 flex items-center gap-3",
+                  ['controller', 'scheduler', 'node-assign', 'node-flow', 'complete'].includes(controlPlaneState.phase)
+                     ? "bg-surface-800 border-primary-500 opacity-100"
+                     : "bg-surface-800 border-surface-700 opacity-30"
+              )}>
+                  <div className="p-2 bg-surface-900 rounded">
+                      <span className="text-xl">📜</span>
+                  </div>
+                  <div>
+                      <p className="font-semibold text-surface-100">Job: batch-processor</p>
+                      <p className={cn(
+                          "text-xs font-mono",
+                          controlPlaneState.phase === 'complete' ? "text-success-400" : "text-primary-400"
+                      )}>
+                          Status: {controlPlaneState.phase === 'complete' ? 'Complete' : 'Running'}
+                      </p>
+                  </div>
+              </div>
+
+              {/* Arrow */}
+              {['scheduler', 'node-assign', 'node-flow', 'complete'].includes(controlPlaneState.phase) && (
+                  <ArrowDown className="w-5 h-5 text-surface-400" />
+              )}
+
+              {/* Job Pod */}
+              {['node-assign', 'node-flow', 'complete'].includes(controlPlaneState.phase) && (
+                   <div className={cn(
+                      "flex items-center gap-3 p-3 rounded-lg border-2 bg-surface-800 transition-all duration-500",
+                      controlPlaneState.phase === 'complete' ? "border-success-500" : "border-primary-500/50 shadow-[0_0_30px_rgba(59,130,246,0.2)]"
+                  )}>
+                      <div className="relative">
+                          <div className="w-10 h-10 bg-surface-900 rounded-lg flex items-center justify-center border border-surface-700">
+                              <Box className={cn(
+                                  "w-6 h-6 transition-colors",
+                                  controlPlaneState.phase === 'complete' ? "text-success-400" : "text-primary-400"
+                              )} />
+                          </div>
+                      </div>
+                      <div>
+                          <p className="font-semibold text-surface-100">batch-processor-pod</p>
+                          <p className={cn(
+                              "text-xs",
+                              controlPlaneState.phase === 'complete' ? "text-success-400" : "text-primary-400"
+                          )}>
+                              {controlPlaneState.phase === 'complete' ? 'Succeeded' : 'Processing...'}
+                          </p>
+                      </div>
+                  </div>
+              )}
           </div>
       )}
 

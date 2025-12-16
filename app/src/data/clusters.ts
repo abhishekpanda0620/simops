@@ -1,4 +1,4 @@
-import type { ClusterSnapshot, ControlPlane, K8sNode, K8sPod, K8sService, K8sIngress, K8sDeployment, K8sPV, K8sPVC, K8sConfigMap, K8sSecret } from '@/types';
+import type { ClusterSnapshot, ControlPlane, K8sNode, K8sPod, K8sService, K8sIngress, K8sDeployment, K8sPV, K8sPVC, K8sConfigMap, K8sSecret, K8sJob, K8sCronJob } from '@/types';
 
 // ============ CONTROL PLANE ============
 const healthyControlPlane: ControlPlane = {
@@ -347,6 +347,33 @@ const createSecrets = (): K8sSecret[] => [
     }
 ];
 
+// ============ JOBS ============
+const createJobs = (): K8sJob[] => [
+    {
+        id: 'job-backup',
+        name: 'db-backup-manual',
+        namespace: 'default',
+        completions: { desired: 1, succeeded: 1 },
+        parallelism: 1,
+        selector: { 'job-name': 'db-backup-manual' },
+        podIds: ['pod-job-backup-123'], // Assuming we might want to show completed pods later
+        status: 'Complete'
+    }
+];
+
+// ============ CRONJOBS ============
+const createCronJobs = (): K8sCronJob[] => [
+    {
+        id: 'cron-report',
+        name: 'daily-report',
+        namespace: 'default',
+        schedule: '0 0 * * *',
+        suspend: false,
+        active: 0,
+        lastScheduleTime: '2024-12-11T00:00:00Z'
+    }
+];
+
 // ============ SCENARIO: HEALTHY CLUSTER ============
 export const healthyCluster: ClusterSnapshot = {
   id: 'healthy-cluster',
@@ -365,6 +392,8 @@ export const healthyCluster: ClusterSnapshot = {
   pvcs: createPVCs(),
   configMaps: createConfigMaps(),
   secrets: createSecrets(),
+  jobs: createJobs(),
+  cronJobs: createCronJobs(),
 };
 
 // ============ SCENARIO: CRASHLOOPBACKOFF ============

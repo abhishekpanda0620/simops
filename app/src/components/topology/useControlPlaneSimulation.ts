@@ -1,11 +1,20 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { ControlPlaneScenario, ControlPlaneState } from './ControlPlaneUtils';
-import type { K8sPod, K8sPVC } from '@/types';
+import type { K8sPod, K8sPVC, K8sStatefulSet, K8sDaemonSet, K8sJob } from '@/types';
 
 // Actions we can perform on the store
 export interface SimulationActions {
   addPod: (pod: K8sPod) => void;
   addPVC: (pvc: K8sPVC) => void;
+  removePod: (podId: string) => void;
+  deletePodByName: (namePattern: string) => void;
+  toggleNodeFailure: (nodeId: string) => void;
+  evictNodePods: (nodeId: string) => void;
+  scaleDeployment: (id: string, replicas: number) => void;
+  addStatefulSet: (sts: K8sStatefulSet) => void;
+  addDaemonSet: (ds: K8sDaemonSet) => void;
+  addJob: (job: K8sJob) => void;
+  completeJob: (jobId: string) => void;
 }
 
 export function useControlPlaneSimulation(actions?: SimulationActions) {
@@ -85,17 +94,19 @@ function runScenario(
   } else if (scenario === 'get-pods') {
     return runGetPodsScenario(setState, stopSimulation);
   } else if (scenario === 'delete-pod') {
-    return runDeletePodScenario(setState, stopSimulation);
+    return runDeletePodScenario(setState, stopSimulation, actions);
   } else if (scenario === 'scale-deployment') {
-    return runScaleDeploymentScenario(setState, stopSimulation);
+    return runScaleDeploymentScenario(setState, stopSimulation, actions);
   } else if (scenario === 'node-failure') {
-    return runNodeFailureScenario(setState, stopSimulation);
+    return runNodeFailureScenario(setState, stopSimulation, actions);
   } else if (scenario === 'worker-flow') {
     return runWorkerFlowScenario(setState, stopSimulation);
   } else if (scenario === 'deploy-statefulset') {
     return runDeployStatefulSetScenario(setState, stopSimulation, actions);
   } else if (scenario === 'deploy-daemonset') {
     return runDeployDaemonSetScenario(setState, stopSimulation, actions);
+  } else if (scenario === 'run-job') {
+    return runJobScenario(setState, stopSimulation, actions);
   }
   return [];
 }
@@ -110,6 +121,7 @@ function getStartMessage(scenario: ControlPlaneScenario) {
     case 'worker-flow': return '# Simulating Kube-Proxy & Kubelet Flow...';
     case 'deploy-statefulset': return '$ kubectl apply -f statefulset.yaml';
     case 'deploy-daemonset': return '$ kubectl apply -f daemonset.yaml';
+    case 'run-job': return '$ kubectl apply -f job.yaml';
     default: return '';
   }
 }
@@ -175,7 +187,8 @@ function runGetPodsScenario(
 
 function runDeletePodScenario(
   setState: React.Dispatch<React.SetStateAction<ControlPlaneState>>,
-  stop: () => void
+  stop: () => void,
+  actions?: SimulationActions
 ): ReturnType<typeof setTimeout>[] {
   const timeouts: ReturnType<typeof setTimeout>[] = [];
   // 1. API Server
@@ -186,8 +199,14 @@ function runDeletePodScenario(
   timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'controller', message: 'Controller: Recognizing deletion event...' })), 6500));
   // 4. Node (Kill)
   timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'node-assign', message: 'Kubelet: Stopping container...' })), 9000));
-  // 5. etcd (Remove)
-  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'etcd', message: 'etcd: Removing Pod data permanently' })), 11500));
+  // 5. etcd (Remove) - ACTUAL ACTION
+  timeouts.push(setTimeout(() => {
+      setState(p => ({ ...p, phase: 'etcd', message: 'etcd: Removing Pod data permanently' }));
+      if (actions) {
+          actions.deletePodByName('nginx');
+      }
+  }, 11500));
+  
   // 6. Complete
   timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'complete', message: 'Pod Deleted' })), 14000));
   timeouts.push(setTimeout(stop, 16000));
@@ -197,7 +216,8 @@ function runDeletePodScenario(
 
 function runScaleDeploymentScenario(
   setState: React.Dispatch<React.SetStateAction<ControlPlaneState>>,
-  stop: () => void
+  stop: () => void,
+  actions?: SimulationActions
 ): ReturnType<typeof setTimeout>[] {
   const timeouts: ReturnType<typeof setTimeout>[] = [];
   // 1. API Server
@@ -205,9 +225,18 @@ function runScaleDeploymentScenario(
   // 2. etcd (Update spec)
   timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'etcd', message: 'etcd: Updating Deployment replicas to 5' })), 4000));
   // 3. Controller Manager (ReplicaSet)
-  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'controller', message: 'Controller (ReplicaSet): Detected 2 missing pods...' })), 6500));
-  // 4. Scheduler (Schedule new pods)
-  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'scheduler', message: 'Scheduler: Assigning nodes for new pods...' })), 9000));
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'controller', message: 'Controller (ReplicaSet): Detected missing pods...' })), 6500));
+  
+  // 4. Scheduler & Node Assign - ACTUAL ACTION
+  timeouts.push(setTimeout(() => {
+      setState(p => ({ ...p, phase: 'scheduler', message: 'Scheduler: Assigning nodes for new pods...' }));
+      if (actions) {
+          // Scale 'web-frontend' deployment to 5
+          // We assume 'web-frontend' exists as it's part of the default/healthy scenario
+          actions.scaleDeployment('dep-frontend', 5);
+      }
+  }, 9000));
+
   // 5. Node (Start containers)
   timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'node-assign', message: 'Kubelet: Starting new containers...' })), 11500));
   // 6. Complete
@@ -219,24 +248,71 @@ function runScaleDeploymentScenario(
 
 function runNodeFailureScenario(
   setState: React.Dispatch<React.SetStateAction<ControlPlaneState>>,
-  stop: () => void
+  stop: () => void,
+  actions?: SimulationActions
 ): ReturnType<typeof setTimeout>[] {
   const timeouts: ReturnType<typeof setTimeout>[] = [];
+  
+  // 0. Trigger Failure - ACTUAL ACTION
+  timeouts.push(setTimeout(() => {
+      setState(p => ({ ...p, phase: 'controller', message: 'Simulating Power Failure on Node 2...' }));
+      if (actions) {
+          actions.toggleNodeFailure('node-worker-2');
+      }
+  }, 1000));
+
   // 1. Controller Manager (Heartbeat check)
-  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'controller', message: 'Controller: Heartbeat missing from Node 2...' })), 2000));
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'controller', message: 'Controller: Heartbeat missing from Node 2...' })), 3000));
+  
   // 2. Controller Manager (Mark NodeLost)
-  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'controller', message: 'Controller: Marking Node 2 as NotReady' })), 4000));
-  // 3. Controller (Eviction)
-  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'controller', message: 'Controller: Evicting pods from failed node...' })), 6500));
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'controller', message: 'Controller: Marking Node 2 as NotReady' })), 5000));
+  
+  // 3. Controller (Eviction) - ACTUAL ACTION
+  timeouts.push(setTimeout(() => {
+      setState(p => ({ ...p, phase: 'controller', message: 'Controller: Evicting pods from failed node...' }));
+      if (actions) {
+          actions.evictNodePods('node-worker-2');
+      }
+  }, 7500));
+  
   // 4. API Server (Update state)
-  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'api-server', message: 'API Server: Updating Pod status to Pending' })), 8500));
-   // 5. Scheduler (Reschedule)
-  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'scheduler', message: 'Scheduler: Detected pending pods, assigning to Node 1...' })), 11000));
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'api-server', message: 'API Server: Updating Pod status to Pending' })), 9500));
+  
+   // 5. Scheduler (Reschedule) - ACTUAL ACTION (Implicit via Deployment reconciliation or manual add)
+   // For simulation, we'll manually "reschedule" a pod to Node 1 to show recovery
+  timeouts.push(setTimeout(() => {
+      setState(p => ({ ...p, phase: 'scheduler', message: 'Scheduler: Detected pending pods, assigning to Node 1...' }));
+      // We rely on the user seeing the 'Pending' pods or we could explicitly 'fix' one.
+      // Let's just leave them pending/evicted to show the effect, OR
+      // we can auto-recover one pod to complete the story.
+      if (actions) {
+          // Add a replacement pod to Node 1
+          actions.addPod({
+              id: `nginx-recovered-${Math.random().toString(36).substr(2, 5)}`,
+              name: 'nginx-recovered',
+              namespace: 'default',
+              nodeId: 'node-worker-1',
+              nodeName: 'worker-1',
+              phase: 'Running',
+              status: 'running',
+              createdAt: new Date().toISOString(),
+              restarts: 0,
+              conditions: [],
+              containers: [{ name: 'nginx', image: 'nginx:latest', state: 'running', ready: true, restarts: 0 }],
+              events: [],
+              labels: { app: 'nginx' },
+              serviceIds: []
+          });
+      }
+  }, 12000));
+  
   // 6. Node (Start new pods)
-  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'node-assign', message: 'Kubelet (Node 1): Starting recovered pods...' })), 13500));
-  // 7. Complete
-  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'complete', message: 'Recovery Complete' })), 16000));
-  timeouts.push(setTimeout(stop, 18000));
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'node-assign', message: 'Kubelet (Node 1): Starting recovered pods...' })), 14500));
+  
+  // 7. Complete - Restore Node so simulation is replayable without hard refresh?
+  // Let's leave it failed so user sees the red node. They can refresh to reset.
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'complete', message: 'Recovery Complete' })), 17000));
+  timeouts.push(setTimeout(stop, 19000));
   
   return timeouts;
 }
@@ -276,7 +352,21 @@ function runDeployStatefulSetScenario(
   const timeouts: ReturnType<typeof setTimeout>[] = [];
   
   // 1. API Server
-  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'api-server', message: 'API Server: Validating StatefulSet spec...' })), 2000));
+  timeouts.push(setTimeout(() => {
+    setState(p => ({ ...p, phase: 'api-server', message: 'API Server: Validating StatefulSet spec...' }));
+    // Persist STS to store (etcd)
+    if (actions) {
+       actions.addStatefulSet({
+           id: 'sts-web',
+           name: 'web',
+           namespace: 'default',
+           replicas: { desired: 2, ready: 0, current: 0 },
+           selector: { app: 'web' },
+           serviceName: 'nginx',
+           podIds: []
+       });
+    }
+  }, 2000));
   
   // 2. Controller - PVC Creation
   timeouts.push(setTimeout(() => {
@@ -379,7 +469,20 @@ function runDeployDaemonSetScenario(
   const timeouts: ReturnType<typeof setTimeout>[] = [];
   
   // 1. API Server
-  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'api-server', message: 'API Server: Validating DaemonSet spec...' })), 2000));
+  timeouts.push(setTimeout(() => {
+      setState(p => ({ ...p, phase: 'api-server', message: 'API Server: Validating DaemonSet spec...' }));
+      // Persist DS to store (etcd)
+      if (actions) {
+         actions.addDaemonSet({
+             id: 'ds-monitoring',
+             name: 'monitoring-agent',
+             namespace: 'monitoring',
+             replicas: { desired: 2, current: 0, ready: 0, available: 0 }, // assuming 2 nodes
+             selector: { app: 'monitoring' },
+             podIds: []
+         });
+      }
+  }, 2000));
   
   // 2. Controller
   timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'controller', message: 'DaemonSet Controller: Calculating eligible nodes...' })), 4000));
@@ -419,6 +522,85 @@ function runDeployDaemonSetScenario(
   // 6. Complete
   timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'complete', message: 'DaemonSet Deployed (1 per Node)' })), 14000));
   timeouts.push(setTimeout(stop, 16000));
+
+  return timeouts;
+}
+
+function runJobScenario(
+  setState: React.Dispatch<React.SetStateAction<ControlPlaneState>>,
+  stop: () => void,
+  actions?: SimulationActions
+): ReturnType<typeof setTimeout>[] {
+  const timeouts: ReturnType<typeof setTimeout>[] = [];
+  const jobId = `job-${Math.random().toString(36).substr(2, 5)}`;
+  const podId = `pi-${jobId}`;
+  
+  // 1. API Server
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'api-server', message: 'API Server: Validating Job spec...' })), 2000));
+  
+  // 2. Controller - Create Job
+  timeouts.push(setTimeout(() => {
+    setState(p => ({ ...p, phase: 'controller', message: 'Job Controller: Creating Job resource...' }));
+    if (actions) {
+       actions.addJob({
+           id: jobId,
+           name: 'batch-processor',
+           namespace: 'default',
+           completions: { desired: 1, succeeded: 0 },
+           parallelism: 1,
+           selector: { 'job-name': 'batch-processor' },
+           podIds: [podId],
+           status: 'Running'
+       });
+    }
+  }, 4000));
+  
+  // 3. Controller - Create Pod
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'controller', message: 'Job Controller: Creating Pod for Job...' })), 6500));
+  
+  // 4. Scheduler (simplified)
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'scheduler', message: 'Scheduler: Assigning Job Pod to Node...' })), 8500));
+  
+  // 5. Node Start (Running)
+  timeouts.push(setTimeout(() => {
+      setState(p => ({ ...p, phase: 'node-assign', message: 'Kubelet: Starting Job Pod...' }));
+      if (actions) {
+          actions.addPod({
+              id: podId,
+              name: `batch-processor-${podId}`,
+              namespace: 'default',
+              nodeId: 'node-worker-2',
+              nodeName: 'worker-2',
+              phase: 'Running',
+              status: 'running',
+              createdAt: new Date().toISOString(),
+              restarts: 0,
+              conditions: [],
+              containers: [{ name: 'processor', image: 'perl', state: 'running', ready: true, restarts: 0 }],
+              events: [],
+              labels: { 'job-name': 'batch-processor' },
+              serviceIds: []
+          });
+      }
+  }, 10500));
+  
+  // 6. Execution (Wait)
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'node-flow', message: 'Container: Processing data (Sleep 3s)...' })), 13000));
+  
+  // 7. Success
+  timeouts.push(setTimeout(() => {
+     setState(p => ({ ...p, phase: 'node-assign', message: 'Kubelet: Pod Succeeded! Notifying Controller...' }));
+     if (actions) {
+         actions.completeJob(jobId);
+         // Visual fix: Update the pod to Succeeded (for now, simply relying on Job status update)
+         // In a real K8s, the pod Phase goes to Succeeded.
+         // We'll leave the pod as Running in the visual for now, but the Job will turn Green.
+     }
+  }, 16000));
+  
+  // 8. Complete
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'complete', message: 'Job Complete (1/1 Succeeded)' })), 18500));
+  timeouts.push(setTimeout(stop, 20500));
 
   return timeouts;
 }

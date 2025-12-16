@@ -35,6 +35,7 @@ export function ControlPlaneFlowControls({
             {scenario === 'worker-flow' && 'Worker Node Flow'}
             {scenario === 'deploy-statefulset' && 'Deploy StatefulSet'}
             {scenario === 'deploy-daemonset' && 'Deploy DaemonSet'}
+            {scenario === 'run-job' && 'Run Job'}
           </span>
           <ChevronDown className="w-4 h-4 shrink-0" />
         </button>
@@ -51,6 +52,7 @@ export function ControlPlaneFlowControls({
                <button onClick={() => onScenarioChange('worker-flow')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Worker Node Flow</button>
                <button onClick={() => onScenarioChange('deploy-statefulset')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Deploy StatefulSet</button>
                <button onClick={() => onScenarioChange('deploy-daemonset')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Deploy DaemonSet</button>
+               <button onClick={() => onScenarioChange('run-job')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Run Job</button>
              </>
            )}
         </div>

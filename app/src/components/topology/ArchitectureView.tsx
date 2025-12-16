@@ -22,8 +22,19 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
   const [selected, setSelected] = useState<SelectedItem>(null);
   const [flowMode, setFlowMode] = useState<FlowMode>('user-request');
 
-  // Get actions from store for simulation
-  const { addPod, addPVC } = useClusterStore();
+  const { 
+    addPod, 
+    addPVC, 
+    removePod, 
+    deletePodByName, 
+    toggleNodeFailure, 
+    evictNodePods, 
+    scaleDeployment,
+    addStatefulSet,
+    addDaemonSet,
+    addJob,
+    completeJob
+  } = useClusterStore();
   
   // Local state for traffic simulation (visual only)
   const traffic = useTrafficSimulation(
@@ -35,7 +46,16 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
   // Control Plane Simulation State
   const controlPlane = useControlPlaneSimulation({ 
     addPod, 
-    addPVC 
+    addPVC,
+    removePod, 
+    deletePodByName,
+    toggleNodeFailure, 
+    evictNodePods, 
+    scaleDeployment,
+    addStatefulSet,
+    addDaemonSet,
+    addJob,
+    completeJob
   });
 
   // Reset selection when switching modes

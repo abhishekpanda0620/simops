@@ -213,6 +213,28 @@ export interface K8sDaemonSet {
   selector: Record<string, string>;
   podIds: string[];
 }
+// ============ JOBS ============
+export interface K8sJob {
+  id: string;
+  name: string;
+  namespace: string;
+  completions: { desired: number; succeeded: number };
+  parallelism: number;
+  selector: Record<string, string>;
+  podIds: string[];
+  status: 'Running' | 'Complete' | 'Failed';
+}
+
+// ============ CRONJOBS ============
+export interface K8sCronJob {
+  id: string;
+  name: string;
+  namespace: string;
+  schedule: string;
+  suspend: boolean;
+  active: number;
+  lastScheduleTime?: string;
+}
 
 // ============ CONFIGURATION ============
 export interface K8sConfigMap {
@@ -250,6 +272,8 @@ export interface ClusterSnapshot {
   pvcs: K8sPVC[];
   configMaps: K8sConfigMap[];
   secrets: K8sSecret[];
+  jobs: K8sJob[];
+  cronJobs: K8sCronJob[];
 }
 
 // ============ SCENARIO ACTIONS ============

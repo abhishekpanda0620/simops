@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sStatefulSet, K8sDaemonSet, K8sPV, K8sPVC, ResourceStatus, K8sDeployment } from '@/types';
+import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sStatefulSet, K8sDaemonSet, K8sPV, K8sPVC, ResourceStatus, K8sDeployment, K8sJob, K8sCronJob } from '@/types';
 import { scenarios, type ScenarioId } from '@/data';
 
 interface ClusterState {
@@ -15,6 +15,8 @@ interface ClusterState {
   selectedDeployment: K8sDeployment | null;
   selectedPV: K8sPV | null;
   selectedPVC: K8sPVC | null;
+  selectedJob: K8sJob | null;
+  selectedCronJob: K8sCronJob | null;
   
   // Actions
   loadScenario: (scenarioId: ScenarioId) => void;
@@ -28,6 +30,8 @@ interface ClusterState {
   selectDeployment: (deploy: K8sDeployment | null) => void;
   selectPV: (pv: K8sPV | null) => void;
   selectPVC: (pvc: K8sPVC | null) => void;
+  selectJob: (job: K8sJob | null) => void;
+  selectCronJob: (cronJob: K8sCronJob | null) => void;
   clearSelection: () => void;
   
   // Simulation actions
@@ -38,8 +42,14 @@ interface ClusterState {
   triggerCrashLoop: (podId: string) => void;
   toggleNodeFailure: (nodeId: string) => void;
   scaleDeployment: (deploymentId: string, replicas: number) => void;
+  removePod: (podId: string) => void;
+  deletePodByName: (namePattern: string) => void;
+  evictNodePods: (nodeId: string) => void;
   // Generic Actions
   addPod: (pod: K8sPod) => void;
+  addJob: (job: K8sJob) => void;
+  addCronJob: (cronJob: K8sCronJob) => void;
+  completeJob: (jobId: string) => void;
   addPVC: (pvc: K8sPVC) => void;
   addStatefulSet: (sts: K8sStatefulSet) => void;
   addDaemonSet: (ds: K8sDaemonSet) => void;
@@ -58,6 +68,8 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
   selectedDeployment: null,
   selectedPV: null,
   selectedPVC: null,
+  selectedJob: null,
+  selectedCronJob: null,
   
   loadScenario: (scenarioId) => {
     set({
@@ -219,6 +231,40 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedDaemonSet: null,
       selectedPV: null,
     });
+  },
+
+  selectJob: (job) => {
+    set({
+      selectedJob: job,
+      selectedPod: null,
+      selectedService: null,
+      selectedIngress: null,
+      selectedControlPlane: null,
+      selectedNodeId: null,
+      selectedStatefulSet: null,
+      selectedDaemonSet: null,
+      selectedDeployment: null,
+      selectedPV: null,
+      selectedPVC: null,
+      selectedCronJob: null,
+    });
+  },
+
+  selectCronJob: (cronJob) => {
+      set({
+        selectedCronJob: cronJob,
+        selectedJob: null,
+        selectedPod: null,
+        selectedService: null,
+        selectedIngress: null,
+        selectedControlPlane: null,
+        selectedNodeId: null,
+        selectedStatefulSet: null,
+        selectedDaemonSet: null,
+        selectedDeployment: null,
+        selectedPV: null,
+        selectedPVC: null,
+      });
   },
   
   clearSelection: () => {
@@ -591,6 +637,74 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
         }
     });
   },
+  
+  // Simulation: Permanently remove a pod (kubectl delete pod)
+  removePod: (podId) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    
+    // Also remove from any deployment/service mapping
+    // This is a "hard" delete for the simulation
+    set({
+      currentCluster: {
+        ...cluster,
+        pods: cluster.pods.filter(p => p.id !== podId),
+        deployments: cluster.deployments.map(d => ({
+            ...d,
+            podIds: d.podIds.filter(id => id !== podId)
+        })),
+        services: cluster.services.map(s => ({
+            ...s,
+            podIds: s.podIds.filter(id => id !== podId)
+        }))
+      }
+    });
+  },
+
+  // Simulation: Delete pod by name pattern (for when ID is random)
+  deletePodByName: (namePattern) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    
+    // Find last matching pod to simulate deleting the most recent one
+    // or just the first one found.
+    const pod = cluster.pods.find(p => p.name.includes(namePattern));
+    if (pod) {
+        get().removePod(pod.id);
+    }
+  },
+
+  // Simulation: Evict all pods from a node (Node Failure)
+  evictNodePods: (nodeId) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    
+    set({
+      currentCluster: {
+        ...cluster,
+        pods: cluster.pods.map(p => {
+            if (p.nodeId === nodeId) {
+                return {
+                    ...p,
+                    status: 'pending',
+                    phase: 'Pending',
+                    nodeId: '', // Unassigned
+                    nodeName: '',
+                    conditions: [
+                        ...p.conditions,
+                        { type: 'Ready', status: 'False', reason: 'Evicted', message: 'Node failed' }
+                    ],
+                    events: [
+                        ...p.events,
+                        { type: 'Warning', reason: 'Evicted', message: 'Node NotReady: Evicting', timestamp: new Date().toISOString(), count: 1 }
+                    ]
+                } as K8sPod;
+            }
+            return p;
+        })
+      }
+    });
+  },
 
   addPod: (pod) => {
     const cluster = get().currentCluster;
@@ -633,6 +747,42 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
         ...cluster,
         daemonSets: [...(cluster.daemonSets || []), ds],
       },
+    });
+  },
+
+  addJob: (job) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    set({
+      currentCluster: {
+        ...cluster,
+        jobs: [...(cluster.jobs || []), job],
+      },
+    });
+  },
+
+  addCronJob: (cronJob) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    set({
+        currentCluster: {
+            ...cluster,
+            cronJobs: [...(cluster.cronJobs || []), cronJob],
+        },
+    });
+  },
+
+  completeJob: (jobId) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+
+    set({
+        currentCluster: {
+            ...cluster,
+            jobs: (cluster.jobs || []).map(j => 
+                j.id === jobId ? { ...j, status: 'Complete', completions: { ...j.completions, succeeded: 1 } } : j
+            )
+        }
     });
   },
 }));
