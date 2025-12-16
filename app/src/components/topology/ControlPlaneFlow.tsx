@@ -1,6 +1,22 @@
-import { Play, Square, ChevronDown } from 'lucide-react';
+import { Play, Square } from 'lucide-react';
 import { cn } from '@/utils';
 import { type ControlPlaneScenario, type ControlPlaneState } from './ControlPlaneUtils';
+import { Combobox } from '../ui/Combobox';
+
+const SCENARIOS = [
+  { value: 'create-pod', label: 'Create Pod' },
+  { value: 'get-pods', label: 'Get Pods' },
+  { value: 'delete-pod', label: 'Delete Pod' },
+  { value: 'scale-deployment', label: 'Scale Deployment' },
+  { value: 'node-failure', label: 'Node Failure (Recovery)' },
+  { value: 'worker-flow', label: 'Worker Node Flow' },
+  { value: 'deploy-statefulset', label: 'Deploy StatefulSet' },
+  { value: 'deploy-daemonset', label: 'Deploy DaemonSet' },
+  { value: 'run-job', label: 'Run Job' },
+  { value: 'manage-configmap', label: 'Manage ConfigMap' },
+  { value: 'manage-secret', label: 'Manage Secret' },
+  { value: 'simulate-hpa', label: 'Simulate HPA (Autoscaling)' },
+] as const;
 
 export interface ControlPlaneFlowControlsProps {
   isFlowing: boolean;
@@ -20,49 +36,16 @@ export function ControlPlaneFlowControls({
   return (
     <div className="flex items-center gap-4 bg-surface-800 p-2 rounded-lg border border-surface-700 shadow-lg z-50">
       
-      {/* Scenario Selector */}
-      <div className="relative group">
-        <button 
-          disabled={isFlowing}
-          className="flex items-center gap-2 px-3 py-2 bg-surface-700 hover:bg-surface-600 disabled:opacity-50 disabled:cursor-not-allowed text-surface-200 rounded-md transition-colors text-sm font-medium w-[240px] justify-between"
-        >
-          <span className="truncate text-left flex-1">
-            {scenario === 'create-pod' && 'Create Pod'}
-            {scenario === 'get-pods' && 'Get Pods'}
-            {scenario === 'delete-pod' && 'Delete Pod'}
-            {scenario === 'scale-deployment' && 'Scale Deployment'}
-            {scenario === 'node-failure' && 'Node Failure (Recovery)'}
-            {scenario === 'worker-flow' && 'Worker Node Flow'}
-            {scenario === 'deploy-statefulset' && 'Deploy StatefulSet'}
-            {scenario === 'deploy-daemonset' && 'Deploy DaemonSet'}
-            {scenario === 'run-job' && 'Run Job'}
-            {scenario === 'manage-configmap' && 'Manage ConfigMap'}
-            {scenario === 'manage-secret' && 'Manage Secret'}
-            {scenario === 'simulate-hpa' && 'Simulate HPA (Autoscaling)'}
-          </span>
-          <ChevronDown className="w-4 h-4 shrink-0" />
-        </button>
-        
-        {/* Dropdown Menu */}
-        <div className="absolute top-full left-0 mt-1 w-full bg-surface-800 border border-surface-700 rounded-md shadow-xl overflow-hidden hidden group-hover:block z-50">
-           {!isFlowing && (
-             <>
-               <button onClick={() => onScenarioChange('create-pod')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Create Pod</button>
-               <button onClick={() => onScenarioChange('get-pods')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Get Pods</button>
-               <button onClick={() => onScenarioChange('delete-pod')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Delete Pod</button>
-               <button onClick={() => onScenarioChange('scale-deployment')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Scale Deployment</button>
-               <button onClick={() => onScenarioChange('node-failure')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Node Failure (Recovery)</button>
-               <button onClick={() => onScenarioChange('worker-flow')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Worker Node Flow</button>
-               <button onClick={() => onScenarioChange('deploy-statefulset')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Deploy StatefulSet</button>
-               <button onClick={() => onScenarioChange('deploy-daemonset')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Deploy DaemonSet</button>
-               <button onClick={() => onScenarioChange('run-job')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Run Job</button>
-               <button onClick={() => onScenarioChange('manage-configmap')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Manage ConfigMap</button>
-               <button onClick={() => onScenarioChange('manage-secret')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Manage Secret</button>
-               <button onClick={() => onScenarioChange('simulate-hpa')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Simulate HPA</button>
-             </>
-           )}
-        </div>
-      </div>
+      {/* Scenario Selector (Combobox) */}
+      <Combobox 
+        options={[...SCENARIOS]} 
+        value={scenario} 
+        onChange={(val) => onScenarioChange(val as ControlPlaneScenario)}
+        placeholder="Select Scenario..."
+        searchPlaceholder="Search scenarios..."
+        disabled={isFlowing}
+        className="w-[280px]"
+      />
 
       <div className="h-6 w-px bg-surface-700" />
 
