@@ -38,6 +38,7 @@ export function ControlPlaneFlowControls({
             {scenario === 'run-job' && 'Run Job'}
             {scenario === 'manage-configmap' && 'Manage ConfigMap'}
             {scenario === 'manage-secret' && 'Manage Secret'}
+            {scenario === 'simulate-hpa' && 'Simulate HPA (Autoscaling)'}
           </span>
           <ChevronDown className="w-4 h-4 shrink-0" />
         </button>
@@ -57,6 +58,7 @@ export function ControlPlaneFlowControls({
                <button onClick={() => onScenarioChange('run-job')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Run Job</button>
                <button onClick={() => onScenarioChange('manage-configmap')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Manage ConfigMap</button>
                <button onClick={() => onScenarioChange('manage-secret')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Manage Secret</button>
+               <button onClick={() => onScenarioChange('simulate-hpa')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Simulate HPA</button>
              </>
            )}
         </div>

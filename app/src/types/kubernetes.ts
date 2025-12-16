@@ -236,6 +236,21 @@ export interface K8sCronJob {
   lastScheduleTime?: string;
 }
 
+// ============ HPA ============
+export interface K8sHPA {
+  id: string;
+  name: string;
+  namespace: string;
+  targetRef: { kind: 'Deployment' | 'StatefulSet'; name: string };
+  minReplicas: number;
+  maxReplicas: number;
+  metrics: {
+      currentCpu: number; // percentage
+      targetCpu: number;  // percentage
+  };
+  status: 'Active' | 'Scaling' | 'Stabilizing';
+}
+
 // ============ CONFIGURATION ============
 export interface K8sConfigMap {
   id: string;
@@ -274,6 +289,7 @@ export interface ClusterSnapshot {
   secrets: K8sSecret[];
   jobs: K8sJob[];
   cronJobs: K8sCronJob[];
+  hpas: K8sHPA[];
 }
 
 // ============ SCENARIO ACTIONS ============

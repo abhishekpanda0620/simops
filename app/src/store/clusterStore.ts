@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sStatefulSet, K8sDaemonSet, K8sPV, K8sPVC, ResourceStatus, K8sDeployment, K8sJob, K8sCronJob, K8sConfigMap, K8sSecret } from '@/types';
+import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sStatefulSet, K8sDaemonSet, K8sPV, K8sPVC, ResourceStatus, K8sDeployment, K8sJob, K8sCronJob, K8sConfigMap, K8sSecret, K8sHPA } from '@/types';
 import { scenarios, type ScenarioId } from '@/data';
 
 interface ClusterState {
@@ -19,6 +19,7 @@ interface ClusterState {
   selectedCronJob: K8sCronJob | null;
   selectedConfigMap: K8sConfigMap | null;
   selectedSecret: K8sSecret | null;
+  selectedHPA: K8sHPA | null;
   
   // Actions
   loadScenario: (scenarioId: ScenarioId) => void;
@@ -36,6 +37,7 @@ interface ClusterState {
   selectCronJob: (cronJob: K8sCronJob | null) => void;
   selectConfigMap: (cm: K8sConfigMap | null) => void;
   selectSecret: (secret: K8sSecret | null) => void;
+  selectHPA: (hpa: K8sHPA | null) => void;
   clearSelection: () => void;
   
   // Simulation actions
@@ -56,6 +58,8 @@ interface ClusterState {
   completeJob: (jobId: string) => void;
   addConfigMap: (cm: K8sConfigMap) => void;
   addSecret: (secret: K8sSecret) => void;
+  addHPA: (hpa: K8sHPA) => void;
+  updateHPA: (hpaId: string, currentCpu: number) => void;
   addPVC: (pvc: K8sPVC) => void;
   addStatefulSet: (sts: K8sStatefulSet) => void;
   addDaemonSet: (ds: K8sDaemonSet) => void;
@@ -78,6 +82,7 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
   selectedCronJob: null,
   selectedConfigMap: null,
   selectedSecret: null,
+  selectedHPA: null,
   
   loadScenario: (scenarioId) => {
     set({
@@ -314,6 +319,27 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedPV: null,
       selectedPVC: null,
       selectedCronJob: null,
+      selectedHPA: null,
+    });
+  },
+
+  selectHPA: (hpa) => {
+    set({
+      selectedHPA: hpa,
+      selectedSecret: null,
+      selectedConfigMap: null,
+      selectedJob: null,
+      selectedPod: null,
+      selectedService: null,
+      selectedIngress: null,
+      selectedControlPlane: null,
+      selectedNodeId: null,
+      selectedStatefulSet: null,
+      selectedDaemonSet: null,
+      selectedDeployment: null,
+      selectedPV: null,
+      selectedPVC: null,
+      selectedCronJob: null,
     });
   },
   
@@ -333,6 +359,7 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedCronJob: null,
       selectedConfigMap: null,
       selectedSecret: null,
+      selectedHPA: null,
     });
   },
   
@@ -858,6 +885,30 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       currentCluster: {
         ...cluster,
         secrets: [...(cluster.secrets || []), secret],
+      },
+    });
+  },
+
+  addHPA: (hpa) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    set({
+      currentCluster: {
+        ...cluster,
+        hpas: [...(cluster.hpas || []), hpa],
+      },
+    });
+  },
+
+  updateHPA: (hpaId, currentCpu) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    set({
+      currentCluster: {
+        ...cluster,
+        hpas: (cluster.hpas || []).map(h => 
+          h.id === hpaId ? { ...h, metrics: { ...h.metrics, currentCpu } } : h
+        ),
       },
     });
   },
