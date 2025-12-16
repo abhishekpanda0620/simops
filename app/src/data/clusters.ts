@@ -395,6 +395,8 @@ export const healthyCluster: ClusterSnapshot = {
   jobs: createJobs(),
   cronJobs: createCronJobs(),
   hpas: [],
+  roles: [],
+  roleBindings: [],
 };
 
 // ============ SCENARIO: CRASHLOOPBACKOFF ============

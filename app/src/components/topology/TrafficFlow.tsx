@@ -95,9 +95,7 @@ export function TrafficFlowControls({
   );
 }
 
-// Hook moved to useTrafficSimulation.ts to fix HMR issues
-import { useTrafficSimulation } from './useTrafficSimulation';
-export { useTrafficSimulation };
+
 
 
 

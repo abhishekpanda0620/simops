@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sStatefulSet, K8sDaemonSet, K8sPV, K8sPVC, ResourceStatus, K8sDeployment, K8sJob, K8sCronJob, K8sConfigMap, K8sSecret, K8sHPA } from '@/types';
+import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sStatefulSet, K8sDaemonSet, K8sPV, K8sPVC, ResourceStatus, K8sDeployment, K8sJob, K8sCronJob, K8sConfigMap, K8sSecret, K8sHPA, K8sRole, K8sRoleBinding } from '@/types';
 import { scenarios, type ScenarioId } from '@/data';
 
 interface ClusterState {
@@ -20,6 +20,8 @@ interface ClusterState {
   selectedConfigMap: K8sConfigMap | null;
   selectedSecret: K8sSecret | null;
   selectedHPA: K8sHPA | null;
+  selectedRole: K8sRole | null;
+  selectedRoleBinding: K8sRoleBinding | null;
   
   // Actions
   loadScenario: (scenarioId: ScenarioId) => void;
@@ -38,6 +40,8 @@ interface ClusterState {
   selectConfigMap: (cm: K8sConfigMap | null) => void;
   selectSecret: (secret: K8sSecret | null) => void;
   selectHPA: (hpa: K8sHPA | null) => void;
+  selectRole: (role: K8sRole | null) => void;
+  selectRoleBinding: (rb: K8sRoleBinding | null) => void;
   clearSelection: () => void;
   
   // Simulation actions
@@ -60,6 +64,8 @@ interface ClusterState {
   addSecret: (secret: K8sSecret) => void;
   addHPA: (hpa: K8sHPA) => void;
   updateHPA: (hpaId: string, currentCpu: number) => void;
+  addRole: (role: K8sRole) => void;
+  addRoleBinding: (rb: K8sRoleBinding) => void;
   addPVC: (pvc: K8sPVC) => void;
   addStatefulSet: (sts: K8sStatefulSet) => void;
   addDaemonSet: (ds: K8sDaemonSet) => void;
@@ -83,6 +89,8 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
   selectedConfigMap: null,
   selectedSecret: null,
   selectedHPA: null,
+  selectedRole: null,
+  selectedRoleBinding: null,
   
   loadScenario: (scenarioId) => {
     set({
@@ -340,6 +348,52 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedPV: null,
       selectedPVC: null,
       selectedCronJob: null,
+      selectedRole: null,
+      selectedRoleBinding: null,
+    });
+  },
+
+  selectRole: (role) => {
+    set({
+      selectedRole: role,
+      selectedRoleBinding: null,
+      selectedHPA: null,
+      selectedSecret: null,
+      selectedConfigMap: null,
+      selectedJob: null,
+      selectedPod: null,
+      selectedService: null,
+      selectedIngress: null,
+      selectedControlPlane: null,
+      selectedNodeId: null,
+      selectedStatefulSet: null,
+      selectedDaemonSet: null,
+      selectedDeployment: null,
+      selectedPV: null,
+      selectedPVC: null,
+      selectedCronJob: null,
+    });
+  },
+
+  selectRoleBinding: (rb) => {
+    set({
+      selectedRoleBinding: rb,
+      selectedRole: null,
+      selectedHPA: null,
+      selectedSecret: null,
+      selectedConfigMap: null,
+      selectedJob: null,
+      selectedPod: null,
+      selectedService: null,
+      selectedIngress: null,
+      selectedControlPlane: null,
+      selectedNodeId: null,
+      selectedStatefulSet: null,
+      selectedDaemonSet: null,
+      selectedDeployment: null,
+      selectedPV: null,
+      selectedPVC: null,
+      selectedCronJob: null,
     });
   },
   
@@ -360,6 +414,8 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedConfigMap: null,
       selectedSecret: null,
       selectedHPA: null,
+      selectedRole: null,
+      selectedRoleBinding: null,
     });
   },
   
@@ -909,6 +965,28 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
         hpas: (cluster.hpas || []).map(h => 
           h.id === hpaId ? { ...h, metrics: { ...h.metrics, currentCpu } } : h
         ),
+      },
+    });
+  },
+
+  addRole: (role) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    set({
+      currentCluster: {
+        ...cluster,
+        roles: [...(cluster.roles || []), role],
+      },
+    });
+  },
+
+  addRoleBinding: (rb) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    set({
+      currentCluster: {
+        ...cluster,
+        roleBindings: [...(cluster.roleBindings || []), rb],
       },
     });
   },

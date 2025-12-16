@@ -1,5 +1,5 @@
 import { cn } from '@/utils';
-import type { TrafficState } from './TrafficFlow';
+import type { TrafficState } from './TrafficUtils';
 
 interface TrafficAnimationLayerProps {
   trafficState: TrafficState;

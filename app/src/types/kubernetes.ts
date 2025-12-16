@@ -251,6 +251,33 @@ export interface K8sHPA {
   status: 'Active' | 'Scaling' | 'Stabilizing';
 }
 
+// ============ RBAC ============
+export interface K8sRole {
+  id: string;
+  name: string;
+  namespace: string;
+  rules: {
+    resources: string[]; // e.g., ["pods"]
+    verbs: string[];     // e.g., ["get", "list"]
+  }[];
+}
+
+export interface K8sRoleBinding {
+  id: string;
+  name: string;
+  namespace: string;
+  subjects: {
+    kind: 'User' | 'Group' | 'ServiceAccount';
+    name: string; 
+    namespace?: string;
+  }[];
+  roleRef: {
+    kind: 'Role' | 'ClusterRole';
+    name: string;
+    apiGroup: string;
+  };
+}
+
 // ============ CONFIGURATION ============
 export interface K8sConfigMap {
   id: string;
@@ -290,6 +317,8 @@ export interface ClusterSnapshot {
   jobs: K8sJob[];
   cronJobs: K8sCronJob[];
   hpas: K8sHPA[];
+  roles: K8sRole[];
+  roleBindings: K8sRoleBinding[];
 }
 
 // ============ SCENARIO ACTIONS ============

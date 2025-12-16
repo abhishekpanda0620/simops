@@ -16,6 +16,7 @@ const SCENARIOS = [
   { value: 'manage-configmap', label: 'Manage ConfigMap' },
   { value: 'manage-secret', label: 'Manage Secret' },
   { value: 'simulate-hpa', label: 'Simulate HPA (Autoscaling)' },
+  { value: 'simulate-rbac', label: 'Simulate RBAC (Access Control)' },
 ] as const;
 
 export interface ControlPlaneFlowControlsProps {

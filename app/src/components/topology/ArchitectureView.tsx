@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useClusterStore } from '@/store';
-import { useTrafficSimulation } from './TrafficFlow';
+import { useTrafficSimulation } from './useTrafficSimulation';
 import { useControlPlaneSimulation } from './useControlPlaneSimulation';
 import { FlowModeSelector, type FlowMode } from './FlowModeSelector';
 import { EnhancedInfoPanel } from './EnhancedInfoPanel';
@@ -37,7 +37,9 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
     addConfigMap,
     addSecret,
     addHPA,
-    updateHPA
+    updateHPA,
+    addRole,
+    addRoleBinding
   } = useClusterStore();
   
   // Local state for traffic simulation (visual only)
@@ -63,7 +65,9 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
     addConfigMap,
     addSecret,
     addHPA,
-    updateHPA
+    updateHPA,
+    addRole,
+    addRoleBinding
   });
 
   // Reset selection when switching modes
