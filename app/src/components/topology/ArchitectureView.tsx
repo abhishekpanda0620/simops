@@ -33,7 +33,9 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
     addStatefulSet,
     addDaemonSet,
     addJob,
-    completeJob
+    completeJob,
+    addConfigMap,
+    addSecret
   } = useClusterStore();
   
   // Local state for traffic simulation (visual only)
@@ -55,7 +57,9 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
     addStatefulSet,
     addDaemonSet,
     addJob,
-    completeJob
+    completeJob,
+    addConfigMap,
+    addSecret
   });
 
   // Reset selection when switching modes

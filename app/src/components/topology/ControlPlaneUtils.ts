@@ -1,5 +1,5 @@
 export type ControlPlanePhase = 'idle' | 'kubectl' | 'api-server' | 'etcd' | 'scheduler' | 'controller' | 'node-assign' | 'kube-proxy' | 'kubelet' | 'node-flow' | 'complete';
-export type ControlPlaneScenario = 'create-pod' | 'get-pods' | 'delete-pod' | 'scale-deployment' | 'node-failure' | 'worker-flow' | 'deploy-statefulset' | 'deploy-daemonset' | 'run-job';
+export type ControlPlaneScenario = 'create-pod' | 'get-pods' | 'delete-pod' | 'scale-deployment' | 'node-failure' | 'worker-flow' | 'deploy-statefulset' | 'deploy-daemonset' | 'run-job' | 'manage-configmap' | 'manage-secret';
 
 export interface ControlPlaneState {
   isFlowing: boolean;

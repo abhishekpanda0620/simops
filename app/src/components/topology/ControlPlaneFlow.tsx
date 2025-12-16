@@ -36,6 +36,8 @@ export function ControlPlaneFlowControls({
             {scenario === 'deploy-statefulset' && 'Deploy StatefulSet'}
             {scenario === 'deploy-daemonset' && 'Deploy DaemonSet'}
             {scenario === 'run-job' && 'Run Job'}
+            {scenario === 'manage-configmap' && 'Manage ConfigMap'}
+            {scenario === 'manage-secret' && 'Manage Secret'}
           </span>
           <ChevronDown className="w-4 h-4 shrink-0" />
         </button>
@@ -53,6 +55,8 @@ export function ControlPlaneFlowControls({
                <button onClick={() => onScenarioChange('deploy-statefulset')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Deploy StatefulSet</button>
                <button onClick={() => onScenarioChange('deploy-daemonset')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Deploy DaemonSet</button>
                <button onClick={() => onScenarioChange('run-job')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Run Job</button>
+               <button onClick={() => onScenarioChange('manage-configmap')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Manage ConfigMap</button>
+               <button onClick={() => onScenarioChange('manage-secret')} className="w-full text-left px-3 py-2 hover:bg-surface-700 text-sm text-surface-200">Manage Secret</button>
              </>
            )}
         </div>

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sStatefulSet, K8sDaemonSet, K8sPV, K8sPVC, ResourceStatus, K8sDeployment, K8sJob, K8sCronJob } from '@/types';
+import type { ClusterSnapshot, K8sPod, K8sService, K8sIngress, ControlPlaneComponent, K8sStatefulSet, K8sDaemonSet, K8sPV, K8sPVC, ResourceStatus, K8sDeployment, K8sJob, K8sCronJob, K8sConfigMap, K8sSecret } from '@/types';
 import { scenarios, type ScenarioId } from '@/data';
 
 interface ClusterState {
@@ -17,6 +17,8 @@ interface ClusterState {
   selectedPVC: K8sPVC | null;
   selectedJob: K8sJob | null;
   selectedCronJob: K8sCronJob | null;
+  selectedConfigMap: K8sConfigMap | null;
+  selectedSecret: K8sSecret | null;
   
   // Actions
   loadScenario: (scenarioId: ScenarioId) => void;
@@ -32,6 +34,8 @@ interface ClusterState {
   selectPVC: (pvc: K8sPVC | null) => void;
   selectJob: (job: K8sJob | null) => void;
   selectCronJob: (cronJob: K8sCronJob | null) => void;
+  selectConfigMap: (cm: K8sConfigMap | null) => void;
+  selectSecret: (secret: K8sSecret | null) => void;
   clearSelection: () => void;
   
   // Simulation actions
@@ -50,6 +54,8 @@ interface ClusterState {
   addJob: (job: K8sJob) => void;
   addCronJob: (cronJob: K8sCronJob) => void;
   completeJob: (jobId: string) => void;
+  addConfigMap: (cm: K8sConfigMap) => void;
+  addSecret: (secret: K8sSecret) => void;
   addPVC: (pvc: K8sPVC) => void;
   addStatefulSet: (sts: K8sStatefulSet) => void;
   addDaemonSet: (ds: K8sDaemonSet) => void;
@@ -70,6 +76,8 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
   selectedPVC: null,
   selectedJob: null,
   selectedCronJob: null,
+  selectedConfigMap: null,
+  selectedSecret: null,
   
   loadScenario: (scenarioId) => {
     set({
@@ -247,6 +255,8 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedPV: null,
       selectedPVC: null,
       selectedCronJob: null,
+      selectedConfigMap: null,
+      selectedSecret: null,
     });
   },
 
@@ -264,7 +274,47 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
         selectedDeployment: null,
         selectedPV: null,
         selectedPVC: null,
+        selectedConfigMap: null,
+        selectedSecret: null,
       });
+  },
+
+  selectConfigMap: (cm) => {
+    set({
+      selectedConfigMap: cm,
+      selectedJob: null,
+      selectedPod: null,
+      selectedService: null,
+      selectedIngress: null,
+      selectedControlPlane: null,
+      selectedNodeId: null,
+      selectedStatefulSet: null,
+      selectedDaemonSet: null,
+      selectedDeployment: null,
+      selectedPV: null,
+      selectedPVC: null,
+      selectedCronJob: null,
+      selectedSecret: null,
+    });
+  },
+
+  selectSecret: (secret) => {
+    set({
+      selectedSecret: secret,
+      selectedConfigMap: null,
+      selectedJob: null,
+      selectedPod: null,
+      selectedService: null,
+      selectedIngress: null,
+      selectedControlPlane: null,
+      selectedNodeId: null,
+      selectedStatefulSet: null,
+      selectedDaemonSet: null,
+      selectedDeployment: null,
+      selectedPV: null,
+      selectedPVC: null,
+      selectedCronJob: null,
+    });
   },
   
   clearSelection: () => {
@@ -279,6 +329,10 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
       selectedDeployment: null,
       selectedPV: null,
       selectedPVC: null,
+      selectedJob: null,
+      selectedCronJob: null,
+      selectedConfigMap: null,
+      selectedSecret: null,
     });
   },
   
@@ -783,6 +837,28 @@ export const useClusterStore = create<ClusterState>((set, get) => ({
                 j.id === jobId ? { ...j, status: 'Complete', completions: { ...j.completions, succeeded: 1 } } : j
             )
         }
+    });
+  },
+
+  addConfigMap: (cm) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    set({
+      currentCluster: {
+        ...cluster,
+        configMaps: [...(cluster.configMaps || []), cm],
+      },
+    });
+  },
+
+  addSecret: (secret) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    set({
+      currentCluster: {
+        ...cluster,
+        secrets: [...(cluster.secrets || []), secret],
+      },
     });
   },
 }));
