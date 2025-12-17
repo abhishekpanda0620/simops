@@ -54,6 +54,7 @@ export interface K8sNode {
   name: string;
   status: ResourceStatus;
   role: 'control-plane' | 'worker';
+  labels: Record<string, string>;
   conditions: NodeCondition[];
   cpu: { used: number; total: number; unit: 'cores' };
   memory: { used: number; total: number; unit: 'Mi' };
@@ -81,6 +82,8 @@ export interface K8sPod {
   containers: Container[];
   initContainers?: Container[];
   labels: Record<string, string>;
+  nodeSelector?: Record<string, string>;
+  affinity?: Affinity;
   nodeId: string;
   nodeName: string;
   serviceIds: string[];
@@ -166,6 +169,13 @@ export interface K8sDeployment {
   namespace: string;
   replicas: { desired: number; ready: number; available: number };
   selector: Record<string, string>;
+  template?: {
+    metadata: { labels: Record<string, string> };
+    spec: { 
+      nodeSelector?: Record<string, string>;
+      affinity?: Affinity; 
+    };
+  };
   podIds: string[];
   strategy: 'RollingUpdate' | 'Recreate';
 }
@@ -328,4 +338,37 @@ export interface ScenarioAction {
   description: string;
   icon: string;
   execute: () => void;
+}
+
+// ============ SCHEDULING & AFFINITY ============
+export type MatchOperator = 'In' | 'NotIn' | 'Exists' | 'DoesNotExist';
+
+export interface LabelSelectorRequirement {
+  key: string;
+  operator: MatchOperator;
+  values?: string[];
+}
+
+export interface NodeSelectorTerm {
+  matchExpressions: LabelSelectorRequirement[];
+}
+
+export interface NodeAffinity {
+  requiredDuringSchedulingIgnoredDuringExecution?: {
+    nodeSelectorTerms: NodeSelectorTerm[];
+  };
+}
+
+export interface PodAffinityTerm {
+  labelSelector: { matchExpressions: LabelSelectorRequirement[] };
+  topologyKey: string; // e.g. "kubernetes.io/hostname"
+}
+
+export interface PodAntiAffinity {
+  requiredDuringSchedulingIgnoredDuringExecution?: PodAffinityTerm[];
+}
+
+export interface Affinity {
+  nodeAffinity?: NodeAffinity;
+  podAntiAffinity?: PodAntiAffinity;
 }

@@ -17,6 +17,9 @@ const SCENARIOS = [
   { value: 'manage-secret', label: 'Manage Secret' },
   { value: 'simulate-hpa', label: 'Simulate HPA (Autoscaling)' },
   { value: 'simulate-rbac', label: 'Simulate RBAC (Access Control)' },
+  { value: 'simulate-node-affinity', label: 'Simulate Node Affinity' },
+  { value: 'simulate-pod-antiaffinity', label: 'Simulate Pod Anti-Affinity' },
+  { value: 'simulate-node-selector', label: 'Simulate Node Selector' },
 ] as const;
 
 export interface ControlPlaneFlowControlsProps {

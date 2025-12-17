@@ -4,6 +4,7 @@ import type { ResourceStatus, K8sPod } from '@/types';
 export interface NodeSlice {
   toggleNodeFailure: (nodeId: string) => void;
   evictNodePods: (nodeId: string) => void;
+  updateNode: (nodeId: string, updates: Partial<import('@/types').K8sNode>) => void;
 }
 
 export const createNodeSlice: StoreSlice<NodeSlice> = (set, get) => ({
@@ -56,4 +57,17 @@ export const createNodeSlice: StoreSlice<NodeSlice> = (set, get) => ({
       }
     });
   },
+
+  updateNode: (nodeId, updates) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    
+    set({
+      currentCluster: {
+        ...cluster,
+        nodes: cluster.nodes.map(n => n.id === nodeId ? { ...n, ...updates } : n),
+      }
+    });
+  },
+
 });

@@ -66,21 +66,82 @@ export const createWorkloadSlice: StoreSlice<WorkloadSlice> = (set, get) => ({
         // Shuffle start index for simple load balancing distribution
         const startIndex = Math.floor(Math.random() * workerNodes.length);
         
-        for (let j = 0; j < workerNodes.length; j++) {
-            const node = workerNodes[(startIndex + j) % workerNodes.length];
-            
-            // Calculate current usage
-            const nodePods = updatedPods.filter(p => p.nodeId === node.id);
+        let eligibleNodes = [...workerNodes];
+
+        // 1. Filter based on Node Selector (Simple exact match)
+        if (deployment.template?.spec?.nodeSelector) {
+            const selector = deployment.template.spec.nodeSelector;
+            eligibleNodes = eligibleNodes.filter(node => 
+                Object.entries(selector).every(([key, val]) => node.labels?.[key] === val)
+            );
+        }
+
+        // 2. Filter based on Node Affinity (Hard Requirement only for now)
+        if (deployment.template?.spec?.affinity?.nodeAffinity?.requiredDuringSchedulingIgnoredDuringExecution) {
+            const terms = deployment.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms;
+            eligibleNodes = eligibleNodes.filter(node => {
+                // OR logic between terms
+                return terms.some(term => {
+                    // AND logic between matchExpressions
+                    return term.matchExpressions.every(req => {
+                        const nodeLabelValue = node.labels?.[req.key];
+                        if (req.operator === 'Exists') return nodeLabelValue !== undefined;
+                        if (req.operator === 'DoesNotExist') return nodeLabelValue === undefined;
+                        if (req.operator === 'In') return nodeLabelValue && req.values?.includes(nodeLabelValue);
+                        if (req.operator === 'NotIn') return !nodeLabelValue || !req.values?.includes(nodeLabelValue);
+                        return false;
+                    });
+                });
+            });
+        }
+        
+        // Filter/Score based on Pod Anti-Affinity (Hard Requirement logic for visual clarity)
+        if (deployment.template?.spec?.affinity?.podAntiAffinity?.requiredDuringSchedulingIgnoredDuringExecution) {
+             const antiAffinityTerms = deployment.template.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution;
+             eligibleNodes = eligibleNodes.filter(node => {
+                 // Check if any existing pod on this node matches the anti-affinity label selector
+                 const podsOnNode = updatedPods.filter(p => p.nodeId === node.id);
+                 
+                 // If ANY term matches a pod on this node, the node is invalid (Anti-Affinity)
+                 const hasConflict = antiAffinityTerms.some(term => {
+                     return podsOnNode.some(pod => {
+                         return term.labelSelector.matchExpressions.every(req => {
+                              const podLabelValue = pod.labels?.[req.key];
+                              if (req.operator === 'In') return podLabelValue && req.values?.includes(podLabelValue);
+                              if (req.operator === 'Exists') return podLabelValue !== undefined;
+                              return false; 
+                         });
+                     });
+                 });
+                 
+                 return !hasConflict;
+             });
+        }
+
+        // Round-robin selection from ELIGIBLE nodes
+        if (eligibleNodes.length > 0) {
+            // Pick based on index to ensure even distribution among eligible
+            selectedNode = eligibleNodes[(startIndex + i) % eligibleNodes.length];
+             
+            // Check resources on the selected node
+            const nodePods = updatedPods.filter(p => p.nodeId === selectedNode!.id);
             const usedCpu = nodePods.reduce((acc, p) => acc + parseCpu(p.containers[0].resources?.requests.cpu || '0'), 0);
             const usedMem = nodePods.reduce((acc, p) => acc + parseMem(p.containers[0].resources?.requests.memory || '0'), 0);
             
             const requestedCpu = parseCpu(templatePod.containers[0].resources?.requests.cpu || '100m');
             const requestedMem = parseMem(templatePod.containers[0].resources?.requests.memory || '128Mi');
             
-            if (usedCpu + requestedCpu <= node.cpu.total && usedMem + requestedMem <= node.memory.total) {
-                selectedNode = node;
-                break;
+            if (usedCpu + requestedCpu > selectedNode!.cpu.total || usedMem + requestedMem > selectedNode!.memory.total) {
+                // If selected node is full, try to find ANY eligible node that fits
+                selectedNode = eligibleNodes.find(n => {
+                    const nPods = updatedPods.filter(p => p.nodeId === n.id);
+                    const nCpu = nPods.reduce((acc, p) => acc + parseCpu(p.containers[0].resources?.requests.cpu || '0'), 0);
+                    const nMem = nPods.reduce((acc, p) => acc + parseMem(p.containers[0].resources?.requests.memory || '0'), 0);
+                    return (nCpu + requestedCpu <= n.cpu.total && nMem + requestedMem <= n.memory.total);
+                });
             }
+        } else {
+             selectedNode = undefined;
         }
 
         const isPending = !selectedNode;
@@ -96,7 +157,7 @@ export const createWorkloadSlice: StoreSlice<WorkloadSlice> = (set, get) => ({
             createdAt: new Date().toISOString(),
             restarts: 0,
             conditions: isPending ? [
-                 { type: 'PodScheduled', status: 'False', reason: 'Unschedulable', message: '0/3 nodes are available: 3 Insufficient cpu.' }
+                 { type: 'PodScheduled', status: 'False', reason: 'Unschedulable', message: '0/3 nodes are available: 3 node(s) didn\'t match Pod affinity/anti-affinity, or insufficient cpu.' }
             ] : [
                 { type: 'Initialized', status: 'True' },
                 { type: 'Ready', status: 'True' },
@@ -112,7 +173,7 @@ export const createWorkloadSlice: StoreSlice<WorkloadSlice> = (set, get) => ({
                 terminatedReason: undefined
             })),
             events: isPending ? [
-                { type: 'Warning', reason: 'FailedScheduling', message: '0/3 nodes are available: 3 Insufficient cpu.', timestamp: new Date().toISOString(), count: 1 }
+                { type: 'Warning', reason: 'FailedScheduling', message: '0/3 nodes are available: 3 node(s) didn\'t match Pod affinity/anti-affinity, or insufficient cpu.', timestamp: new Date().toISOString(), count: 1 }
             ] : [
                 { type: 'Normal', reason: 'Scheduled', message: `Successfully assigned to ${selectedNode?.name}`, timestamp: new Date().toISOString(), count: 1 }
             ]

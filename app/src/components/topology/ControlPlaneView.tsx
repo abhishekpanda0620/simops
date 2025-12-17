@@ -66,6 +66,9 @@ export function ControlPlaneView({
               {controlPlaneScenario === 'manage-secret' && 'kubectl create secret generic db-pass --from-literal=password=***'}
               {controlPlaneScenario === 'simulate-hpa' && 'kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=10'}
               {controlPlaneScenario === 'simulate-rbac' && 'kubectl get pods --as=alice'}
+              {controlPlaneScenario === 'simulate-node-affinity' && 'kubectl apply -f deployment-gpu.yaml'}
+              {controlPlaneScenario === 'simulate-pod-antiaffinity' && 'kubectl scale deploy redis-ha --replicas=3'}
+              {controlPlaneScenario === 'simulate-node-selector' && 'kubectl apply -f deployment-ssd.yaml'}
               {controlPlaneScenario === 'node-failure' && '# Simulating Power Failure...'}
               {controlPlaneScenario === 'worker-flow' && '# Simulating Kube-Proxy & Kubelet Flow...'}
             </span>

@@ -39,7 +39,8 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
     addHPA,
     updateHPA,
     addRole,
-    addRoleBinding
+    addRoleBinding,
+    updateNode
   } = useClusterStore();
   
   // Local state for traffic simulation (visual only)
@@ -67,7 +68,8 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
     addHPA,
     updateHPA,
     addRole,
-    addRoleBinding
+    addRoleBinding,
+    updateNode
   });
 
   // Reset selection when switching modes

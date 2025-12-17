@@ -18,7 +18,10 @@ import {
   runNodeFailureScenario,
   runWorkerFlowScenario,
   runHPAScenario,
-  runRBACScenario
+  runRBACScenario,
+  runNodeAffinityScenario,
+  runPodAntiAffinityScenario,
+  runNodeSelectorScenario
 } from './scenarios';
 
 // Export from new location for backward compatibility if needed, or rely on ControlPlaneUtils
@@ -101,6 +104,15 @@ export function useControlPlaneSimulation(actions?: SimulationActions) {
         break;
       case 'simulate-rbac':
         newTimeouts = runRBACScenario(setState, stop, actions);
+        break;
+      case 'simulate-node-affinity':
+        newTimeouts = runNodeAffinityScenario(setState, stop, actions);
+        break;
+      case 'simulate-pod-antiaffinity':
+        newTimeouts = runPodAntiAffinityScenario(setState, stop, actions);
+        break;
+      case 'simulate-node-selector':
+        newTimeouts = runNodeSelectorScenario(setState, stop);
         break;
     }
 

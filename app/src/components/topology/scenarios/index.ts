@@ -3,3 +3,4 @@ export * from './workloadScenarios';
 export * from './configScenarios';
 export * from './nodeScenarios';
 export * from './advancedScenarios';
+export * from './schedulingScenarios';

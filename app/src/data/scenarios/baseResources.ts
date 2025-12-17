@@ -36,6 +36,7 @@ export const createNodes = (): K8sNode[] => [
     name: 'control-plane-1',
     status: 'running',
     role: 'control-plane',
+    labels: { 'kubernetes.io/hostname': 'control-plane-1', 'node-role.kubernetes.io/control-plane': '' },
     conditions: [
       { type: 'Ready', status: 'True' },
       { type: 'MemoryPressure', status: 'False' },
@@ -53,6 +54,7 @@ export const createNodes = (): K8sNode[] => [
     name: 'worker-1',
     status: 'running',
     role: 'worker',
+    labels: { 'kubernetes.io/hostname': 'worker-1', 'node-role.kubernetes.io/worker': '' },
     conditions: [
       { type: 'Ready', status: 'True' },
       { type: 'MemoryPressure', status: 'False' },
@@ -70,6 +72,7 @@ export const createNodes = (): K8sNode[] => [
     name: 'worker-2',
     status: 'running',
     role: 'worker',
+    labels: { 'kubernetes.io/hostname': 'worker-2', 'node-role.kubernetes.io/worker': '' },
     conditions: [
       { type: 'Ready', status: 'True' },
       { type: 'MemoryPressure', status: 'False' },
