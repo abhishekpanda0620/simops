@@ -1,0 +1,40 @@
+import type { ClusterSnapshot } from '@/types';
+import {
+  healthyControlPlane,
+  createNodes,
+  createHealthyPods,
+  createServices,
+  createIngresses,
+  createDeployments,
+  createPVs,
+  createPVCs,
+  createConfigMaps,
+  createSecrets,
+  createJobs,
+  createCronJobs,
+} from './baseResources';
+
+// ============ SCENARIO: HEALTHY CLUSTER ============
+export const healthyCluster: ClusterSnapshot = {
+  id: 'healthy-cluster',
+  name: 'Production Cluster',
+  description: 'All systems operational. All pods running, no errors.',
+  timestamp: new Date().toISOString(),
+  controlPlane: healthyControlPlane,
+  nodes: createNodes(),
+  pods: createHealthyPods(),
+  services: createServices(),
+  ingresses: createIngresses(),
+  deployments: createDeployments(),
+  statefulSets: [],
+  daemonSets: [],
+  pvs: createPVs(),
+  pvcs: createPVCs(),
+  configMaps: createConfigMaps(),
+  secrets: createSecrets(),
+  jobs: createJobs(),
+  cronJobs: createCronJobs(),
+  hpas: [],
+  roles: [],
+  roleBindings: [],
+};
