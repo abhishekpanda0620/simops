@@ -1,7 +1,11 @@
 import type { K8sPod, K8sPVC, K8sStatefulSet, K8sDaemonSet, K8sJob, K8sConfigMap, K8sSecret, K8sHPA, K8sRole, K8sRoleBinding } from '@/types';
 
 export type ControlPlanePhase = 'idle' | 'kubectl' | 'api-server' | 'etcd' | 'scheduler' | 'controller' | 'node-assign' | 'kube-proxy' | 'kubelet' | 'node-flow' | 'complete';
-export type ControlPlaneScenario = 'create-pod' | 'get-pods' | 'delete-pod' | 'scale-deployment' | 'node-failure' | 'worker-flow' | 'deploy-statefulset' | 'deploy-daemonset' | 'run-job' | 'manage-configmap' | 'manage-secret' | 'simulate-hpa' | 'simulate-rbac' | 'simulate-node-affinity' | 'simulate-pod-antiaffinity' | 'simulate-node-selector';
+export type ControlPlaneScenario = 'create-pod' | 'get-pods' | 'delete-pod' | 'scale-deployment' | 'node-failure' | 'worker-flow' | 'deploy-statefulset' | 'deploy-daemonset' | 'run-job' | 'manage-configmap' | 'manage-secret' | 'simulate-hpa' | 'simulate-rbac' | 'simulate-node-affinity'
+  | 'simulate-pod-antiaffinity'
+  | 'simulate-node-selector'
+  | 'simulate-taints'
+  | 'simulate-netpol';
 
 export interface ControlPlaneState {
   isFlowing: boolean;

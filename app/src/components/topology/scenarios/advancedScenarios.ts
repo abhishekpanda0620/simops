@@ -71,7 +71,7 @@ export function runHPAScenario(
 
 export function runRBACScenario(
   setState: React.Dispatch<React.SetStateAction<ControlPlaneState>>,
-  stop: () => void,
+  _stop: () => void,
   actions?: SimulationActions
 ): ReturnType<typeof setTimeout>[] {
   const timeouts: ReturnType<typeof setTimeout>[] = [];
@@ -117,7 +117,48 @@ export function runRBACScenario(
   
   // 7. Response
   timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'complete', message: 'Success: Pod list returned.' })), 16500));
-  timeouts.push(setTimeout(stop, 18500)); // Stop slightly later
+  return timeouts;
+}
+
+// --------------------- NETWORK POLICY SCENARIO ---------------------
+export function runNetworkPolicyScenario(
+  setState: React.Dispatch<React.SetStateAction<ControlPlaneState>>,
+  stop: () => void
+): ReturnType<typeof setTimeout>[] {
+  const timeouts: ReturnType<typeof setTimeout>[] = [];
+
+  // 1. Setup - Initial connectivity
+  timeouts.push(setTimeout(() => {
+    setState(p => ({ ...p, phase: 'kubectl', message: 'Phase 1: Connectivity Check. Default: Allow All.' }));
+  }, 1000));
+
+  // 2. Traffic Flow visual (Allowed)
+  timeouts.push(setTimeout(() => {
+    setState(p => ({ ...p, phase: 'api-server', message: 'Traffic: Frontend -> DB [ALLOWED]' }));
+  }, 3000));
+
+  // 3. Apply Policy
+  timeouts.push(setTimeout(() => {
+    setState(p => ({ ...p, phase: 'kubectl', message: 'Admin: Applying NetworkPolicy "deny-db-ingress"...' }));
+    // In a real netpol sim, we'd update a store used by TrafficAnimationLayer to drop packets
+  }, 5500));
+
+  // 4. Traffic Flow visual (Blocked)
+  timeouts.push(setTimeout(() => {
+    setState(p => ({ ...p, phase: 'scheduler', message: 'Traffic: Frontend -> DB [BLOCKED by Policy]' }));
+  }, 8000));
+
+  // 5. Update Policy
+  timeouts.push(setTimeout(() => {
+    setState(p => ({ ...p, phase: 'kubectl', message: 'Admin: Updating Policy "allow-frontend"...' }));
+  }, 11000));
+
+  // 6. Traffic Flow visual (Allowed again)
+  timeouts.push(setTimeout(() => {
+    setState(p => ({ ...p, phase: 'complete', message: 'Traffic: Frontend -> DB [ALLOWED via Whitelist]' }));
+  }, 13500));
+
+  timeouts.push(setTimeout(stop, 15500));
 
   return timeouts;
 }

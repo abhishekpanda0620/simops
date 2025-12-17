@@ -53,7 +53,12 @@ export function ControlPlaneView({
               ? "bg-accent-500/20 border-accent-500/50 shadow-lg shadow-accent-500/20 scale-105"
               : "bg-surface-800 border-surface-600"
           )}>
-            <span className="text-accent-400 font-mono text-sm">$</span>
+            {isControlPlaneActive('kubectl', controlPlaneState.phase) && (
+               <span className="text-accent-400 font-mono text-sm">$</span>
+            )}
+            {!isControlPlaneActive('kubectl', controlPlaneState.phase) && (
+               <span className="text-surface-500 font-mono text-sm">#</span>
+            )}
             <span className="text-sm font-medium text-surface-200">
               {controlPlaneScenario === 'create-pod' && 'kubectl create pod nginx'}
               {controlPlaneScenario === 'get-pods' && 'kubectl get pods'}
@@ -69,8 +74,11 @@ export function ControlPlaneView({
               {controlPlaneScenario === 'simulate-node-affinity' && 'kubectl apply -f deployment-gpu.yaml'}
               {controlPlaneScenario === 'simulate-pod-antiaffinity' && 'kubectl scale deploy redis-ha --replicas=3'}
               {controlPlaneScenario === 'simulate-node-selector' && 'kubectl apply -f deployment-ssd.yaml'}
-              {controlPlaneScenario === 'node-failure' && '# Simulating Power Failure...'}
-              {controlPlaneScenario === 'worker-flow' && '# Simulating Kube-Proxy & Kubelet Flow...'}
+              {controlPlaneScenario === 'simulate-taints' && 'kubectl taint nodes worker-1 env=prod:NoSchedule'}
+              {controlPlaneScenario === 'simulate-netpol' && 'kubectl apply -f network-policy.yaml'}
+
+              {controlPlaneScenario === 'node-failure' && 'Simulating Power Failure...'}
+              {controlPlaneScenario === 'worker-flow' && 'Simulating Kube-Proxy & Kubelet Flow...'}
             </span>
           </div>
         <ArrowDown className="w-5 h-5 my-2 text-accent-500/50" />

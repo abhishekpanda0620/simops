@@ -124,3 +124,66 @@ export function runNodeSelectorScenario(
 
   return timeouts;
 }
+
+export function runTaintTolerationScenario(
+  setState: React.Dispatch<React.SetStateAction<ControlPlaneState>>,
+  stop: () => void,
+  actions?: SimulationActions
+): ReturnType<typeof setTimeout>[] {
+  const timeouts: ReturnType<typeof setTimeout>[] = [];
+  // const deployId = 'dep-taint'; // Unused
+
+  // 1. Setup - Apply Taint to Worker 1
+  timeouts.push(setTimeout(() => {
+     setState(p => ({ ...p, phase: 'kubectl', message: 'Admin: Tainting worker-1 with "env=prod:NoSchedule"...' }));
+     if (actions) {
+         actions.updateNode('node-worker-1', { 
+           // taints added to type, treating as label for visual or relying on direct state update if store supports it
+           taints: [{ key: 'env', value: 'prod', effect: 'NoSchedule' }]
+         });
+         // Make sure worker-2 is untainted
+         actions.updateNode('node-worker-2', { taints: [] });
+     }
+  }, 1500));
+
+  // 2. Try Scheduling Normal Pod
+  timeouts.push(setTimeout(() => {
+      setState(p => ({ ...p, phase: 'api-server', message: 'API Server: Creating "normal-pod" (No Tolerations)...' }));
+  }, 3500));
+
+  // 3. Scheduler Decision (Blocked)
+  timeouts.push(setTimeout(() => { 
+      setState(p => ({ ...p, phase: 'scheduler', message: 'Scheduler: worker-1 has taint "env=prod:NoSchedule". Normal Pod cannot schedule there.' }));
+  }, 5500));
+
+  // 4. Assign to Clean Node
+  timeouts.push(setTimeout(() => {
+      setState(p => ({ ...p, phase: 'node-assign', message: 'Scheduler: Assigning "normal-pod" to worker-2 (Untainted).' }));
+      if (actions) {
+          // Add a dummy normal pod to worker-2
+          // For simplicity in this demo flow, we might just show visuals.
+          // Or real action:
+          // actions.addPod({ name: 'normal-pod', nodeId: 'node-worker-2' }); 
+      }
+  }, 8000));
+
+  // 5. Try Scheduling Tolerant Pod
+  timeouts.push(setTimeout(() => {
+      setState(p => ({ ...p, phase: 'api-server', message: 'API Server: Creating "admin-pod" with Toleration "env=prod"...' }));
+  }, 10000));
+
+  // 6. Scheduler Decision (Allowed)
+  timeouts.push(setTimeout(() => {
+      setState(p => ({ ...p, phase: 'node-assign', message: 'Scheduler: "admin-pod" tolerates "env=prod". Assigned to worker-1.' }));
+      if (actions) {
+          // Add tolerant pod to worker-1
+          // actions.addPod({ name: 'admin-pod', nodeId: 'node-worker-1' });
+      }
+  }, 12500));
+
+  // 7. Complete
+  timeouts.push(setTimeout(() => setState(p => ({ ...p, phase: 'complete', message: 'Taints enforced & Tolerations honored.' })), 15000));
+  timeouts.push(setTimeout(stop, 17000));
+
+  return timeouts;
+}

@@ -21,8 +21,10 @@ import {
   runRBACScenario,
   runNodeAffinityScenario,
   runPodAntiAffinityScenario,
-  runNodeSelectorScenario
+  runNodeSelectorScenario,
+  runTaintTolerationScenario
 } from './scenarios';
+import { runNetworkPolicyScenario } from './scenarios/advancedScenarios';
 
 // Export from new location for backward compatibility if needed, or rely on ControlPlaneUtils
 export type { SimulationActions };
@@ -112,7 +114,13 @@ export function useControlPlaneSimulation(actions?: SimulationActions) {
         newTimeouts = runPodAntiAffinityScenario(setState, stop, actions);
         break;
       case 'simulate-node-selector':
-        newTimeouts = runNodeSelectorScenario(setState, stop);
+        newTimeouts = runNodeSelectorScenario(setState, stop, actions);
+        break;
+      case 'simulate-taints':
+        newTimeouts = runTaintTolerationScenario(setState, stop, actions);
+        break;
+      case 'simulate-netpol':
+        newTimeouts = runNetworkPolicyScenario(setState, stop);
         break;
     }
 

@@ -20,6 +20,8 @@ const SCENARIOS = [
   { value: 'simulate-node-affinity', label: 'Simulate Node Affinity' },
   { value: 'simulate-pod-antiaffinity', label: 'Simulate Pod Anti-Affinity' },
   { value: 'simulate-node-selector', label: 'Simulate Node Selector' },
+  { value: 'simulate-taints', label: 'Simulate Taints & Tolerations' },
+  { value: 'simulate-netpol', label: 'Simulate Network Policy' },
 ] as const;
 
 export interface ControlPlaneFlowControlsProps {

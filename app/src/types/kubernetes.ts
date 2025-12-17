@@ -61,6 +61,7 @@ export interface K8sNode {
   pods: string[]; // Pod IDs running on this node
   kubeletVersion: string;
   containerRuntime: string;
+  taints?: Taint[];
 }
 
 export interface NodeCondition {
@@ -84,6 +85,7 @@ export interface K8sPod {
   labels: Record<string, string>;
   nodeSelector?: Record<string, string>;
   affinity?: Affinity;
+  tolerations?: Toleration[];
   nodeId: string;
   nodeName: string;
   serviceIds: string[];
@@ -371,4 +373,55 @@ export interface PodAntiAffinity {
 export interface Affinity {
   nodeAffinity?: NodeAffinity;
   podAntiAffinity?: PodAntiAffinity;
+}
+
+// ============ TAINTS & TOLERATIONS ============
+export type TaintEffect = 'NoSchedule' | 'PreferNoSchedule' | 'NoExecute';
+
+export interface Taint {
+  key: string;
+  value?: string;
+  effect: TaintEffect;
+}
+
+export type TolerationOperator = 'Exists' | 'Equal';
+
+export interface Toleration {
+  key?: string;
+  operator?: TolerationOperator;
+  value?: string;
+  effect?: TaintEffect;
+  tolerationSeconds?: number;
+}
+
+// ============ NETWORK POLICIES ============
+export interface NetworkPolicy {
+  id: string;
+  name: string;
+  namespace: string;
+  podSelector: Record<string, string>;
+  policyTypes: Array<'Ingress' | 'Egress'>;
+  ingress?: NetworkPolicyIngressRule[];
+  egress?: NetworkPolicyEgressRule[];
+}
+
+export interface NetworkPolicyIngressRule {
+  from?: NetworkPolicyPeer[];
+  ports?: NetworkPolicyPort[];
+}
+
+export interface NetworkPolicyEgressRule {
+  to?: NetworkPolicyPeer[];
+  ports?: NetworkPolicyPort[];
+}
+
+export interface NetworkPolicyPeer {
+  podSelector?: { matchLabels: Record<string, string> };
+  namespaceSelector?: { matchLabels: Record<string, string> };
+  ipBlock?: { cidr: string; except?: string[] };
+}
+
+export interface NetworkPolicyPort {
+  protocol?: 'TCP' | 'UDP' | 'SCTP';
+  port?: number | string;
 }
