@@ -82,8 +82,8 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
     <div className="flex h-full">
       {/* Main Architecture Canvas */}
       <div className="flex-1 overflow-auto p-6 bg-surface-950 relative">
-        {/* Traffic Flow Animation - visual packets */}
-        <TrafficAnimationLayer trafficState={traffic.state} />
+        {/* Traffic Flow Animation - visual packets (only in user-request mode) */}
+        {flowMode === 'user-request' && <TrafficAnimationLayer trafficState={traffic.state} />}
         
         {/* Flow Mode Selector */}
         <div className="mb-4">
