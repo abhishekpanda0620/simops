@@ -37,4 +37,6 @@ export const healthyCluster: ClusterSnapshot = {
   hpas: [],
   roles: [],
   roleBindings: [],
+  argoApplications: [],
 };
+

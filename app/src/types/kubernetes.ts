@@ -331,6 +331,7 @@ export interface ClusterSnapshot {
   hpas: K8sHPA[];
   roles: K8sRole[];
   roleBindings: K8sRoleBinding[];
+  argoApplications: ArgoApplication[];
 }
 
 // ============ SCENARIO ACTIONS ============
@@ -425,3 +426,23 @@ export interface NetworkPolicyPort {
   protocol?: 'TCP' | 'UDP' | 'SCTP';
   port?: number | string;
 }
+
+// ============ ARGOCD / CRD OPERATOR ============
+export interface ArgoApplication {
+  id: string;
+  name: string;
+  namespace: string;
+  project: string;
+  source: {
+    repoURL: string;
+    path: string;
+    targetRevision: string;
+  };
+  destination: {
+    server: string;
+    namespace: string;
+  };
+  syncStatus: 'Synced' | 'OutOfSync' | 'Unknown';
+  healthStatus: 'Healthy' | 'Progressing' | 'Degraded' | 'Missing';
+}
+

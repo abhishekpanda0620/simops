@@ -22,6 +22,7 @@ const SCENARIOS = [
   { value: 'simulate-node-selector', label: 'Simulate Node Selector' },
   { value: 'simulate-taints', label: 'Simulate Taints & Tolerations' },
   { value: 'simulate-netpol', label: 'Simulate Network Policy' },
+  { value: 'argocd-sync', label: 'ArgoCD Sync (CRD/Operator)' },
 ] as const;
 
 export interface ControlPlaneFlowControlsProps {

@@ -22,7 +22,8 @@ import {
   runNodeAffinityScenario,
   runPodAntiAffinityScenario,
   runNodeSelectorScenario,
-  runTaintTolerationScenario
+  runTaintTolerationScenario,
+  runArgoCDScenario
 } from './scenarios';
 import { runNetworkPolicyScenario } from './scenarios/advancedScenarios';
 
@@ -121,6 +122,9 @@ export function useControlPlaneSimulation(actions?: SimulationActions) {
         break;
       case 'simulate-netpol':
         newTimeouts = runNetworkPolicyScenario(setState, stop);
+        break;
+      case 'argocd-sync':
+        newTimeouts = runArgoCDScenario(setState, stop, actions);
         break;
     }
 

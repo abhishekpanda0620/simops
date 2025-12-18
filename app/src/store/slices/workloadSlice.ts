@@ -1,6 +1,6 @@
 import type { StoreSlice } from './types';
 import { scenarios } from '@/data';
-import type { K8sPod, K8sStatefulSet, K8sDaemonSet, K8sJob, K8sCronJob } from '@/types';
+import type { K8sPod, K8sStatefulSet, K8sDaemonSet, K8sJob, K8sCronJob, ArgoApplication } from '@/types';
 
 export interface WorkloadSlice {
   scaleDeployment: (deploymentId: string, replicas: number) => void;
@@ -9,6 +9,8 @@ export interface WorkloadSlice {
   addJob: (job: K8sJob) => void;
   addCronJob: (cronJob: K8sCronJob) => void;
   completeJob: (jobId: string) => void;
+  addArgoApplication: (app: ArgoApplication) => void;
+  updateArgoApplication: (appId: string, updates: Partial<ArgoApplication>) => void;
 }
 
 export const createWorkloadSlice: StoreSlice<WorkloadSlice> = (set, get) => ({
@@ -294,4 +296,29 @@ export const createWorkloadSlice: StoreSlice<WorkloadSlice> = (set, get) => ({
         }
     });
   },
+
+  addArgoApplication: (app) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    set({
+      currentCluster: {
+        ...cluster,
+        argoApplications: [...(cluster.argoApplications || []), app],
+      },
+    });
+  },
+
+  updateArgoApplication: (appId, updates) => {
+    const cluster = get().currentCluster;
+    if (!cluster) return;
+    set({
+      currentCluster: {
+        ...cluster,
+        argoApplications: (cluster.argoApplications || []).map(app =>
+          app.id === appId ? { ...app, ...updates } : app
+        ),
+      },
+    });
+  },
 });
+

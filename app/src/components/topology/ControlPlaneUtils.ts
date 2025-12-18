@@ -1,11 +1,12 @@
-import type { K8sPod, K8sPVC, K8sStatefulSet, K8sDaemonSet, K8sJob, K8sConfigMap, K8sSecret, K8sHPA, K8sRole, K8sRoleBinding } from '@/types';
+import type { K8sPod, K8sPVC, K8sStatefulSet, K8sDaemonSet, K8sJob, K8sConfigMap, K8sSecret, K8sHPA, K8sRole, K8sRoleBinding, ArgoApplication } from '@/types';
 
 export type ControlPlanePhase = 'idle' | 'kubectl' | 'api-server' | 'etcd' | 'scheduler' | 'controller' | 'node-assign' | 'kube-proxy' | 'kubelet' | 'node-flow' | 'complete';
 export type ControlPlaneScenario = 'create-pod' | 'get-pods' | 'delete-pod' | 'scale-deployment' | 'node-failure' | 'worker-flow' | 'deploy-statefulset' | 'deploy-daemonset' | 'run-job' | 'manage-configmap' | 'manage-secret' | 'simulate-hpa' | 'simulate-rbac' | 'simulate-node-affinity'
   | 'simulate-pod-antiaffinity'
   | 'simulate-node-selector'
   | 'simulate-taints'
-  | 'simulate-netpol';
+  | 'simulate-netpol'
+  | 'argocd-sync';
 
 export interface ControlPlaneState {
   isFlowing: boolean;
@@ -34,6 +35,8 @@ export interface SimulationActions {
   addRole: (role: K8sRole) => void;
   addRoleBinding: (rb: K8sRoleBinding) => void;
   updateNode: (nodeId: string, updates: Partial<import('@/types').K8sNode>) => void;
+  addArgoApplication: (app: ArgoApplication) => void;
+  updateArgoApplication: (appId: string, updates: Partial<ArgoApplication>) => void;
 }
 
 export function getStartMessage(scenario: ControlPlaneScenario) {
@@ -54,6 +57,9 @@ export function getStartMessage(scenario: ControlPlaneScenario) {
     case 'simulate-node-affinity': return '$ kubectl apply -f deployment-gpu.yaml';
     case 'simulate-pod-antiaffinity': return '$ kubectl scale deploy redis-ha --replicas=3';
     case 'simulate-node-selector': return '$ kubectl apply -f deployment-ssd.yaml';
+    case 'simulate-taints': return '$ kubectl apply -f tolerant-pod.yaml';
+    case 'simulate-netpol': return '$ kubectl apply -f network-policy.yaml';
+    case 'argocd-sync': return '$ kubectl apply -f application.yaml';
     default: return '';
   }
 }
