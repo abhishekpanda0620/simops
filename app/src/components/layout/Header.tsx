@@ -24,7 +24,7 @@ function formatTimeAgo(date: Date): string {
 }
 
 export function Header({ title, subtitle }: HeaderProps) {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const [activeDropdown, setActiveDropdown] = useState<'none' | 'notifications' | 'user'>('none');
   const notificationRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
@@ -153,8 +153,8 @@ export function Header({ title, subtitle }: HeaderProps) {
         {/* User */}
         <div className="relative flex items-center gap-3 pl-2 border-l border-surface-700" ref={userRef}>
           <div className="text-right hidden md:block">
-            <p className="text-sm font-medium text-surface-200">User</p>
-            <p className="text-xs text-primary-400">Student</p>
+            <p className="text-sm font-medium text-surface-200">{user?.name || 'Guest'}</p>
+            <p className="text-xs text-primary-400 capitalize">{user?.role || 'Student'}</p>
           </div>
           <button 
             type="button"
@@ -174,8 +174,8 @@ export function Header({ title, subtitle }: HeaderProps) {
                 className="absolute right-0 top-12 w-56 bg-surface-900 border border-surface-700 rounded-lg shadow-xl overflow-hidden py-1"
               >
                   <div className="px-4 py-3 border-b border-surface-800 mb-1">
-                      <p className="font-medium text-surface-100">Abhishek Panda</p>
-                      <p className="text-xs text-surface-400 truncate">abhishek@simops.academy</p>
+                      <p className="font-medium text-surface-100">{user?.name || 'Guest User'}</p>
+                      <p className="text-xs text-surface-400 truncate">{user?.email || 'guest@simops.academy'}</p>
                   </div>
                   
                   <button type="button" className="w-full text-left px-4 py-2 text-sm text-surface-300 hover:bg-surface-800 hover:text-primary-400 flex items-center gap-2 transition-colors">

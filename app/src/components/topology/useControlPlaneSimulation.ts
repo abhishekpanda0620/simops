@@ -5,6 +5,7 @@ import type {
   SimulationActions
 } from './ControlPlaneUtils';
 import { getStartMessage } from './ControlPlaneUtils';
+import { useNotificationStore } from '@/store';
 import {
   runCreatePodScenario,
   runGetPodsScenario,
@@ -67,7 +68,37 @@ export function useControlPlaneSimulation(actions?: SimulationActions) {
       message: getStartMessage(scenario)
     }));
 
-    const stop = () => setState(prev => ({ ...prev, isFlowing: false }));
+    const scenarioLabels: Record<ControlPlaneScenario, string> = {
+      'create-pod': 'Create Pod',
+      'get-pods': 'Get Pods',
+      'delete-pod': 'Delete Pod',
+      'scale-deployment': 'Scale Deployment',
+      'node-failure': 'Node Failure Recovery',
+      'worker-flow': 'Worker Node Flow',
+      'deploy-statefulset': 'Deploy StatefulSet',
+      'deploy-daemonset': 'Deploy DaemonSet',
+      'run-job': 'Run Job',
+      'manage-configmap': 'Manage ConfigMap',
+      'manage-secret': 'Manage Secret',
+      'simulate-hpa': 'HPA Autoscaling',
+      'simulate-rbac': 'RBAC Access Control',
+      'simulate-node-affinity': 'Node Affinity',
+      'simulate-pod-antiaffinity': 'Pod Anti-Affinity',
+      'simulate-node-selector': 'Node Selector',
+      'simulate-taints': 'Taints & Tolerations',
+      'simulate-netpol': 'Network Policy',
+      'argocd-sync': 'ArgoCD Sync',
+      'certmanager-issue': 'Cert-Manager TLS',
+      'resource-quota': 'ResourceQuota',
+      'cluster-autoscaler': 'Cluster Autoscaler',
+    };
+
+    const stop = () => {
+      setState(prev => ({ ...prev, isFlowing: false }));
+      // Trigger notification on completion
+      const { addNotification } = useNotificationStore.getState();
+      addNotification(`${scenarioLabels[scenario]} simulation completed!`, 'success');
+    };
 
     let newTimeouts: ReturnType<typeof setTimeout>[] = [];
 
