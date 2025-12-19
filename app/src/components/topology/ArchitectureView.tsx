@@ -82,6 +82,19 @@ export function ArchitectureView({ cluster, currentScenarioId, onSelectScenario,
     setSelected(null);
   }, [flowMode]);
 
+  // Listen for scenario selection from command search
+  useEffect(() => {
+    function handleScenarioSelect(e: Event) {
+      const customEvent = e as CustomEvent<string>;
+      const scenarioId = customEvent.detail;
+      // Switch to control plane mode and set the scenario
+      setFlowMode('control-plane');
+      controlPlane.setScenario(scenarioId as Parameters<typeof controlPlane.setScenario>[0]);
+    }
+    window.addEventListener('scenario-select', handleScenarioSelect);
+    return () => window.removeEventListener('scenario-select', handleScenarioSelect);
+  }, [controlPlane]);
+
   return (
     <div className="flex h-full">
       {/* Main Architecture Canvas */}
