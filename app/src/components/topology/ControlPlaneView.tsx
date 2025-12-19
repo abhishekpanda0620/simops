@@ -78,6 +78,7 @@ export function ControlPlaneView({
               {controlPlaneScenario === 'simulate-taints' && 'kubectl taint nodes worker-1 env=prod:NoSchedule'}
               {controlPlaneScenario === 'simulate-netpol' && 'kubectl apply -f network-policy.yaml'}
               {controlPlaneScenario === 'argocd-sync' && 'kubectl apply -f application.yaml'}
+              {controlPlaneScenario === 'certmanager-issue' && 'kubectl apply -f certificate.yaml'}
 
               {controlPlaneScenario === 'node-failure' && 'Simulating Power Failure...'}
               {controlPlaneScenario === 'worker-flow' && 'Simulating Kube-Proxy & Kubelet Flow...'}

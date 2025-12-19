@@ -132,3 +132,73 @@ export function runArgoCDScenario(
 
   return timeouts;
 }
+
+/**
+ * Cert-Manager Scenario - Demonstrates TLS Certificate Issuance
+ * 
+ * Flow:
+ * 1. User applies Certificate CR
+ * 2. API Server validates against CRD schema
+ * 3. etcd stores Certificate resource
+ * 4. cert-manager controller watches & creates CertificateRequest
+ * 5. ACME Issuer: HTTP-01 challenge begins
+ * 6. Challenge pod created, awaiting validation
+ * 7. Challenge complete, certificate fetched
+ * 8. TLS Secret created with certificate data
+ * 9. Ingress consumes the certificate
+ */
+export function runCertManagerScenario(
+  setState: React.Dispatch<React.SetStateAction<ControlPlaneState>>,
+  stop: () => void
+): ReturnType<typeof setTimeout>[] {
+  const timeouts: ReturnType<typeof setTimeout>[] = [];
+
+  // 1. kubectl apply (User creates Certificate CR)
+  timeouts.push(setTimeout(() => {
+    setState(p => ({ ...p, phase: 'kubectl', message: 'User: Applying Certificate CR (myapp-tls)...' }));
+  }, 1000));
+
+  // 2. API Server - CRD Validation
+  timeouts.push(setTimeout(() => {
+    setState(p => ({ ...p, phase: 'api-server', message: 'API Server: Validating against Certificate CRD schema...' }));
+  }, 3000));
+
+  // 3. etcd - Store Certificate Resource
+  timeouts.push(setTimeout(() => {
+    setState(p => ({ ...p, phase: 'etcd', message: 'etcd: Storing Certificate "myapp-tls" resource...' }));
+  }, 5000));
+
+  // 4. cert-manager Controller - Watch Triggered
+  timeouts.push(setTimeout(() => {
+    setState(p => ({ ...p, phase: 'controller', message: 'cert-manager: 🔔 Watch triggered! Creating CertificateRequest...' }));
+  }, 7500));
+
+  // 5. ACME Issuer - HTTP-01 Challenge
+  timeouts.push(setTimeout(() => {
+    setState(p => ({ ...p, phase: 'controller', message: 'ACME Issuer: Starting HTTP-01 challenge for myapp.example.com...' }));
+  }, 10000));
+
+  // 6. Challenge Pod Created
+  timeouts.push(setTimeout(() => {
+    setState(p => ({ ...p, phase: 'controller', message: 'cert-manager: Challenge solver pod created, awaiting ACME validation...' }));
+  }, 12500));
+
+  // 7. Challenge Complete
+  timeouts.push(setTimeout(() => {
+    setState(p => ({ ...p, phase: 'controller', message: 'cert-manager: ✓ HTTP-01 challenge passed! Fetching certificate...' }));
+  }, 15500));
+
+  // 8. TLS Secret Created
+  timeouts.push(setTimeout(() => {
+    setState(p => ({ ...p, phase: 'controller', message: 'cert-manager: Creating TLS Secret "myapp-tls-secret" with cert data...' }));
+  }, 18000));
+
+  // 9. Complete
+  timeouts.push(setTimeout(() => {
+    setState(p => ({ ...p, phase: 'complete', message: 'Certificate "myapp-tls": Ready ✓ Secret created ✓' }));
+  }, 21000));
+
+  timeouts.push(setTimeout(stop, 23000));
+
+  return timeouts;
+}

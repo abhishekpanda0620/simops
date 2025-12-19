@@ -23,6 +23,7 @@ const SCENARIOS = [
   { value: 'simulate-taints', label: 'Simulate Taints & Tolerations' },
   { value: 'simulate-netpol', label: 'Simulate Network Policy' },
   { value: 'argocd-sync', label: 'ArgoCD Sync (CRD/Operator)' },
+  { value: 'certmanager-issue', label: 'Cert-Manager (TLS Certificate)' },
 ] as const;
 
 export interface ControlPlaneFlowControlsProps {

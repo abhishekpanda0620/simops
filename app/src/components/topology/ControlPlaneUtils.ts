@@ -6,7 +6,8 @@ export type ControlPlaneScenario = 'create-pod' | 'get-pods' | 'delete-pod' | 's
   | 'simulate-node-selector'
   | 'simulate-taints'
   | 'simulate-netpol'
-  | 'argocd-sync';
+  | 'argocd-sync'
+  | 'certmanager-issue';
 
 export interface ControlPlaneState {
   isFlowing: boolean;
@@ -60,6 +61,7 @@ export function getStartMessage(scenario: ControlPlaneScenario) {
     case 'simulate-taints': return '$ kubectl apply -f tolerant-pod.yaml';
     case 'simulate-netpol': return '$ kubectl apply -f network-policy.yaml';
     case 'argocd-sync': return '$ kubectl apply -f application.yaml';
+    case 'certmanager-issue': return '$ kubectl apply -f certificate.yaml';
     default: return '';
   }
 }

@@ -446,3 +446,22 @@ export interface ArgoApplication {
   healthStatus: 'Healthy' | 'Progressing' | 'Degraded' | 'Missing';
 }
 
+// ============ CERT-MANAGER ============
+export interface Certificate {
+  id: string;
+  name: string;
+  namespace: string;
+  secretName: string;
+  issuerRef: { name: string; kind: 'Issuer' | 'ClusterIssuer' };
+  dnsNames: string[];
+  status: 'Pending' | 'Ready' | 'Failed';
+}
+
+export interface CertificateRequest {
+  id: string;
+  name: string;
+  namespace: string;
+  issuerRef: { name: string; kind: string };
+  status: 'Pending' | 'Approved' | 'Denied' | 'Ready';
+}
+

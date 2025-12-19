@@ -23,7 +23,8 @@ import {
   runPodAntiAffinityScenario,
   runNodeSelectorScenario,
   runTaintTolerationScenario,
-  runArgoCDScenario
+  runArgoCDScenario,
+  runCertManagerScenario
 } from './scenarios';
 import { runNetworkPolicyScenario } from './scenarios/advancedScenarios';
 
@@ -125,6 +126,9 @@ export function useControlPlaneSimulation(actions?: SimulationActions) {
         break;
       case 'argocd-sync':
         newTimeouts = runArgoCDScenario(setState, stop, actions);
+        break;
+      case 'certmanager-issue':
+        newTimeouts = runCertManagerScenario(setState, stop);
         break;
     }
 
