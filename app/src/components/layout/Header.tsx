@@ -1,6 +1,8 @@
 import { Bell, User, MessageSquare, LogOut, Settings, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { CommandSearch } from './CommandSearch';
+import { FeedbackModal } from './FeedbackModal';
+import { ProfileModal } from './ProfileModal';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/utils';
@@ -32,6 +34,10 @@ export function Header({ title, subtitle }: HeaderProps) {
   const notificationRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
   
+  // Modal states
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  
   // Use notification store
   const { notifications, markAsRead, markAllAsRead } = useNotificationStore();
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -53,6 +59,7 @@ export function Header({ title, subtitle }: HeaderProps) {
   }, []);
 
   return (
+    <>
     <header className="sticky top-0 z-40 h-16 bg-surface-900/80 backdrop-blur-sm border-b border-surface-700 flex items-center justify-between px-6">
       {/* Title */}
       <div>
@@ -70,7 +77,7 @@ export function Header({ title, subtitle }: HeaderProps) {
           variant="ghost" 
           size="sm" 
           className="hidden md:flex gap-2 text-surface-400 hover:text-primary-400"
-          onClick={() => alert('Feedback form coming soon!')}
+          onClick={() => setIsFeedbackOpen(true)}
         >
           <MessageSquare className="w-4 h-4" />
           <span>Feedback</span>
@@ -169,11 +176,25 @@ export function Header({ title, subtitle }: HeaderProps) {
                       <p className="text-xs text-surface-400 truncate">{user?.email || 'guest@simops.academy'}</p>
                   </div>
                   
-                  <button type="button" className="w-full text-left px-4 py-2 text-sm text-surface-300 hover:bg-surface-800 hover:text-primary-400 flex items-center gap-2 transition-colors">
+                  <button 
+                    type="button" 
+                    className="w-full text-left px-4 py-2 text-sm text-surface-300 hover:bg-surface-800 hover:text-primary-400 flex items-center gap-2 transition-colors"
+                    onClick={() => {
+                      setIsProfileOpen(true);
+                      setActiveDropdown('none');
+                    }}
+                  >
                     <UserCircle className="w-4 h-4" />
                     <span>My Profile</span>
                   </button>
-                  <button type="button" className="w-full text-left px-4 py-2 text-sm text-surface-300 hover:bg-surface-800 hover:text-primary-400 flex items-center gap-2 transition-colors">
+                  <button 
+                    type="button" 
+                    className="w-full text-left px-4 py-2 text-sm text-surface-300 hover:bg-surface-800 hover:text-primary-400 flex items-center gap-2 transition-colors"
+                    onClick={() => {
+                      navigate('/settings');
+                      setActiveDropdown('none');
+                    }}
+                  >
                     <Settings className="w-4 h-4" />
                     <span>Settings</span>
                   </button>
@@ -198,5 +219,10 @@ export function Header({ title, subtitle }: HeaderProps) {
         </div>
       </div>
     </header>
+      
+    {/* Modals */}
+    <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
+    <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+    </>
   );
 }
