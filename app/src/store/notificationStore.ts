@@ -10,6 +10,8 @@ export interface Notification {
 
 interface NotificationStore {
   notifications: Notification[];
+  enabled: boolean;
+  setEnabled: (enabled: boolean) => void;
   addNotification: (text: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
@@ -29,8 +31,19 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       read: false,
     },
   ],
+  
+  // Check localStorage for preference, default to true
+  enabled: localStorage.getItem('simops_notifications_enabled') !== 'false',
+
+  setEnabled: (enabled) => {
+    localStorage.setItem('simops_notifications_enabled', String(enabled));
+    set({ enabled });
+  },
 
   addNotification: (text, type = 'info') => {
+    // Skip if notifications are disabled
+    if (!get().enabled) return;
+    
     const notification: Notification = {
       id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
       text,
@@ -71,3 +84,4 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     return get().notifications.filter((n) => !n.read).length;
   },
 }));
+

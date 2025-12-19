@@ -53,9 +53,8 @@ export function LabsPage() {
 
 export function SettingsPage() {
   const { user } = useAuth();
-  const { clearAll, notifications } = useNotificationStore();
+  const { clearAll, notifications, enabled: notificationsEnabled, setEnabled } = useNotificationStore();
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   return (
     <div className="h-full flex flex-col">
@@ -134,7 +133,7 @@ export function SettingsPage() {
                   <p className="text-sm text-surface-500">Receive simulation completion alerts</p>
                 </div>
                 <button
-                  onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                  onClick={() => setEnabled(!notificationsEnabled)}
                   className={`w-12 h-6 rounded-full transition-colors ${notificationsEnabled ? 'bg-primary-500' : 'bg-surface-700'}`}
                 >
                   <div className={`w-5 h-5 rounded-full bg-white transition-transform ${notificationsEnabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
