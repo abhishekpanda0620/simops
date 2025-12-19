@@ -24,6 +24,8 @@ const SCENARIOS = [
   { value: 'simulate-netpol', label: 'Simulate Network Policy' },
   { value: 'argocd-sync', label: 'ArgoCD Sync (CRD/Operator)' },
   { value: 'certmanager-issue', label: 'Cert-Manager (TLS Certificate)' },
+  { value: 'resource-quota', label: 'ResourceQuota (Admission Control)' },
+  { value: 'cluster-autoscaler', label: 'Cluster Autoscaler (Scale-Up)' },
 ] as const;
 
 export interface ControlPlaneFlowControlsProps {

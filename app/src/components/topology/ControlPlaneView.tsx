@@ -8,6 +8,7 @@ import { ConfigVisuals } from './simulations/ConfigVisuals';
 import { NodeVisuals } from './simulations/NodeVisuals';
 import { PolicyVisuals } from './simulations/PolicyVisuals';
 import { OperatorVisuals } from './simulations/OperatorVisuals';
+import { AdmissionVisuals } from './simulations/AdmissionVisuals';
 import type { ClusterSnapshot } from '@/types';
 import type { SelectedItem } from './SelectionTypes';
 import type { ControlPlaneState, ControlPlaneScenario } from './ControlPlaneUtils';
@@ -79,6 +80,8 @@ export function ControlPlaneView({
               {controlPlaneScenario === 'simulate-netpol' && 'kubectl apply -f network-policy.yaml'}
               {controlPlaneScenario === 'argocd-sync' && 'kubectl apply -f application.yaml'}
               {controlPlaneScenario === 'certmanager-issue' && 'kubectl apply -f certificate.yaml'}
+              {controlPlaneScenario === 'resource-quota' && 'kubectl apply -f deployment.yaml'}
+              {controlPlaneScenario === 'cluster-autoscaler' && 'kubectl scale deploy nginx --replicas=10'}
 
               {controlPlaneScenario === 'node-failure' && 'Simulating Power Failure...'}
               {controlPlaneScenario === 'worker-flow' && 'Simulating Kube-Proxy & Kubelet Flow...'}
@@ -174,6 +177,7 @@ export function ControlPlaneView({
       <NodeVisuals scenario={controlPlaneScenario} state={controlPlaneState} />
       <PolicyVisuals scenario={controlPlaneScenario} state={controlPlaneState} />
       <OperatorVisuals scenario={controlPlaneScenario} state={controlPlaneState} />
+      <AdmissionVisuals scenario={controlPlaneScenario} state={controlPlaneState} />
 
       {/* Explanation */}
       <div className="p-4 rounded-lg bg-surface-800/50 border border-surface-700 mt-8">

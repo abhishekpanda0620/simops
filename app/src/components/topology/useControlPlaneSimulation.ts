@@ -24,7 +24,9 @@ import {
   runNodeSelectorScenario,
   runTaintTolerationScenario,
   runArgoCDScenario,
-  runCertManagerScenario
+  runCertManagerScenario,
+  runResourceQuotaScenario,
+  runClusterAutoscalerScenario
 } from './scenarios';
 import { runNetworkPolicyScenario } from './scenarios/advancedScenarios';
 
@@ -129,6 +131,12 @@ export function useControlPlaneSimulation(actions?: SimulationActions) {
         break;
       case 'certmanager-issue':
         newTimeouts = runCertManagerScenario(setState, stop);
+        break;
+      case 'resource-quota':
+        newTimeouts = runResourceQuotaScenario(setState, stop);
+        break;
+      case 'cluster-autoscaler':
+        newTimeouts = runClusterAutoscalerScenario(setState, stop);
         break;
     }
 

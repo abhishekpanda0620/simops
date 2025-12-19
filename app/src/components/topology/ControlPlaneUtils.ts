@@ -7,7 +7,9 @@ export type ControlPlaneScenario = 'create-pod' | 'get-pods' | 'delete-pod' | 's
   | 'simulate-taints'
   | 'simulate-netpol'
   | 'argocd-sync'
-  | 'certmanager-issue';
+  | 'certmanager-issue'
+  | 'resource-quota'
+  | 'cluster-autoscaler';
 
 export interface ControlPlaneState {
   isFlowing: boolean;
@@ -62,6 +64,8 @@ export function getStartMessage(scenario: ControlPlaneScenario) {
     case 'simulate-netpol': return '$ kubectl apply -f network-policy.yaml';
     case 'argocd-sync': return '$ kubectl apply -f application.yaml';
     case 'certmanager-issue': return '$ kubectl apply -f certificate.yaml';
+    case 'resource-quota': return '$ kubectl apply -f deployment.yaml';
+    case 'cluster-autoscaler': return '$ kubectl scale deploy nginx --replicas=10';
     default: return '';
   }
 }
