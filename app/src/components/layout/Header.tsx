@@ -4,10 +4,23 @@ import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
+import { useNotificationStore } from '@/store';
 
 interface HeaderProps {
   title: string;
   subtitle?: string;
+}
+
+// Format time relative to now
+function formatTimeAgo(date: Date): string {
+  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+  if (seconds < 60) return 'Just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }
 
 export function Header({ title, subtitle }: HeaderProps) {
@@ -15,6 +28,10 @@ export function Header({ title, subtitle }: HeaderProps) {
   const [activeDropdown, setActiveDropdown] = useState<'none' | 'notifications' | 'user'>('none');
   const notificationRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
+  
+  // Use notification store
+  const { notifications, markAsRead, markAllAsRead } = useNotificationStore();
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -31,11 +48,6 @@ export function Header({ title, subtitle }: HeaderProps) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const notifications = [
-    { id: 1, text: "Welcome to SimOps Academy Beta!", time: "Just now", read: false },
-    { id: 2, text: "New module 'Container Security' added.", time: "1 day ago", read: true },
-  ];
 
   return (
     <header className="sticky top-0 z-40 h-16 bg-surface-900/80 backdrop-blur-sm border-b border-surface-700 flex items-center justify-between px-6">
@@ -82,7 +94,11 @@ export function Header({ title, subtitle }: HeaderProps) {
             onClick={() => setActiveDropdown(activeDropdown === 'notifications' ? 'none' : 'notifications')}
           >
             <Bell className="w-5 h-5" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-primary-500 rounded-full" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 bg-primary-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </Button>
 
           <AnimatePresence>
@@ -96,18 +112,35 @@ export function Header({ title, subtitle }: HeaderProps) {
               >
                  <div className="p-3 border-b border-surface-800 flex justify-between items-center">
                     <h3 className="font-semibold text-surface-100">Notifications</h3>
-                    <span className="text-xs text-primary-400 cursor-pointer hover:underline">Mark all read</span>
+                    {unreadCount > 0 && (
+                      <button 
+                        onClick={markAllAsRead}
+                        className="text-xs text-primary-400 cursor-pointer hover:underline"
+                      >
+                        Mark all read
+                      </button>
+                    )}
                  </div>
                  <div className="max-h-64 overflow-y-auto">
-                   {notifications.map(n => (
-                     <div key={n.id} className={cn("p-3 border-b border-surface-800/50 hover:bg-surface-800 transition-colors cursor-pointer", !n.read && "bg-primary-500/5")}>
-                       <div className="flex justify-between items-start mb-1">
-                          <p className={cn("text-sm", !n.read ? "text-surface-100 font-medium" : "text-surface-300")}>{n.text}</p>
-                          {!n.read && <div className="w-2 h-2 rounded-full bg-primary-500 mt-1.5" />}
-                       </div>
-                       <p className="text-xs text-surface-500">{n.time}</p>
+                   {notifications.length === 0 ? (
+                     <div className="p-6 text-center text-surface-500 text-sm">
+                       No notifications yet
                      </div>
-                   ))}
+                   ) : (
+                     notifications.map(n => (
+                       <div 
+                         key={n.id} 
+                         className={cn("p-3 border-b border-surface-800/50 hover:bg-surface-800 transition-colors cursor-pointer", !n.read && "bg-primary-500/5")}
+                         onClick={() => markAsRead(n.id)}
+                       >
+                         <div className="flex justify-between items-start mb-1">
+                            <p className={cn("text-sm", !n.read ? "text-surface-100 font-medium" : "text-surface-300")}>{n.text}</p>
+                            {!n.read && <div className="w-2 h-2 rounded-full bg-primary-500 mt-1.5 shrink-0 ml-2" />}
+                         </div>
+                         <p className="text-xs text-surface-500">{formatTimeAgo(n.time)}</p>
+                       </div>
+                     ))
+                   )}
                  </div>
                  <div className="p-2 text-center border-t border-surface-800">
                    <button className="text-xs text-surface-400 hover:text-surface-200 transition-colors">View all history</button>
