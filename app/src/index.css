@@ -201,6 +201,133 @@ body {
   color: var(--color-surface-100);
   font-family: var(--font-family-sans);
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ========== LIGHT THEME (when .dark class NOT present) ========== */
+:root:not(.dark) {
+  /* Inverted surface colors for light mode - higher contrast */
+  --color-surface-50: oklch(0.12 0.02 270);
+  /* Darkest text */
+  --color-surface-100: oklch(0.20 0.018 270);
+  /* Primary text */
+  --color-surface-200: oklch(0.30 0.015 270);
+  /* Secondary text */
+  --color-surface-300: oklch(0.40 0.012 270);
+  /* Tertiary text */
+  --color-surface-400: oklch(0.50 0.01 270);
+  /* Muted text */
+  --color-surface-500: oklch(0.60 0.008 270);
+  /* Borders */
+  --color-surface-600: oklch(0.70 0.006 270);
+  /* Dividers */
+  --color-surface-700: oklch(0.50 0.01 270 / 0.15);
+  /* Card borders - very subtle */
+  --color-surface-800: oklch(0.60 0.008 270 / 0.12);
+  /* Card bg - soft lavender tint */
+  --color-surface-850: oklch(0.94 0.012 280);
+  /* Elevated bg - warmer lavender */
+  --color-surface-900: oklch(0.96 0.015 275);
+  /* Base bg */
+  --color-surface-950: oklch(0.98 0.018 270);
+  /* Page bg - soft purple hint */
+
+  /* Adjust primary colors for light bg */
+  --color-primary-300: oklch(0.45 0.22 270);
+  --color-primary-400: oklch(0.50 0.25 270);
+  --color-primary-500: oklch(0.45 0.28 270);
+  --color-primary-600: oklch(0.40 0.25 270);
+
+  /* Status colors adjusted for light bg */
+  --color-success-400: oklch(0.50 0.18 145);
+  --color-success-500: oklch(0.45 0.16 145);
+  --color-success-900: oklch(0.92 0.04 145);
+  --color-warning-400: oklch(0.55 0.18 75);
+  --color-warning-500: oklch(0.50 0.16 75);
+  --color-error-400: oklch(0.55 0.20 25);
+  --color-error-500: oklch(0.48 0.22 25);
+  --color-accent-400: oklch(0.50 0.16 190);
+  --color-accent-500: oklch(0.45 0.14 190);
+}
+
+:root:not(.dark) body {
+  background-color: var(--color-surface-950);
+  color: var(--color-surface-100);
+}
+
+:root:not(.dark) ::-webkit-scrollbar-track {
+  background: var(--color-surface-900);
+}
+
+:root:not(.dark) ::-webkit-scrollbar-thumb {
+  background: var(--color-surface-500);
+}
+
+:root:not(.dark) ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-surface-400);
+}
+
+:root:not(.dark) .glass,
+:root:not(.dark) .glass-hover,
+:root:not(.dark) .card,
+:root:not(.dark) .card-interactive {
+  background-color: oklch(0.99 0.001 270 / 0.95);
+  border-color: oklch(0.80 0.004 270 / 0.8);
+  box-shadow: 0 1px 3px oklch(0.20 0.02 270 / 0.1);
+}
+
+:root:not(.dark) .glass-hover:hover,
+:root:not(.dark) .card-interactive:hover {
+  background-color: oklch(0.97 0.002 270 / 0.98);
+  border-color: oklch(0.70 0.006 270 / 0.9);
+  box-shadow: 0 4px 12px oklch(0.20 0.02 270 / 0.15);
+}
+
+/* Light mode: Form inputs */
+:root:not(.dark) input[type="text"],
+:root:not(.dark) input[type="email"],
+:root:not(.dark) input[type="password"],
+:root:not(.dark) textarea {
+  background-color: white;
+  border-color: var(--color-surface-600);
+  color: var(--color-surface-100);
+}
+
+:root:not(.dark) input::placeholder,
+:root:not(.dark) textarea::placeholder {
+  color: var(--color-surface-400);
+}
+
+/* Light mode: Dropdowns and popovers */
+:root:not(.dark) [class*="bg-surface-800"][class*="border"][class*="shadow"] {
+  background-color: white;
+  border-color: oklch(0.85 0.01 270);
+  box-shadow: 0 4px 20px oklch(0.30 0.02 270 / 0.12);
+}
+
+/* Light mode: Combobox trigger button */
+:root:not(.dark) .combobox-trigger {
+  background-color: white;
+  border-color: oklch(0.80 0.015 270);
+  color: var(--color-surface-100);
+}
+
+:root:not(.dark) .combobox-trigger:hover {
+  background-color: oklch(0.96 0.01 275);
+  border-color: oklch(0.70 0.02 270);
+}
+
+:root:not(.dark) [class*="bg-surface-900"] {
+  background-color: oklch(0.97 0.008 275);
+}
+
+/* Smooth transitions for theme switching */
+body,
+.glass,
+.card,
+header,
+aside {
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Scrollbar styling for dark mode */

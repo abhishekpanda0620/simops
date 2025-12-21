@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Play, RotateCcw, ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { useEffect } from 'react';
+import { Play, RotateCcw } from 'lucide-react';
+import { Button, Combobox } from '@/components/ui';
 import { cn } from '@/utils';
 import './TrafficFlow.css';
 import { type TrafficState } from './TrafficUtils';
@@ -25,8 +25,6 @@ export function TrafficFlowControls({
   onStart, 
   onComplete 
 }: TrafficFlowControlsProps) {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
   // Auto-stop after animation completes
   useEffect(() => {
     if (!isFlowing) return;
@@ -38,48 +36,21 @@ export function TrafficFlowControls({
     return () => clearTimeout(timer);
   }, [isFlowing, onComplete]);
 
+  // Convert endpoints to Combobox options format
+  const endpointOptions = endpoints.map(ep => ({ value: ep, label: ep }));
+
   return (
-    <div className="flex items-center gap-2">
-      {/* Endpoint Selector */}
-      <div className="relative">
-        <button
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          disabled={isFlowing}
-          className={cn(
-            "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm w-[240px] justify-between",
-            "bg-surface-800 border border-surface-600 text-surface-200",
-            "hover:bg-surface-700 transition-colors",
-            isFlowing && "opacity-50 cursor-not-allowed"
-          )}
-        >
-          <div className="flex items-center gap-2 overflow-hidden">
-            <span className="text-surface-400 shrink-0">Path:</span>
-            <span className="font-mono text-accent-400 truncate">{selectedEndpoint}</span>
-          </div>
-          <ChevronDown className="w-3.5 h-3.5 text-surface-400 shrink-0" />
-        </button>
-        
-        {isDropdownOpen && !isFlowing && (
-          <div className="absolute top-full left-0 mt-1 bg-surface-800 border border-surface-600 rounded-md shadow-xl z-50 w-full min-w-[240px]">
-            {endpoints.map((ep) => (
-              <button
-                key={ep}
-                onClick={() => {
-                  onEndpointChange(ep);
-                  setIsDropdownOpen(false);
-                }}
-                className={cn(
-                  "w-full text-left px-3 py-2 text-sm font-mono",
-                  "hover:bg-surface-700 transition-colors",
-                  ep === selectedEndpoint ? "text-accent-400 bg-surface-700" : "text-surface-200"
-                )}
-              >
-                {ep}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+    <div className="flex items-center gap-3">
+      {/* Endpoint Selector - Using shared Combobox */}
+      <Combobox 
+        options={endpointOptions}
+        value={selectedEndpoint}
+        onChange={onEndpointChange}
+        placeholder="Select endpoint..."
+        searchPlaceholder="Search paths..."
+        disabled={isFlowing}
+        className="w-[240px]"
+      />
 
       {/* Start Button */}
       <Button
@@ -87,7 +58,7 @@ export function TrafficFlowControls({
         size="sm"
         onClick={onStart}
         disabled={isFlowing}
-        icon={isFlowing ? <RotateCcw className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
+        icon={isFlowing ? <RotateCcw className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-white" />}
       >
         {isFlowing ? 'Routing...' : 'Send Request'}
       </Button>

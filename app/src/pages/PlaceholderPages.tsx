@@ -1,9 +1,8 @@
 import { Header } from '@/components/layout';
 import { Card, Button } from '@/components/ui';
 import { Construction, Moon, Sun, User, Bell, Shield, Trash2 } from 'lucide-react';
-import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useNotificationStore } from '@/store';
+import { useNotificationStore, useThemeStore } from '@/store';
 
 interface PlaceholderPageProps {
   title: string;
@@ -54,7 +53,7 @@ export function LabsPage() {
 export function SettingsPage() {
   const { user } = useAuth();
   const { clearAll, notifications, enabled: notificationsEnabled, setEnabled } = useNotificationStore();
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const { theme, setTheme } = useThemeStore();
 
   return (
     <div className="h-full flex flex-col">

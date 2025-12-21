@@ -55,7 +55,7 @@ export function Combobox({
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex items-center justify-between w-full px-3 py-2 bg-surface-700 hover:bg-surface-600 rounded-md transition-colors text-sm font-medium text-surface-200 border border-transparent focus:border-primary-500/50 outline-none",
+          "combobox-trigger flex items-center justify-between w-full px-3 py-2 bg-surface-700 hover:bg-surface-600 rounded-md transition-colors text-sm font-medium text-surface-200 border border-surface-700 focus:border-primary-500/50 outline-none",
           disabled && "opacity-50 cursor-not-allowed hover:bg-surface-700",
           isOpen && "border-primary-500/50"
         )}

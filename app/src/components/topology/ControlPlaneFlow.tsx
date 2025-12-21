@@ -1,7 +1,8 @@
 import { Play, Square } from 'lucide-react';
-import { cn } from '@/utils';
 import { type ControlPlaneScenario, type ControlPlaneState } from './ControlPlaneUtils';
 import { Combobox } from '../ui/Combobox';
+import { Button } from '../ui/Button';
+import { cn } from '@/utils';
 
 const SCENARIOS = [
   { value: 'create-pod', label: 'Create Pod' },
@@ -44,7 +45,7 @@ export function ControlPlaneFlowControls({
   onStop
 }: ControlPlaneFlowControlsProps) {
   return (
-    <div className="flex items-center gap-4 bg-surface-800 p-2 rounded-lg border border-surface-700 shadow-lg z-50">
+    <div className="flex items-center gap-3">
       
       {/* Scenario Selector (Combobox) */}
       <Combobox 
@@ -57,27 +58,15 @@ export function ControlPlaneFlowControls({
         className="w-[280px]"
       />
 
-      <div className="h-6 w-px bg-surface-700" />
-
-      <div className="flex items-center gap-2">
-        {!isFlowing ? (
-          <button
-            onClick={onStart}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white rounded-md transition-colors font-medium text-sm"
-          >
-            <Play className="w-4 h-4 fill-white" />
-            <span>Simulate</span>
-          </button>
-        ) : (
-          <button
-            onClick={onStop}
-            className="flex items-center gap-2 px-4 py-2 bg-surface-700 hover:bg-surface-600 text-surface-200 rounded-md transition-colors font-medium text-sm"
-          >
-            <Square className="w-4 h-4 fill-current" />
-            <span>Stop</span>
-          </button>
-        )}
-      </div>
+      {/* Simulate/Stop Button - Using shared Button component */}
+      <Button
+        variant={isFlowing ? 'secondary' : 'primary'}
+        size="sm"
+        onClick={isFlowing ? onStop : onStart}
+        icon={isFlowing ? <Square className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-white" />}
+      >
+        {isFlowing ? 'Stop' : 'Simulate'}
+      </Button>
     </div>
   );
 }
