@@ -13,10 +13,19 @@ import {
 import './index.css';
 
 function AuthRoutes() {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // Show loading state while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-surface-950 flex items-center justify-center">
+        <div className="animate-pulse text-surface-400">Loading...</div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
-    return <LoginPage onLogin={login} />;
+    return <LoginPage />;
   }
 
   return (

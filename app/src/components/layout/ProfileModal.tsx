@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, UserCircle, Mail, User } from 'lucide-react';
+import { X, UserCircle, Mail, User, AlertCircle } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
@@ -12,15 +12,15 @@ interface ProfileModalProps {
 }
 
 export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
-  const { user, login } = useAuth();
+  const { user, isGuest } = useAuth();
   const { addNotification } = useNotificationStore();
   
-  // Use user values as initial state - this is fine for controlled modals
+  // Use user values as initial state
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   
-  // Reset form when modal opens (called from onOpen handler)
+  // Reset form when modal opens
   const resetForm = () => {
     setName(user?.name || '');
     setEmail(user?.email || '');
@@ -28,17 +28,16 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isGuest) return;
     if (!name.trim() || !email.trim()) return;
     
     setIsSaving(true);
     
-    // Simulate save delay
+    // TODO: Add profile update API call here
+    // For now, just simulate and show coming soon
     await new Promise(resolve => setTimeout(resolve, 300));
     
-    // Update user in auth context (which persists to localStorage)
-    login({ name: name.trim(), email: email.trim(), role: user?.role || 'student' });
-    
-    addNotification('Profile updated successfully!', 'success');
+    addNotification('Profile update coming soon!', 'info');
     setIsSaving(false);
     onClose();
   };
@@ -81,6 +80,14 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
             {/* Form */}
             <form onSubmit={handleSave} className="p-4 space-y-4">
+              {/* Guest Warning */}
+              {isGuest && (
+                <div className="flex items-center gap-2 p-3 bg-warning-500/10 border border-warning-500/30 rounded-lg text-warning-400 text-sm">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>Guest accounts cannot edit profile. Register for a full account.</span>
+                </div>
+              )}
+
               {/* Avatar Preview */}
               <div className="flex justify-center">
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">
@@ -101,7 +108,8 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Your name"
-                  className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500/50"
+                  disabled={isGuest}
+                  className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -116,7 +124,8 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500/50"
+                  disabled={isGuest}
+                  className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -132,16 +141,24 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
               {/* Actions */}
               <div className="flex justify-end gap-2 pt-2">
-                <Button variant="ghost" onClick={onClose} type="button">
-                  Cancel
-                </Button>
-                <Button 
-                  variant="primary" 
-                  type="submit" 
-                  disabled={!name.trim() || !email.trim() || isSaving}
-                >
-                  {isSaving ? 'Saving...' : 'Save Changes'}
-                </Button>
+                {isGuest ? (
+                  <Button variant="primary" onClick={onClose} type="button">
+                    Close
+                  </Button>
+                ) : (
+                  <>
+                    <Button variant="ghost" onClick={onClose} type="button">
+                      Cancel
+                    </Button>
+                    <Button 
+                      variant="primary" 
+                      type="submit" 
+                      disabled={!name.trim() || !email.trim() || isSaving}
+                    >
+                      {isSaving ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                  </>
+                )}
               </div>
             </form>
           </motion.div>

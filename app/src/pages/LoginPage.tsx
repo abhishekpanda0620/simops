@@ -1,21 +1,61 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Terminal, ArrowRight, Github, Mail } from 'lucide-react';
+import { Terminal, ArrowRight, Github, Mail, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui';
+import { useAuth } from '@/context/AuthContext';
 
-interface LoginPageProps {
-  onLogin: () => void;
-}
+export function LoginPage() {
+  const { login, register, error, clearError, isLoading } = useAuth();
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  
+  // Form state
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
 
-export function LoginPage({ onLogin }: LoginPageProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError(null);
+    clearError();
 
-  const handleGuestLogin = () => {
-    setIsLoading(true);
-    // Simulate a brief delay for effect
-    setTimeout(() => {
-      onLogin();
-    }, 800);
+    if (!email || !password) {
+      setFormError('Please fill in all fields');
+      return;
+    }
+
+    if (isRegisterMode && !name) {
+      setFormError('Please enter your name');
+      return;
+    }
+
+    try {
+      if (isRegisterMode) {
+        await register(name, email, password);
+      } else {
+        await login(email, password);
+      }
+    } catch {
+      // Error is handled by context
+    }
+  };
+
+  const handleGuestLogin = async () => {
+    setFormError(null);
+    clearError();
+    try {
+      // Use the seeded demo account
+      await login('test@example.com', 'password');
+    } catch {
+      setFormError('Guest login unavailable. Please register or try again.');
+    }
+  };
+
+  const toggleMode = () => {
+    setIsRegisterMode(!isRegisterMode);
+    setFormError(null);
+    clearError();
   };
 
   return (
@@ -41,49 +81,147 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               <Terminal className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-surface-100 mb-2">SimOps Academy</h1>
-            <p className="text-surface-400 text-sm">Interactive DevOps Simulations & Labs</p>
+            <p className="text-surface-400 text-sm">
+              {isRegisterMode ? 'Create your account' : 'Sign in to continue'}
+            </p>
           </div>
 
-          {/* Login Actions */}
-          <div className="space-y-4">
+          {/* Error display */}
+          {(error || formError) && (
+            <div className="mb-4 p-3 bg-error-500/10 border border-error-500/30 rounded-lg text-error-400 text-sm">
+              {error || formError}
+            </div>
+          )}
+
+          {/* Login/Register Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {isRegisterMode && (
+              <div>
+                <label className="block text-sm font-medium text-surface-300 mb-2">Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Your name"
+                  className="w-full px-4 py-3 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500/50"
+                  disabled={isLoading}
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-surface-300 mb-2">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full px-4 py-3 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500/50"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-surface-300 mb-2">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500/50 pr-12"
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-200"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
             <Button 
-              className="w-full gap-2 relative overflow-hidden group"
+              type="submit"
+              className="w-full gap-2"
               size="lg"
-              onClick={handleGuestLogin}
               disabled={isLoading}
             >
-              <span className="relative z-10 flex items-center gap-2">
-                {isLoading ? 'Entering...' : 'Continue as Guest'} 
-                {!isLoading && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
-              </span>
-              {/* Button shimmer effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer" />
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {isRegisterMode ? 'Creating account...' : 'Signing in...'}
+                </>
+              ) : (
+                <>
+                  {isRegisterMode ? 'Create Account' : 'Sign In'}
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </Button>
+          </form>
 
+          {/* Guest Login Option */}
+          {!isRegisterMode && (
+            <>
+              <div className="relative py-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-surface-800" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-surface-900 px-2 text-surface-500">or</span>
+                </div>
+              </div>
+
+              <Button 
+                variant="secondary"
+                className="w-full gap-2"
+                size="lg"
+                onClick={handleGuestLogin}
+                disabled={isLoading}
+              >
+                Continue as Guest
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </>
+          )}
+
+          <div className="mt-6 text-center">
+            <button
+              onClick={toggleMode}
+              className="text-sm text-surface-400 hover:text-primary-400 transition-colors"
+            >
+              {isRegisterMode ? 'Already have an account? Sign in' : "Don't have an account? Register"}
+            </button>
+          </div>
+
+          {/* SSO Options (disabled for now) */}
+          <div className="mt-6">
             <div className="relative py-2">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-surface-800" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-surface-900 px-2 text-surface-500">Or sign in with</span>
+                <span className="bg-surface-900 px-2 text-surface-500">Coming soon</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <Button variant="secondary" className="w-full gap-2" disabled title="Coming Soon">
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <Button variant="secondary" className="w-full gap-2" disabled>
                 <Github className="w-4 h-4" />
                 GitHub
               </Button>
-              <Button variant="secondary" className="w-full gap-2" disabled title="Coming Soon">
+              <Button variant="secondary" className="w-full gap-2" disabled>
                 <Mail className="w-4 h-4" />
-                Email
+                Google
               </Button>
             </div>
           </div>
 
           {/* Footer */}
           <div className="mt-8 text-center text-xs text-surface-500">
-            <p>By continuing, you acknowledge that this is a <span className="text-accent-400">Beta Preview</span> version.</p>
+            <p>By continuing, you acknowledge this is a <span className="text-accent-400">Beta Preview</span>.</p>
           </div>
         </div>
       </motion.div>

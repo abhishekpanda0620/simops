@@ -3,40 +3,52 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\ControlPlaneScenario;
 
 class ScenarioController extends Controller
 {
     /**
-     * List available scenarios
-     * Returns static list of K8s simulation scenarios
+     * List available control plane scenarios
      */
     public function index()
     {
-        $scenarios = [
-            ['id' => 'create-pod', 'name' => 'Create Pod', 'category' => 'pods'],
-            ['id' => 'delete-pod', 'name' => 'Delete Pod', 'category' => 'pods'],
-            ['id' => 'scale-deployment', 'name' => 'Scale Deployment', 'category' => 'workloads'],
-            ['id' => 'node-failure', 'name' => 'Node Failure Recovery', 'category' => 'cluster'],
-            ['id' => 'deploy-statefulset', 'name' => 'Deploy StatefulSet', 'category' => 'workloads'],
-            ['id' => 'deploy-daemonset', 'name' => 'Deploy DaemonSet', 'category' => 'workloads'],
-            ['id' => 'simulate-hpa', 'name' => 'HPA Autoscaling', 'category' => 'scaling'],
-            ['id' => 'simulate-rbac', 'name' => 'RBAC Access Control', 'category' => 'security'],
-            ['id' => 'argocd-sync', 'name' => 'ArgoCD Sync', 'category' => 'gitops'],
-            ['id' => 'certmanager-issue', 'name' => 'Cert-Manager TLS', 'category' => 'security'],
-        ];
+        $scenarios = ControlPlaneScenario::where('is_active', true)
+            ->orderBy('sort_order')
+            ->select('id', 'slug', 'name', 'category', 'description', 'icon')
+            ->get()
+            ->map(fn($s) => [
+                'id' => $s->slug,
+                'name' => $s->name,
+                'category' => $s->category,
+                'description' => $s->description,
+                'icon' => $s->icon,
+            ]);
 
         return response()->json(['scenarios' => $scenarios]);
     }
 
     /**
+     * Get scenario details
+     */
+    public function show(ControlPlaneScenario $scenario)
+    {
+        return response()->json([
+            'scenario' => [
+                'id' => $scenario->slug,
+                'name' => $scenario->name,
+                'category' => $scenario->category,
+                'description' => $scenario->description,
+                'icon' => $scenario->icon,
+                'config' => $scenario->config,
+            ],
+        ]);
+    }
+
+    /**
      * Get scenario status (for polling)
-     * In a real implementation, this would check simulation state
      */
     public function status(string $scenario)
     {
-        // For now, return simulated status
-        // This endpoint is for polling current simulation state
         return response()->json([
             'scenario' => $scenario,
             'status' => 'idle',

@@ -24,6 +24,9 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             LabSeeder::class,
+            K8sScenarioSeeder::class,
+            PipelineSeeder::class,
+            ControlPlaneScenarioSeeder::class,
         ]);
     }
 }
