@@ -49,11 +49,19 @@ export const dataService = {
   getK8sScenario: async (id: string): Promise<ClusterSnapshot | null> => {
     if (isBackendMode()) {
       try {
+        console.log(`[dataService] Fetching scenario ${id} from backend...`);
         const response = await api.k8sScenarios.get(id);
+        console.log(`[dataService] Got response:`, response);
+        
+        if (!response.scenario?.data) {
+          console.error(`[dataService] No data in scenario response for ${id}`);
+          return null;
+        }
+        
         // The data field contains the full ClusterSnapshot
         return response.scenario.data as unknown as ClusterSnapshot;
-      } catch {
-        console.error(`Failed to fetch scenario ${id} from backend`);
+      } catch (error) {
+        console.error(`[dataService] Failed to fetch scenario ${id} from backend:`, error);
         return null;
       }
     }
