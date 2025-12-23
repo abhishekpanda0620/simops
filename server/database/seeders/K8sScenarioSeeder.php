@@ -17,19 +17,19 @@ class K8sScenarioSeeder extends Seeder
                 'data' => $this->getHealthyScenario(),
             ],
             [
-                'slug' => 'crash-loop-back-off',
+                'slug' => 'crashLoopBackOff',
                 'name' => 'CrashLoopBackOff',
                 'description' => 'A pod is repeatedly crashing and being restarted by Kubernetes.',
                 'data' => $this->getCrashLoopScenario(),
             ],
             [
-                'slug' => 'oom-killed',
+                'slug' => 'oomKilled',
                 'name' => 'OOMKilled',
                 'description' => 'A container was terminated due to exceeding memory limits.',
                 'data' => $this->getOOMKilledScenario(),
             ],
             [
-                'slug' => 'image-pull-back-off',
+                'slug' => 'imagePullBackOff',
                 'name' => 'ImagePullBackOff',
                 'description' => 'Kubernetes cannot pull the container image from the registry.',
                 'data' => $this->getImagePullBackOffScenario(),
@@ -41,7 +41,7 @@ class K8sScenarioSeeder extends Seeder
                 'data' => $this->getPendingScenario(),
             ],
             [
-                'slug' => 'node-not-ready',
+                'slug' => 'nodeNotReady',
                 'name' => 'Node Not Ready',
                 'description' => 'A worker node has become unresponsive or unhealthy.',
                 'data' => $this->getNodeNotReadyScenario(),

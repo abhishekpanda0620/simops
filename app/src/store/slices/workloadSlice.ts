@@ -1,5 +1,5 @@
 import type { StoreSlice } from './types';
-import { scenarios } from '@/data';
+import { dataService } from '@/services/dataService';
 import type { K8sPod, K8sStatefulSet, K8sDaemonSet, K8sJob, K8sCronJob, ArgoApplication } from '@/types';
 
 export interface WorkloadSlice {
@@ -42,10 +42,11 @@ export const createWorkloadSlice: StoreSlice<WorkloadSlice> = (set, get) => ({
       if (!templatePod) {
           // If no running pods, fallback to original scenario to find what a pod "should" look like
           const currentScenarioId = get().currentScenarioId || 'healthy';
-          const originalScenario = scenarios[currentScenarioId];
-          const originalDeploy = originalScenario?.deployments.find(d => d.id === deploymentId);
+          const allScenarios = dataService.getAllScenarios();
+          const originalScenario = allScenarios[currentScenarioId as keyof typeof allScenarios];
+          const originalDeploy = originalScenario?.deployments.find((d: { id: string }) => d.id === deploymentId);
           if (originalDeploy && originalDeploy.podIds.length > 0) {
-              templatePod = originalScenario.pods.find(p => p.id === originalDeploy.podIds[0]);
+              templatePod = originalScenario.pods.find((p: { id: string }) => p.id === originalDeploy.podIds[0]);
           }
       }
       

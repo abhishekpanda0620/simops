@@ -11,7 +11,7 @@ import { NodesLayer } from './layers/NodesLayer';
 import { PendingPodsLayer } from './layers/PendingPodsLayer';
 import { DeploymentsLayer } from './layers/DeploymentsLayer';
 import type { ClusterSnapshot, K8sPod } from '@/types';
-import type { ScenarioId } from '@/data';
+import type { ScenarioId } from '@/store/slices/clusterSlice';
 import type { SelectedItem } from './SelectionTypes';
 import type { TrafficState } from './TrafficUtils';
 import type { ControlPlaneState, ControlPlaneScenario } from './ControlPlaneUtils';

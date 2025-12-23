@@ -1,13 +1,13 @@
 import { Badge } from '@/components/ui';
 import { CheckCircle, AlertTriangle, Database, Server, Clock, Skull } from 'lucide-react';
-import type { ScenarioId } from '@/data';
+import type { ScenarioId } from '@/store/slices/clusterSlice';
 
 interface ScenarioSelectorProps {
   currentScenarioId: ScenarioId | null;
   onSelectScenario: (scenarioId: ScenarioId) => void;
 }
 
-const scenariosList: { id: ScenarioId; label: string; icon: typeof CheckCircle; description: string; variant: 'success' | 'warning' | 'error' }[] = [
+const scenariosList: { id: string; label: string; icon: typeof CheckCircle; description: string; variant: 'success' | 'warning' | 'error' }[] = [
   {
     id: 'healthy',
     label: 'Healthy Cluster',
@@ -59,7 +59,7 @@ export function ScenarioSelector({ currentScenarioId, onSelectScenario }: Scenar
       <div className="relative">
         <select
           value={currentScenarioId || 'healthy'}
-          onChange={(e) => onSelectScenario(e.target.value as ScenarioId)}
+          onChange={(e) => onSelectScenario(e.target.value)}
           className="appearance-none bg-surface-800 border border-surface-600 text-surface-200 text-sm rounded-md pl-3 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500/50 cursor-pointer w-[240px] truncate"
         >
           {scenariosList.map((scenario) => (

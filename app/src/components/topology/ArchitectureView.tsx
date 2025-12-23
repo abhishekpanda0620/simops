@@ -8,7 +8,7 @@ import { TrafficAnimationLayer } from './TrafficAnimationLayer';
 import { ControlPlaneView } from './ControlPlaneView';
 import { UserRequestView } from './UserRequestView';
 import type { ClusterSnapshot } from '@/types';
-import type { ScenarioId } from '@/data';
+import type { ScenarioId } from '@/store/slices/clusterSlice';
 import type { SelectedItem } from './SelectionTypes';
 
 interface ArchitectureViewProps {
