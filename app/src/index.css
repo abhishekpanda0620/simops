@@ -145,9 +145,26 @@
 
   to {
     opacity: 0;
-    transform: translateY(-400px);
-    /* Move visually up towards user */
+    transform: translateY(-600px);
+    /* Move visually up towards External Traffic */
   }
+}
+
+/* Response packet animation - uses viewport-relative units for consistency across screens */
+@keyframes response-return {
+  0% {
+    top: 78%;
+    opacity: 1;
+  }
+
+  100% {
+    top: 25%;
+    opacity: 0;
+  }
+}
+
+.animate-response-return {
+  animation: response-return 3.5s ease-out forwards;
 }
 
 @keyframes scale-in {
@@ -188,9 +205,26 @@
 
 /* Shake animation for retry attempts */
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
-  20%, 40%, 60%, 80% { transform: translateX(2px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-2px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(2px);
+  }
 }
 
 .animate-shake {
@@ -199,8 +233,13 @@
 
 /* Slow spin for retry icon */
 @keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .animate-spin-slow {
@@ -209,8 +248,13 @@
 
 /* Reverse spin for rollback */
 @keyframes spin-reverse {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
+  from {
+    transform: rotate(360deg);
+  }
+
+  to {
+    transform: rotate(0deg);
+  }
 }
 
 .animate-spin-reverse {
@@ -219,8 +263,15 @@
 
 /* Slow blink for approval waiting */
 @keyframes blink-slow {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .animate-blink-slow {
@@ -229,55 +280,137 @@
 
 /* Speed lines for hotfix */
 @keyframes speed-line-1 {
-  0%, 100% { transform: translateX(0); opacity: 0.6; }
-  50% { transform: translateX(-3px); opacity: 1; }
+
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translateX(-3px);
+    opacity: 1;
+  }
 }
 
 @keyframes speed-line-2 {
-  0%, 100% { transform: translateX(0); opacity: 0.4; }
-  50% { transform: translateX(-2px); opacity: 0.7; }
+
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.4;
+  }
+
+  50% {
+    transform: translateX(-2px);
+    opacity: 0.7;
+  }
 }
 
 @keyframes speed-line-3 {
-  0%, 100% { transform: translateX(0); opacity: 0.2; }
-  50% { transform: translateX(-1px); opacity: 0.4; }
+
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.2;
+  }
+
+  50% {
+    transform: translateX(-1px);
+    opacity: 0.4;
+  }
 }
 
-.animate-speed-line-1 { animation: speed-line-1 0.3s ease-in-out infinite; }
-.animate-speed-line-2 { animation: speed-line-2 0.3s ease-in-out 0.1s infinite; }
-.animate-speed-line-3 { animation: speed-line-3 0.3s ease-in-out 0.2s infinite; }
+.animate-speed-line-1 {
+  animation: speed-line-1 0.3s ease-in-out infinite;
+}
+
+.animate-speed-line-2 {
+  animation: speed-line-2 0.3s ease-in-out 0.1s infinite;
+}
+
+.animate-speed-line-3 {
+  animation: speed-line-3 0.3s ease-in-out 0.2s infinite;
+}
 
 /* Parallel bars animation */
 @keyframes parallel-bar-1 {
-  0%, 100% { height: 0.5rem; }
-  50% { height: 0.75rem; }
+
+  0%,
+  100% {
+    height: 0.5rem;
+  }
+
+  50% {
+    height: 0.75rem;
+  }
 }
 
 @keyframes parallel-bar-2 {
-  0%, 100% { height: 0.75rem; }
-  50% { height: 0.5rem; }
+
+  0%,
+  100% {
+    height: 0.75rem;
+  }
+
+  50% {
+    height: 0.5rem;
+  }
 }
 
 @keyframes parallel-bar-3 {
-  0%, 100% { height: 0.625rem; }
-  50% { height: 0.875rem; }
+
+  0%,
+  100% {
+    height: 0.625rem;
+  }
+
+  50% {
+    height: 0.875rem;
+  }
 }
 
 @keyframes parallel-bar-4 {
-  0%, 100% { height: 0.5rem; }
-  33% { height: 0.625rem; }
-  66% { height: 0.75rem; }
+
+  0%,
+  100% {
+    height: 0.5rem;
+  }
+
+  33% {
+    height: 0.625rem;
+  }
+
+  66% {
+    height: 0.75rem;
+  }
 }
 
-.animate-parallel-bar-1 { animation: parallel-bar-1 0.8s ease-in-out infinite; }
-.animate-parallel-bar-2 { animation: parallel-bar-2 0.8s ease-in-out 0.2s infinite; }
-.animate-parallel-bar-3 { animation: parallel-bar-3 0.8s ease-in-out 0.4s infinite; }
-.animate-parallel-bar-4 { animation: parallel-bar-4 0.8s ease-in-out 0.1s infinite; }
+.animate-parallel-bar-1 {
+  animation: parallel-bar-1 0.8s ease-in-out infinite;
+}
+
+.animate-parallel-bar-2 {
+  animation: parallel-bar-2 0.8s ease-in-out 0.2s infinite;
+}
+
+.animate-parallel-bar-3 {
+  animation: parallel-bar-3 0.8s ease-in-out 0.4s infinite;
+}
+
+.animate-parallel-bar-4 {
+  animation: parallel-bar-4 0.8s ease-in-out 0.1s infinite;
+}
 
 /* Reverse flow for rollback connector */
 @keyframes reverse-flow {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 100% 50%;
+  }
 }
 
 .animate-reverse-flow {

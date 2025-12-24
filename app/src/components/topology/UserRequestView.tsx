@@ -62,6 +62,15 @@ export function UserRequestView({
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       
+      {/* Scenario Presets - top control bar */}
+      <div className="flex items-center justify-between gap-4 py-2 px-4 bg-surface-800/30 rounded-lg border border-surface-700/30">
+        <ScenarioSelector
+          currentScenarioId={currentScenarioId}
+          onSelectScenario={onSelectScenario}
+        />
+        <ScenarioDescription scenarioId={currentScenarioId} />
+      </div>
+
       <TrafficControlsLayer
         trafficState={trafficState}
         trafficEndpoints={trafficEndpoints}
@@ -69,15 +78,6 @@ export function UserRequestView({
         onStartTrafficSimulation={onStartTrafficSimulation}
         onStopTrafficSimulation={onStopTrafficSimulation}
       />
-
-      {/* Scenario Selection (User Request Flow Only) */}
-      <div className="flex flex-col items-center gap-3 mb-6 bg-surface-900/50 p-4 rounded-xl border border-surface-700/50">
-          <ScenarioSelector
-            currentScenarioId={currentScenarioId}
-            onSelectScenario={onSelectScenario}
-          />
-          <ScenarioDescription scenarioId={currentScenarioId} />
-      </div>
 
       <IngressLayer
         cluster={cluster}

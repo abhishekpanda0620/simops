@@ -25,9 +25,9 @@ export function TrafficAnimationLayer({ trafficState }: TrafficAnimationLayerPro
           </div>
         </div>
       )}
-      {/* Response packet - moves UP based on phase */}
+      {/* Response packet - animates UP through all layers to External Traffic */}
       {trafficState.phase === 'response' && (
-        <div className="absolute left-1/2 translate-x-12 z-30 pointer-events-none top-[78%] animate-[moveUp_3s_ease-in-out_forwards]">
+        <div className="absolute left-1/2 translate-x-12 z-30 pointer-events-none top-[78%] animate-response-return">
           <div className={cn(
             "px-3 py-1.5 rounded-md text-xs font-mono whitespace-nowrap shadow-lg text-white border flex items-center gap-2",
             trafficState.status === 'error' ? "bg-error-500 border-error-400" : "bg-accent-500 border-accent-400"

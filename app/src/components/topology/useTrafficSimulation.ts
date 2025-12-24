@@ -80,10 +80,10 @@ export function useTrafficSimulation(
             targetServiceName: service.name,
         }));
 
-        // Short-circuit animation for error
+        // Short-circuit animation for error - still give time for response animation
         timeoutRefs.current.push(setTimeout(() => setState(prev => ({ ...prev, phase: 'service' })), 2000));
         timeoutRefs.current.push(setTimeout(() => setState(prev => ({ ...prev, phase: 'response' })), 4000)); // Skip pod phase
-        timeoutRefs.current.push(setTimeout(() => setState(prev => ({ ...prev, phase: 'complete' })), 7000));
+        timeoutRefs.current.push(setTimeout(() => setState(prev => ({ ...prev, phase: 'complete' })), 7500));
         
         return;
     }
@@ -108,11 +108,12 @@ export function useTrafficSimulation(
       targetServiceName: service.name,
     }));
 
-    // Phase transitions
+    // Phase transitions - request goes down
     timeoutRefs.current.push(setTimeout(() => setState(prev => ({ ...prev, phase: 'service' })), 2000));
     timeoutRefs.current.push(setTimeout(() => setState(prev => ({ ...prev, phase: 'pod' })), 4000));
-    timeoutRefs.current.push(setTimeout(() => setState(prev => ({ ...prev, phase: 'response' })), 7000));
-    timeoutRefs.current.push(setTimeout(() => setState(prev => ({ ...prev, phase: 'complete' })), 8000));
+    // Response phase - give enough time for the 3s CSS animation to complete
+    timeoutRefs.current.push(setTimeout(() => setState(prev => ({ ...prev, phase: 'response' })), 6000));
+    timeoutRefs.current.push(setTimeout(() => setState(prev => ({ ...prev, phase: 'complete' })), 9500));
   }, [state.endpoint, ingresses, services, pods, clearTimeouts]);
 
   const stopSimulation = useCallback(() => {
