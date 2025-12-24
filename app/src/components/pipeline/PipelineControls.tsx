@@ -1,32 +1,42 @@
 import { GitBranch, Clock, User, GitCommit, CheckCircle } from 'lucide-react';
 import { Card, Combobox } from '@/components/ui';
 import type { Pipeline } from '@/types/pipeline';
-import { statusConfig, formatDuration, StatusBadge } from './pipelineUtils';
+import { statusConfig, formatDuration } from './pipelineConfig';
+import { StatusBadge } from './pipelineUtils';
+import { PIPELINE_SCENARIOS, type PipelineScenario } from './PipelineUtils';
 
-// Pipeline Selector using Combobox
-interface PipelineSelectorProps {
-  pipelines: Array<{ slug: string; name: string; status: string }>;
-  selected: string;
-  onSelect: (slug: string) => void;
+// Pipeline Scenario Selector - Main scenario selection component
+interface PipelineScenarioSelectorProps {
+  selected: PipelineScenario;
+  onSelect: (scenario: PipelineScenario) => void;
+  disabled?: boolean;
 }
 
-export function PipelineSelector({ pipelines, selected, onSelect }: PipelineSelectorProps) {
-  const options = pipelines.map(p => ({
-    value: p.slug,
-    label: `${p.name} (${p.status})`
+export function PipelineScenarioSelector({ selected, onSelect, disabled }: PipelineScenarioSelectorProps) {
+  const options = PIPELINE_SCENARIOS.map(s => ({
+    value: s.value,
+    label: s.label
   }));
 
+  const selectedScenario = PIPELINE_SCENARIOS.find(s => s.value === selected);
+
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-sm font-medium text-surface-300 whitespace-nowrap">Pipeline:</span>
-      <Combobox
-        options={options}
-        value={selected}
-        onChange={onSelect}
-        placeholder="Select pipeline..."
-        searchPlaceholder="Search pipelines..."
-        className="w-64"
-      />
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-medium text-surface-300 whitespace-nowrap">Scenario:</span>
+        <Combobox
+          options={options}
+          value={selected}
+          onChange={(val) => onSelect(val as PipelineScenario)}
+          placeholder="Select scenario..."
+          searchPlaceholder="Search scenarios..."
+          className="w-72"
+          disabled={disabled}
+        />
+      </div>
+      {selectedScenario && (
+        <p className="text-xs text-surface-400 ml-[72px]">{selectedScenario.description}</p>
+      )}
     </div>
   );
 }

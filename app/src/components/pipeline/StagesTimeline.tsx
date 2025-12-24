@@ -1,5 +1,7 @@
 import type { Stage, StageStatus } from '@/types/pipeline';
-import { statusConfig } from './pipelineUtils';
+import { statusConfig } from './pipelineConfig';
+import { StageIndicator } from './ScenarioIndicators';
+import type { PipelineScenario } from './PipelineUtils';
 
 interface StagesTimelineProps {
   stages: Stage[];
@@ -8,6 +10,7 @@ interface StagesTimelineProps {
   isStageComplete?: (index: number) => boolean;
   isStagePending?: (index: number) => boolean;
   isSimulating?: boolean;
+  scenario?: PipelineScenario;
 }
 
 export function StagesTimeline({ 
@@ -16,10 +19,11 @@ export function StagesTimeline({
   isStageActive,
   isStageComplete,
   isStagePending,
-  isSimulating = false
+  isSimulating = false,
+  scenario
 }: StagesTimelineProps) {
   return (
-    <div className="flex items-center justify-center gap-2 mb-6 overflow-x-auto py-4">
+    <div className="flex items-center justify-center gap-2 mb-6 overflow-x-auto py-8">
       {stages.map((stage, index) => {
         const active = isStageActive?.(index) ?? false;
         const complete = isStageComplete?.(index) ?? false;
@@ -42,8 +46,17 @@ export function StagesTimeline({
         
         return (
           <div key={stage.id} className="flex items-center">
-            {/* Stage Node */}
-            <div className="flex flex-col items-center">
+            {/* Stage Node with Scenario Indicator */}
+            <div className="relative flex flex-col items-center">
+              {/* Scenario-specific indicator (shows above node when active) */}
+              {scenario && (
+                <StageIndicator 
+                  scenario={scenario}
+                  stageName={stage.name}
+                  isActive={active}
+                />
+              )}
+              
               <div 
                 className={`
                   w-10 h-10 rounded-full flex items-center justify-center border-2 

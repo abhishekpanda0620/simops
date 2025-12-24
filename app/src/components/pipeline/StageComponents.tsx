@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { ChevronRight, ChevronDown, Terminal } from 'lucide-react';
 import { Card } from '@/components/ui';
 import type { Stage, Job, Step, LogEntry, StageStatus } from '@/types/pipeline';
-import { statusConfig, formatDuration, StatusBadge } from './pipelineUtils';
+import { statusConfig, formatDuration } from './pipelineConfig';
+import { StatusBadge } from './pipelineUtils';
 
 // Stage Card Component
 interface StageCardProps {

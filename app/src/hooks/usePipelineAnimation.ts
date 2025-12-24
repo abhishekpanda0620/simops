@@ -76,19 +76,18 @@ export function usePipelineAnimation({
     if (!state.isAnimating || state.isPaused) return;
     if (stages.length === 0) return;
 
-    // Check if current stage is failed or skipped - stop animation
-    const currentStage = stages[state.activeStageIndex];
-    if (currentStage && (currentStage.status === 'failed' || currentStage.status === 'skipped')) {
-      setState(prev => ({
-        ...prev,
-        isAnimating: false
-      }));
-      onComplete?.();
-      return;
-    }
-
     const timer = setTimeout(() => {
       setState(prev => {
+        // Check if current stage is failed or skipped - stop animation
+        const currentStage = stages[prev.activeStageIndex];
+        if (currentStage && (currentStage.status === 'failed' || currentStage.status === 'skipped')) {
+          onComplete?.();
+          return {
+            ...prev,
+            isAnimating: false
+          };
+        }
+
         const nextIndex = prev.activeStageIndex + 1;
         
         // Check if next stage exists

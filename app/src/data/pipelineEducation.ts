@@ -52,6 +52,45 @@ export const pipelineEducation: Record<string, PipelineEducation> = {
     relatedConcepts: ['Rolling Update', 'Canary Release', 'Blue-Green Deployment', 'GitOps'],
   },
   
+  'stage-security': {
+    title: 'Security Scan Stage',
+    description: 'The Security stage scans your code and container images for vulnerabilities, secrets, and compliance issues before deployment. Tools like Trivy, Snyk, or SonarQube catch security problems early.',
+    analogy: '🔒 Like airport security - everything is scanned before it can board the flight to production.',
+    tips: [
+      'Scan both source code and container images',
+      'Set severity thresholds - block on critical issues',
+      'Keep vulnerability databases updated',
+      'Scan dependencies, not just your code',
+    ],
+    relatedConcepts: ['CVE', 'SAST', 'DAST', 'Container Security', 'Trivy', 'Snyk'],
+  },
+  
+  'stage-preview': {
+    title: 'Preview Deploy Stage',
+    description: 'Preview deployments create temporary environments for pull requests, allowing reviewers to see changes in action before merging. Each PR gets its own isolated preview URL.',
+    analogy: '🔮 Like a dress rehearsal - see exactly how the show will look before opening night.',
+    tips: [
+      'Auto-deploy previews on PR open/update',
+      'Clean up preview environments when PR closes',
+      'Share preview URLs in PR comments',
+      'Use preview environments for testing integrations',
+    ],
+    relatedConcepts: ['Ephemeral Environments', 'PR Reviews', 'Vercel/Netlify Previews'],
+  },
+  
+  'stage-approval': {
+    title: 'Manual Approval Gate',
+    description: 'Manual approval gates pause the pipeline until a designated person or team approves. Used for production deployments requiring human review, compliance checks, or change management processes.',
+    analogy: '🚦 Like a traffic light controlled by a human operator - the green light only comes when they decide it\'s safe.',
+    tips: [
+      'Define clear approval criteria and approvers',
+      'Set timeout limits for stale approvals',
+      'Use Slack/Teams notifications for approval requests',
+      'Consider approval policies (any vs all approvers)',
+    ],
+    relatedConcepts: ['Change Management', 'ITSM', 'Approval Workflows', 'RBAC'],
+  },
+  
   // Jobs
   'job-unit-tests': {
     title: 'Unit Tests Job',
@@ -156,8 +195,18 @@ export const pipelineEducation: Record<string, PipelineEducation> = {
 };
 
 export function getEducationForStage(stageName: string): PipelineEducation | null {
-  // Match by stage name
-  const key = `stage-${stageName.toLowerCase().replace(/\s+/g, '-')}`;
+  const normalizedName = stageName.toLowerCase();
+  
+  // Match by patterns for flexibility with different scenario stage names
+  if (normalizedName.includes('build')) return pipelineEducation['stage-build'];
+  if (normalizedName.includes('test')) return pipelineEducation['stage-test'];
+  if (normalizedName.includes('deploy') || normalizedName.includes('rollback') || normalizedName.includes('staging')) return pipelineEducation['stage-deploy'];
+  if (normalizedName.includes('security') || normalizedName.includes('scan')) return pipelineEducation['stage-security'];
+  if (normalizedName.includes('preview')) return pipelineEducation['stage-preview'];
+  if (normalizedName.includes('approval')) return pipelineEducation['stage-approval'];
+  
+  // Fallback to exact key match
+  const key = `stage-${normalizedName.replace(/\\s+/g, '-')}`;
   return pipelineEducation[key] || null;
 }
 
