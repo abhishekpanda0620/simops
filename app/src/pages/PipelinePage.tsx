@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Header } from '@/components/layout';
 import { Card, Badge } from '@/components/ui';
 import { dataService } from '@/services/dataService';
+import { usePipelineAnimation } from '@/hooks/usePipelineAnimation';
 import { 
   pipelineEducation, 
   getEducationForStage, 
@@ -24,7 +25,8 @@ import {
   GitCommit,
   Link2,
   Info,
-  GitMerge
+  GitMerge,
+  RotateCcw
 } from 'lucide-react';
 import type { Pipeline, Stage, Job, Step, LogEntry, StageStatus } from '@/types/pipeline';
 
@@ -147,7 +149,7 @@ function PipelineSelector({
   onSelect: (slug: string) => void;
 }) {
   return (
-    <div className="flex items-center gap-3 mb-6">
+    <div className="flex items-center gap-3">
       <span className="text-sm font-medium text-surface-300">Pipeline Run:</span>
       <select
         value={selected}
@@ -228,6 +230,7 @@ function StageCard({
   onLearnStatus: () => void;
 }) {
   const config = statusConfig[stage.status] || statusConfig.pending;
+  const stageIsPending = stage.status === 'pending';
   
   return (
     <Card className="overflow-hidden">
@@ -256,11 +259,15 @@ function StageCard({
         <StatusBadge status={stage.status} onClick={onLearnStatus} />
       </div>
       
-      {/* Jobs */}
+      {/* Jobs - pass simulated pending status */}
       {isExpanded && (
         <div className="border-t border-surface-700 bg-surface-900/50">
           {stage.jobs.map((job) => (
-            <JobRow key={job.id} job={job} />
+            <JobRow 
+              key={job.id} 
+              job={job} 
+              simulatedStatus={stageIsPending ? 'pending' : undefined}
+            />
           ))}
         </div>
       )}
@@ -269,9 +276,10 @@ function StageCard({
 }
 
 // Job Row Component
-function JobRow({ job }: { job: Job }) {
+function JobRow({ job, simulatedStatus }: { job: Job; simulatedStatus?: StageStatus }) {
   const [expanded, setExpanded] = useState(false);
-  const config = statusConfig[job.status] || statusConfig.pending;
+  const displayStatus = simulatedStatus || job.status;
+  const config = statusConfig[displayStatus] || statusConfig.pending;
   
   return (
     <div className="border-b border-surface-700/50 last:border-b-0">
@@ -296,11 +304,11 @@ function JobRow({ job }: { job: Job }) {
         <span className="text-sm text-surface-400">{formatDuration(job.duration)}</span>
       </div>
       
-      {/* Steps */}
+      {/* Steps - pass simulated status */}
       {expanded && job.steps.length > 0 && (
         <div className="pl-12 pr-4 pb-3 space-y-1">
           {job.steps.map((step) => (
-            <StepRow key={step.id} step={step} />
+            <StepRow key={step.id} step={step} simulatedStatus={simulatedStatus} />
           ))}
         </div>
       )}
@@ -309,9 +317,10 @@ function JobRow({ job }: { job: Job }) {
 }
 
 // Step Row Component
-function StepRow({ step }: { step: Step }) {
+function StepRow({ step, simulatedStatus }: { step: Step; simulatedStatus?: StageStatus }) {
   const [showLogs, setShowLogs] = useState(false);
-  const config = statusConfig[step.status] || statusConfig.pending;
+  const displayStatus = simulatedStatus || step.status;
+  const config = statusConfig[displayStatus] || statusConfig.pending;
   const hasLogs = step.logs && step.logs.length > 0;
   
   return (
@@ -351,33 +360,87 @@ function StepRow({ step }: { step: Step }) {
   );
 }
 
-// Stages Timeline View
-function StagesTimeline({ stages, onSelectStage }: { stages: Stage[]; onSelectStage: (stage: Stage) => void }) {
+// Stages Timeline View with Animation
+function StagesTimeline({ 
+  stages, 
+  onSelectStage,
+  isStageActive,
+  isStageComplete,
+  isStagePending,
+  isSimulating = false
+}: { 
+  stages: Stage[]; 
+  onSelectStage: (stage: Stage) => void;
+  isStageActive?: (index: number) => boolean;
+  isStageComplete?: (index: number) => boolean;
+  isStagePending?: (index: number) => boolean;
+  isSimulating?: boolean;
+}) {
   return (
     <div className="flex items-center justify-center gap-2 mb-6 overflow-x-auto py-4">
       {stages.map((stage, index) => {
-        const config = statusConfig[stage.status] || statusConfig.pending;
+        const active = isStageActive?.(index) ?? false;
+        const complete = isStageComplete?.(index) ?? false;
+        const pending = isStagePending?.(index) ?? false;
+        
+        // During simulation: pending stages show as pending, active as running, complete as succeeded
+        // If not simulating: show real status
+        let displayStatus: StageStatus = stage.status;
+        if (isSimulating) {
+          if (pending) {
+            displayStatus = 'pending';
+          } else if (active) {
+            displayStatus = 'running';
+          } else if (complete) {
+            // Show real status once complete (could be succeeded or failed)
+            displayStatus = stage.status;
+          }
+        }
+        
+        const config = statusConfig[displayStatus] || statusConfig.pending;
+        
         return (
           <div key={stage.id} className="flex items-center">
             {/* Stage Node */}
             <div className="flex flex-col items-center">
               <div 
-                className={`w-10 h-10 rounded-full ${config.bgColor} flex items-center justify-center border-2 border-current ${config.color} cursor-pointer hover:ring-2 hover:ring-primary-500/50 transition-all`}
+                className={`
+                  w-10 h-10 rounded-full flex items-center justify-center border-2 
+                  cursor-pointer hover:ring-2 hover:ring-primary-500/50 transition-all
+                  ${config.bgColor} ${config.color}
+                  ${active ? 'animate-pulse ring-2 ring-primary-400 ring-offset-2 ring-offset-surface-900' : ''}
+                  ${complete && !active ? 'scale-100' : ''}
+                `}
                 onClick={() => onSelectStage(stage)}
                 title={`Click to learn about ${stage.name}`}
               >
-                <config.Icon className={`w-5 h-5 ${config.color}`} />
+                <config.Icon className={`w-5 h-5 ${config.color} ${active ? 'animate-bounce' : ''}`} />
               </div>
-              <span className="text-xs text-surface-400 mt-2 whitespace-nowrap">{stage.name}</span>
+              <span className={`text-xs mt-2 whitespace-nowrap transition-colors ${active ? 'text-primary-400 font-medium' : 'text-surface-400'}`}>
+                {stage.name}
+              </span>
             </div>
             
-            {/* Connector */}
+            {/* Animated Connector */}
             {index < stages.length - 1 && (
-              <div className={`w-16 h-0.5 mx-2 ${
-                stage.status === 'succeeded' ? 'bg-green-500' : 
-                stage.status === 'failed' ? 'bg-red-500' : 
-                'bg-surface-600'
-              }`} />
+              <div className="relative w-16 h-1 mx-2">
+                {/* Background track */}
+                <div className="absolute inset-0 bg-surface-700 rounded-full" />
+                {/* Animated fill */}
+                <div 
+                  className={`absolute inset-y-0 left-0 rounded-full transition-all duration-500 ${
+                    complete ? (stage.status === 'failed' ? 'bg-red-500 w-full' : 'bg-green-500 w-full') : 
+                    active ? 'bg-primary-500 w-1/2 animate-pulse' : 
+                    'bg-surface-700 w-0'
+                  }`}
+                />
+                {/* Flow indicator */}
+                {active && (
+                  <div className="absolute inset-y-0 left-0 w-full overflow-hidden">
+                    <div className="h-full w-4 bg-gradient-to-r from-transparent via-primary-400 to-transparent animate-flow" />
+                  </div>
+                )}
+              </div>
             )}
           </div>
         );
@@ -395,6 +458,16 @@ export function PipelinePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedEducation, setSelectedEducation] = useState<PipelineEducation | null>(null);
+
+  // Pipeline animation - starts with CTA button, not auto-start
+  const animation = usePipelineAnimation({
+    stages: pipeline?.stages || [],
+    autoStart: false,  // Changed: user must click "Run Pipeline" button
+    speed: 1500,
+  });
+
+  // Determine if we're in simulation mode (animation running or completed)
+  const isSimulating = animation.isAnimating || animation.activeStageIndex >= 0;
 
   // Load pipeline list
   useEffect(() => {
@@ -503,33 +576,82 @@ export function PipelinePage() {
         {/* Main Content */}
         <div className="flex-1 min-w-0 overflow-auto p-6">
           <div className="max-w-4xl mx-auto">
-            {/* Pipeline Selector */}
-            <PipelineSelector 
-              pipelines={pipelines} 
-              selected={selectedSlug} 
-              onSelect={setSelectedSlug} 
-            />
+            {/* Pipeline Selector + Controls Row */}
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <PipelineSelector 
+                pipelines={pipelines} 
+                selected={selectedSlug} 
+                onSelect={setSelectedSlug} 
+              />
+              
+              {/* Simulation Controls - next to selector */}
+              {pipeline && (
+                <div className="flex items-center gap-2">
+                  {!animation.isAnimating && animation.activeStageIndex < 0 && (
+                    <button
+                      onClick={animation.start}
+                      className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-colors font-medium text-sm"
+                    >
+                      <Play className="w-4 h-4" />
+                      Run Pipeline
+                    </button>
+                  )}
+                  {animation.isAnimating && (
+                    <button
+                      onClick={animation.isPaused ? animation.resume : animation.pause}
+                      className="flex items-center gap-2 px-3 py-2 bg-surface-700 hover:bg-surface-600 text-surface-200 rounded-lg transition-colors text-sm"
+                    >
+                      {animation.isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                      {animation.isPaused ? 'Resume' : 'Pause'}
+                    </button>
+                  )}
+                  {animation.activeStageIndex >= 0 && (
+                    <button
+                      onClick={animation.reset}
+                      className="flex items-center gap-2 px-3 py-2 bg-surface-700 hover:bg-surface-600 text-surface-200 rounded-lg transition-colors text-sm"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      Reset
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
             
             {pipeline && (
               <>
                 {/* Pipeline Header */}
                 <PipelineHeader pipeline={pipeline} onLearnMore={handleLearnPipeline} />
                 
-                {/* Stages Timeline */}
-                <StagesTimeline stages={pipeline.stages} onSelectStage={handleLearnStage} />
+                {/* Stages Timeline with Animation */}
+                <StagesTimeline 
+                  stages={pipeline.stages} 
+                  onSelectStage={handleLearnStage}
+                  isStageActive={animation.isStageActive}
+                  isStageComplete={animation.isStageComplete}
+                  isStagePending={animation.isStagePending}
+                  isSimulating={isSimulating}
+                />
                 
                 {/* Stages Detail */}
                 <div className="space-y-4">
-                  {pipeline.stages.map((stage) => (
-                    <StageCard 
-                      key={stage.id} 
-                      stage={stage} 
-                      isExpanded={expandedStages.has(stage.id)}
-                      onToggle={() => toggleStage(stage.id)}
-                      onLearnStage={() => handleLearnStage(stage)}
-                      onLearnStatus={() => handleLearnStatus(stage.status)}
-                    />
-                  ))}
+                  {pipeline.stages.map((stage, index) => {
+                    // During simulation, show pending status for unvisited stages
+                    const simulatedStatus: StageStatus = isSimulating && animation.isStagePending(index) 
+                      ? 'pending' 
+                      : stage.status;
+                    
+                    return (
+                      <StageCard 
+                        key={stage.id} 
+                        stage={{ ...stage, status: simulatedStatus }} 
+                        isExpanded={expandedStages.has(stage.id)}
+                        onToggle={() => toggleStage(stage.id)}
+                        onLearnStage={() => handleLearnStage(stage)}
+                        onLearnStatus={() => handleLearnStatus(simulatedStatus)}
+                      />
+                    );
+                  })}
                 </div>
               </>
             )}

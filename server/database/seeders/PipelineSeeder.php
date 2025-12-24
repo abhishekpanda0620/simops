@@ -22,6 +22,24 @@ class PipelineSeeder extends Seeder
                 'status' => 'failed',
                 'data' => $this->getFailedPipeline(),
             ],
+            [
+                'slug' => 'security-scan',
+                'name' => 'Security Scan Pipeline',
+                'status' => 'succeeded',
+                'data' => $this->getSecurityScanPipeline(),
+            ],
+            [
+                'slug' => 'parallel-jobs',
+                'name' => 'Parallel Test Suite',
+                'status' => 'succeeded',
+                'data' => $this->getParallelJobsPipeline(),
+            ],
+            [
+                'slug' => 'multi-env',
+                'name' => 'Multi-Environment Deploy',
+                'status' => 'succeeded',
+                'data' => $this->getMultiEnvPipeline(),
+            ],
         ];
 
         foreach ($pipelines as $pipeline) {
@@ -172,6 +190,257 @@ class PipelineSeeder extends Seeder
                         'name' => 'Deploy to Production',
                         'status' => 'skipped',
                         'steps' => [],
+                    ]],
+                ],
+            ],
+        ];
+    }
+
+    private function getSecurityScanPipeline(): array
+    {
+        return [
+            'id' => 'pipeline-security',
+            'name' => 'Security Scan Pipeline',
+            'status' => 'succeeded',
+            'trigger' => [
+                'type' => 'schedule',
+                'ref' => 'refs/heads/main',
+                'actor' => 'cron',
+                'commit' => [
+                    'sha' => 'sec123abc',
+                    'message' => 'Scheduled security scan',
+                    'author' => 'ci-bot@example.com',
+                ],
+            ],
+            'startTime' => '2024-12-12T02:00:00Z',
+            'endTime' => '2024-12-12T02:25:00Z',
+            'duration' => 1500,
+            'stages' => [
+                [
+                    'id' => 'stage-sast',
+                    'name' => 'SAST',
+                    'status' => 'succeeded',
+                    'duration' => 300,
+                    'jobs' => [[
+                        'id' => 'job-sast',
+                        'name' => 'Static Analysis',
+                        'status' => 'succeeded',
+                        'runner' => 'security-runner',
+                        'duration' => 300,
+                        'steps' => [
+                            ['id' => 'step-semgrep', 'name' => 'Semgrep Scan', 'status' => 'succeeded', 'duration' => 180, 'logs' => [
+                                ['timestamp' => '02:01:00', 'level' => 'info', 'message' => 'Scanning 156 files...'],
+                                ['timestamp' => '02:04:00', 'level' => 'info', 'message' => 'Found 0 critical, 2 warnings'],
+                            ]],
+                            ['id' => 'step-codeql', 'name' => 'CodeQL Analysis', 'status' => 'succeeded', 'duration' => 120, 'logs' => []],
+                        ],
+                    ]],
+                ],
+                [
+                    'id' => 'stage-dast',
+                    'name' => 'DAST',
+                    'status' => 'succeeded',
+                    'dependsOn' => ['stage-sast'],
+                    'duration' => 600,
+                    'jobs' => [[
+                        'id' => 'job-zap',
+                        'name' => 'OWASP ZAP Scan',
+                        'status' => 'succeeded',
+                        'runner' => 'security-runner',
+                        'duration' => 600,
+                        'steps' => [
+                            ['id' => 'step-spider', 'name' => 'Spider Scan', 'status' => 'succeeded', 'duration' => 180, 'logs' => []],
+                            ['id' => 'step-active', 'name' => 'Active Scan', 'status' => 'succeeded', 'duration' => 420, 'logs' => [
+                                ['timestamp' => '02:12:00', 'level' => 'info', 'message' => 'Testing 45 endpoints...'],
+                                ['timestamp' => '02:18:00', 'level' => 'info', 'message' => 'No vulnerabilities found'],
+                            ]],
+                        ],
+                    ]],
+                ],
+                [
+                    'id' => 'stage-deps',
+                    'name' => 'Dependencies',
+                    'status' => 'succeeded',
+                    'dependsOn' => ['stage-sast'],
+                    'duration' => 180,
+                    'jobs' => [[
+                        'id' => 'job-deps',
+                        'name' => 'Dependency Check',
+                        'status' => 'succeeded',
+                        'duration' => 180,
+                        'steps' => [
+                            ['id' => 'step-npm-audit', 'name' => 'npm audit', 'status' => 'succeeded', 'duration' => 60, 'logs' => []],
+                            ['id' => 'step-snyk', 'name' => 'Snyk Scan', 'status' => 'succeeded', 'duration' => 120, 'logs' => [
+                                ['timestamp' => '02:22:00', 'level' => 'info', 'message' => 'Found 0 high, 3 medium vulnerabilities'],
+                            ]],
+                        ],
+                    ]],
+                ],
+                [
+                    'id' => 'stage-report',
+                    'name' => 'Report',
+                    'status' => 'succeeded',
+                    'dependsOn' => ['stage-dast', 'stage-deps'],
+                    'duration' => 60,
+                    'jobs' => [[
+                        'id' => 'job-report',
+                        'name' => 'Generate Report',
+                        'status' => 'succeeded',
+                        'duration' => 60,
+                        'steps' => [],
+                    ]],
+                ],
+            ],
+        ];
+    }
+
+    private function getParallelJobsPipeline(): array
+    {
+        return [
+            'id' => 'pipeline-parallel',
+            'name' => 'Parallel Test Suite',
+            'status' => 'succeeded',
+            'trigger' => [
+                'type' => 'pull_request',
+                'ref' => 'refs/pull/42/merge',
+                'actor' => 'developer',
+                'commit' => [
+                    'sha' => 'pr42head',
+                    'message' => 'Add new feature',
+                    'author' => 'developer@example.com',
+                ],
+            ],
+            'startTime' => '2024-12-12T14:00:00Z',
+            'endTime' => '2024-12-12T14:08:00Z',
+            'duration' => 480,
+            'stages' => [
+                [
+                    'id' => 'stage-build-parallel',
+                    'name' => 'Build',
+                    'status' => 'succeeded',
+                    'duration' => 120,
+                    'jobs' => [[
+                        'id' => 'job-build-parallel',
+                        'name' => 'Build Application',
+                        'status' => 'succeeded',
+                        'duration' => 120,
+                        'steps' => [],
+                    ]],
+                ],
+                [
+                    'id' => 'stage-test-parallel',
+                    'name' => 'Test (Parallel)',
+                    'status' => 'succeeded',
+                    'dependsOn' => ['stage-build-parallel'],
+                    'duration' => 300,
+                    'jobs' => [
+                        ['id' => 'job-unit-1', 'name' => 'Unit Tests (Shard 1/4)', 'status' => 'succeeded', 'runner' => 'ubuntu-latest', 'duration' => 280, 'steps' => []],
+                        ['id' => 'job-unit-2', 'name' => 'Unit Tests (Shard 2/4)', 'status' => 'succeeded', 'runner' => 'ubuntu-latest', 'duration' => 300, 'steps' => []],
+                        ['id' => 'job-unit-3', 'name' => 'Unit Tests (Shard 3/4)', 'status' => 'succeeded', 'runner' => 'ubuntu-latest', 'duration' => 290, 'steps' => []],
+                        ['id' => 'job-unit-4', 'name' => 'Unit Tests (Shard 4/4)', 'status' => 'succeeded', 'runner' => 'ubuntu-latest', 'duration' => 295, 'steps' => []],
+                    ],
+                ],
+                [
+                    'id' => 'stage-e2e',
+                    'name' => 'E2E Tests',
+                    'status' => 'succeeded',
+                    'dependsOn' => ['stage-test-parallel'],
+                    'duration' => 60,
+                    'jobs' => [[
+                        'id' => 'job-e2e',
+                        'name' => 'Playwright Tests',
+                        'status' => 'succeeded',
+                        'runner' => 'ubuntu-latest',
+                        'duration' => 60,
+                        'steps' => [],
+                    ]],
+                ],
+            ],
+        ];
+    }
+
+    private function getMultiEnvPipeline(): array
+    {
+        return [
+            'id' => 'pipeline-multi-env',
+            'name' => 'Multi-Environment Deploy',
+            'status' => 'succeeded',
+            'trigger' => [
+                'type' => 'tag',
+                'ref' => 'refs/tags/v1.2.0',
+                'actor' => 'release-bot',
+                'commit' => [
+                    'sha' => 'v120rel',
+                    'message' => 'Release v1.2.0',
+                    'author' => 'release@example.com',
+                ],
+            ],
+            'startTime' => '2024-12-12T16:00:00Z',
+            'endTime' => '2024-12-12T16:30:00Z',
+            'duration' => 1800,
+            'stages' => [
+                [
+                    'id' => 'stage-build-release',
+                    'name' => 'Build',
+                    'status' => 'succeeded',
+                    'duration' => 240,
+                    'jobs' => [[
+                        'id' => 'job-build-release',
+                        'name' => 'Build Release',
+                        'status' => 'succeeded',
+                        'duration' => 240,
+                        'steps' => [],
+                    ]],
+                ],
+                [
+                    'id' => 'stage-staging',
+                    'name' => 'Deploy Staging',
+                    'status' => 'succeeded',
+                    'dependsOn' => ['stage-build-release'],
+                    'duration' => 360,
+                    'jobs' => [[
+                        'id' => 'job-deploy-staging',
+                        'name' => 'Deploy to Staging',
+                        'status' => 'succeeded',
+                        'duration' => 180,
+                        'steps' => [
+                            ['id' => 'step-staging-deploy', 'name' => 'Apply Manifests', 'status' => 'succeeded', 'duration' => 60, 'logs' => []],
+                            ['id' => 'step-staging-wait', 'name' => 'Wait for Rollout', 'status' => 'succeeded', 'duration' => 120, 'logs' => []],
+                        ],
+                    ],
+                    [
+                        'id' => 'job-smoke-staging',
+                        'name' => 'Smoke Tests',
+                        'status' => 'succeeded',
+                        'duration' => 180,
+                        'steps' => [
+                            ['id' => 'step-health', 'name' => 'Health Check', 'status' => 'succeeded', 'duration' => 30, 'logs' => [
+                                ['timestamp' => '16:10:00', 'level' => 'info', 'message' => 'All endpoints healthy'],
+                            ]],
+                            ['id' => 'step-smoke', 'name' => 'Run Smoke Tests', 'status' => 'succeeded', 'duration' => 150, 'logs' => []],
+                        ],
+                    ]],
+                ],
+                [
+                    'id' => 'stage-production',
+                    'name' => 'Deploy Production',
+                    'status' => 'succeeded',
+                    'dependsOn' => ['stage-staging'],
+                    'duration' => 600,
+                    'jobs' => [[
+                        'id' => 'job-deploy-prod',
+                        'name' => 'Deploy to Production',
+                        'status' => 'succeeded',
+                        'duration' => 600,
+                        'steps' => [
+                            ['id' => 'step-canary', 'name' => 'Canary Deploy (10%)', 'status' => 'succeeded', 'duration' => 120, 'logs' => [
+                                ['timestamp' => '16:20:00', 'level' => 'info', 'message' => 'Canary pods healthy, error rate 0.1%'],
+                            ]],
+                            ['id' => 'step-rollout-50', 'name' => 'Rollout 50%', 'status' => 'succeeded', 'duration' => 180, 'logs' => []],
+                            ['id' => 'step-rollout-100', 'name' => 'Rollout 100%', 'status' => 'succeeded', 'duration' => 300, 'logs' => [
+                                ['timestamp' => '16:30:00', 'level' => 'info', 'message' => 'Production deployment complete'],
+                            ]],
+                        ],
                     ]],
                 ],
             ],

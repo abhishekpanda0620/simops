@@ -106,7 +106,7 @@ export function DashboardPage() {
       description: "Visual simulation of build, test, and deploy workflows. Learn how code goes from commit to production.",
       icon: GitBranch,
       to: "/pipeline",
-      status: "coming-soon",
+      status: "available",
       difficulty: "Beginner",
       duration: "1.5 Hours",
       tags: ["cicd", "automation", "devops"]
