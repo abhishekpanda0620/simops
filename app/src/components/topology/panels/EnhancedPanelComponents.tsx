@@ -6,16 +6,20 @@ import { cn } from '@/utils';
 interface PanelHeaderProps {
   title: string;
   icon: typeof Server;
-  status: 'healthy' | 'degraded' | 'unhealthy';
+  status?: 'healthy' | 'degraded' | 'unhealthy';  // Now optional
   onClose: () => void;
 }
 
 export function PanelHeader({ title, icon: Icon, status, onClose }: PanelHeaderProps) {
+  // If no status provided, use neutral/info styling
+  const hasStatus = status !== undefined;
+  
   return (
     <div className="p-6 border-b border-surface-700/50 flex items-center justify-between sticky top-0 bg-surface-900/95 backdrop-blur-sm z-10">
       <div className="flex items-center gap-3">
         <div className={cn(
           "p-2 rounded-lg",
+          !hasStatus ? "bg-primary-500/10 text-primary-400" :
           status === 'healthy' ? "bg-success-500/10 text-success-400" :
           status === 'degraded' ? "bg-warning-500/10 text-warning-400" :
           "bg-error-500/10 text-error-400"
@@ -24,22 +28,24 @@ export function PanelHeader({ title, icon: Icon, status, onClose }: PanelHeaderP
         </div>
         <div>
           <h2 className="text-lg font-semibold text-surface-50 leading-tight">{title}</h2>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <div className={cn(
-              "w-1.5 h-1.5 rounded-full",
-              status === 'healthy' ? "bg-success-500" :
-              status === 'degraded' ? "bg-warning-500" :
-              "bg-error-500"
-            )} />
-            <span className={cn(
-              "text-xs font-medium uppercase tracking-wider",
-              status === 'healthy' ? "text-success-400" :
-              status === 'degraded' ? "text-warning-400" :
-              "text-error-400"
-            )}>
-              {status}
-            </span>
-          </div>
+          {hasStatus && (
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <div className={cn(
+                "w-1.5 h-1.5 rounded-full",
+                status === 'healthy' ? "bg-success-500" :
+                status === 'degraded' ? "bg-warning-500" :
+                "bg-error-500"
+              )} />
+              <span className={cn(
+                "text-xs font-medium uppercase tracking-wider",
+                status === 'healthy' ? "text-success-400" :
+                status === 'degraded' ? "text-warning-400" :
+                "text-error-400"
+              )}>
+                {status}
+              </span>
+            </div>
+          )}
         </div>
       </div>
       <button

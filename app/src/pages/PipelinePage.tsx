@@ -25,8 +25,7 @@ import {
   GitCommit,
   Link2,
   Info,
-  GitMerge,
-  RotateCcw
+  GitMerge
 } from 'lucide-react';
 import type { Pipeline, Stage, Job, Step, LogEntry, StageStatus } from '@/types/pipeline';
 
@@ -95,7 +94,6 @@ function PipelineInfoPanel({
       <PanelHeader 
         title={education.title} 
         icon={GitMerge} 
-        status="healthy" 
         onClose={onClose} 
       />
       
@@ -587,15 +585,20 @@ export function PipelinePage() {
               {/* Simulation Controls - next to selector */}
               {pipeline && (
                 <div className="flex items-center gap-2">
-                  {!animation.isAnimating && animation.activeStageIndex < 0 && (
+                  {/* Run / Run Again button - shown when not animating */}
+                  {!animation.isAnimating && (
                     <button
-                      onClick={animation.start}
+                      onClick={() => {
+                        if (animation.activeStageIndex >= 0) animation.reset();
+                        setTimeout(animation.start, 50);
+                      }}
                       className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-colors font-medium text-sm"
                     >
                       <Play className="w-4 h-4" />
-                      Run Pipeline
+                      {animation.activeStageIndex >= 0 ? 'Run Again' : 'Run Pipeline'}
                     </button>
                   )}
+                  {/* Pause/Resume button - shown while animating */}
                   {animation.isAnimating && (
                     <button
                       onClick={animation.isPaused ? animation.resume : animation.pause}
@@ -603,15 +606,6 @@ export function PipelinePage() {
                     >
                       {animation.isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
                       {animation.isPaused ? 'Resume' : 'Pause'}
-                    </button>
-                  )}
-                  {animation.activeStageIndex >= 0 && (
-                    <button
-                      onClick={animation.reset}
-                      className="flex items-center gap-2 px-3 py-2 bg-surface-700 hover:bg-surface-600 text-surface-200 rounded-lg transition-colors text-sm"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                      Reset
                     </button>
                   )}
                 </div>
