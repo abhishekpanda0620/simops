@@ -80,7 +80,7 @@ function PipelineInfoPanel({
 }) {
   if (!education) {
     return (
-      <div className="w-80 bg-surface-900 border-l border-surface-700 p-4 flex flex-col items-center justify-center text-center">
+      <div className="w-80 shrink-0 bg-surface-900 border-l border-surface-700 p-4 flex flex-col items-center justify-center text-center">
         <Info className="w-12 h-12 text-surface-600 mb-3" />
         <p className="text-surface-400 text-sm">Click on a stage, job, or status badge to learn more about CI/CD concepts</p>
       </div>
@@ -88,7 +88,7 @@ function PipelineInfoPanel({
   }
 
   return (
-    <div className="w-[380px] bg-surface-900 border-l border-surface-700 flex flex-col overflow-hidden">
+    <div className="w-80 shrink-0 bg-surface-900 border-l border-surface-700 flex flex-col overflow-hidden">
       {/* Reuse PanelHeader from EnhancedPanelComponents */}
       <PanelHeader 
         title={education.title} 
@@ -501,7 +501,7 @@ export function PipelinePage() {
       
       <div className="flex-1 flex overflow-hidden">
         {/* Main Content */}
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 min-w-0 overflow-auto p-6">
           <div className="max-w-4xl mx-auto">
             {/* Pipeline Selector */}
             <PipelineSelector 
