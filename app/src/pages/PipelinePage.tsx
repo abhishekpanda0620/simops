@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Header } from '@/components/layout';
-import { Card, Badge } from '@/components/ui';
+import { Card, Badge, Combobox } from '@/components/ui';
 import { dataService } from '@/services/dataService';
 import { usePipelineAnimation } from '@/hooks/usePipelineAnimation';
 import { 
@@ -24,7 +24,6 @@ import {
   User,
   GitCommit,
   Link2,
-  Info,
   GitMerge
 } from 'lucide-react';
 import type { Pipeline, Stage, Job, Step, LogEntry, StageStatus } from '@/types/pipeline';
@@ -79,13 +78,9 @@ function PipelineInfoPanel({
   education: PipelineEducation | null; 
   onClose: () => void;
 }) {
+  // Don't render sidebar at all when no education selected (closed by default)
   if (!education) {
-    return (
-      <div className="w-80 shrink-0 bg-surface-900 border-l border-surface-700 p-4 flex flex-col items-center justify-center text-center">
-        <Info className="w-12 h-12 text-surface-600 mb-3" />
-        <p className="text-surface-400 text-sm">Click on a stage, job, or status badge to learn more about CI/CD concepts</p>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -146,20 +141,23 @@ function PipelineSelector({
   selected: string; 
   onSelect: (slug: string) => void;
 }) {
+  // Convert to Combobox options format
+  const options = pipelines.map(p => ({
+    value: p.slug,
+    label: `${p.name} (${p.status})`
+  }));
+
   return (
     <div className="flex items-center gap-3">
-      <span className="text-sm font-medium text-surface-300">Pipeline Run:</span>
-      <select
+      <span className="text-sm font-medium text-surface-300 whitespace-nowrap">Pipeline:</span>
+      <Combobox
+        options={options}
         value={selected}
-        onChange={(e) => onSelect(e.target.value)}
-        className="appearance-none bg-surface-800 border border-surface-600 text-surface-200 text-sm rounded-md pl-3 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500/50 cursor-pointer"
-      >
-        {pipelines.map((p) => (
-          <option key={p.slug} value={p.slug}>
-            {p.name} ({p.status})
-          </option>
-        ))}
-      </select>
+        onChange={onSelect}
+        placeholder="Select pipeline..."
+        searchPlaceholder="Search pipelines..."
+        className="w-64"
+      />
     </div>
   );
 }
@@ -463,6 +461,11 @@ export function PipelinePage() {
     autoStart: false,  // Changed: user must click "Run Pipeline" button
     speed: 1500,
   });
+
+  // Reset animation when pipeline changes
+  useEffect(() => {
+    animation.reset();
+  }, [selectedSlug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Determine if we're in simulation mode (animation running or completed)
   const isSimulating = animation.isAnimating || animation.activeStageIndex >= 0;
