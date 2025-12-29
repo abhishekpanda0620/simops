@@ -96,6 +96,51 @@ export interface Pipeline {
   data?: Record<string, unknown>; // Full Pipeline data
 }
 
+// Mock Data for offline mode
+const mockLabs: Lab[] = [
+  {
+    id: 1,
+    title: 'Kubernetes 101: Pods & Nodes',
+    slug: 'k8s-101',
+    description: 'Learn the fundamental building blocks of Kubernetes: Nodes, Pods, and the Control Plane.',
+    difficulty: 'beginner',
+    estimated_time: 15,
+    is_active: true,
+    steps: [
+      { id: 1, title: 'Introduction', description: 'What is a Pod?' },
+      { id: 2, title: 'Creating a Pod', description: 'Define your first Pod manifest.' },
+      { id: 3, title: 'Scheduling', description: 'See how the Scheduler assigns Pods to Nodes.' }
+    ]
+  },
+  {
+    id: 2,
+    title: 'Services & Networking',
+    slug: 'services-networking',
+    description: 'Understand how traffic flows into your cluster via Services and Ingress.',
+    difficulty: 'intermediate',
+    estimated_time: 25,
+    is_active: true,
+    steps: [
+      { id: 4, title: 'ClusterIP', description: 'Internal communication.' },
+      { id: 5, title: 'NodePort', description: 'Exposing services externally.' },
+      { id: 6, title: 'Ingress', description: 'L7 Load Balancing.' }
+    ]
+  },
+  {
+    id: 3,
+    title: 'Deployments & Rolling Updates',
+    slug: 'deployments',
+    description: 'Master the Deployment controller and zero-downtime updates.',
+    difficulty: 'intermediate',
+    estimated_time: 20,
+    is_active: true,
+    steps: [
+      { id: 7, title: 'ReplicaSets', description: 'Scaling pods.' },
+      { id: 8, title: 'Rolling Update', description: 'Updating versions without downtime.' }
+    ]
+  }
+];
+
 // API Methods
 export const api = {
   // Health check
@@ -134,8 +179,24 @@ export const api = {
 
   // Labs
   labs: {
-    list: () => apiFetch<{ labs: Lab[] }>('/labs'),
-    get: (slug: string) => apiFetch<{ lab: Lab; progress: UserProgress | null }>(`/labs/${slug}`),
+    list: async () => {
+      try {
+        return await apiFetch<{ labs: Lab[] }>('/labs');
+      } catch (error) {
+        console.warn('Backend unavailable, using mock data:', error);
+        return { labs: mockLabs };
+      }
+    },
+    get: async (slug: string) => {
+      try {
+        return await apiFetch<{ lab: Lab; progress: UserProgress | null }>(`/labs/${slug}`);
+      } catch (error) {
+        console.warn('Backend unavailable, using mock data:', error);
+        const lab = mockLabs.find(l => l.slug === slug);
+        if (!lab) throw new Error('Lab not found');
+        return { lab, progress: null };
+      }
+    },
     getProgress: (slug: string) => apiFetch<{ progress: UserProgress }>(`/labs/${slug}/progress`),
     updateProgress: (slug: string, completedSteps: number[], status: string) => 
       apiFetch<{ progress: UserProgress }>(`/labs/${slug}/progress`, {

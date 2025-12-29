@@ -7,6 +7,7 @@ import {
   TopologyPage,
   PipelinePage,
   LabsPage,
+  LabWorkspacePage,
   SettingsPage,
   LoginPage,
 } from '@/pages';
@@ -35,6 +36,7 @@ function AuthRoutes() {
         <Route path="/topology" element={<TopologyPage />} />
         <Route path="/pipeline" element={<PipelinePage />} />
         <Route path="/labs" element={<LabsPage />} />
+        <Route path="/labs/:slug" element={<LabWorkspacePage />} />
         <Route path="/settings" element={<SettingsPage />} />
         {/* Redirect any unknown routes to dashboard */}
         <Route path="*" element={<Navigate to="/" replace />} />
