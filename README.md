@@ -22,6 +22,12 @@ Simulate real-world traffic patterns through your architecture.
 - **Latency Simulation**: Visual delays at each hop to represent processing time.
 - **Response Handling**: See the return path of the response data back to the user.
 
+### 🔄 CI/CD Pipeline Simulation
+Visualize deployment pipelines and common failure scenarios.
+- **Scenarios**: Simulate `Successful Deploy`, `Test Failure`, `Flaky Tests`, `Hotfix`, `Rollback`, and `Manual Approval`.
+- **Stage Visualization**: Track the progress of `Build`, `Test`, `Security`, and `Deploy` stages.
+- **Log Streaming**: View simulated console output for every step.
+
 ### 🏗️ Architecture Topology
 - **Interactive Graph**: Drag, zoom, and inspect Nodes, Pods, Services, and Ingresses.
 - **Resource Inspection**: Click on any component to view detailed specs, status, and resource usage.

@@ -2,8 +2,9 @@ import { GitBranch, Clock, User, GitCommit, CheckCircle } from 'lucide-react';
 import { Card, Combobox } from '@/components/ui';
 import type { Pipeline } from '@/types/pipeline';
 import { statusConfig, formatDuration } from './pipelineConfig';
-import { StatusBadge } from './pipelineUtils';
-import { PIPELINE_SCENARIOS, type PipelineScenario } from './PipelineUtils';
+import { StatusBadge } from './ScenarioIndicators';
+import { PIPELINE_SCENARIOS } from './PipelineUtils';
+import type { PipelineScenario } from '@/types/pipeline';
 
 // Pipeline Scenario Selector - Main scenario selection component
 interface PipelineScenarioSelectorProps {

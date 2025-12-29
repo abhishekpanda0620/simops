@@ -3,7 +3,7 @@ import { ChevronRight, ChevronDown, Terminal } from 'lucide-react';
 import { Card } from '@/components/ui';
 import type { Stage, Job, Step, LogEntry, StageStatus } from '@/types/pipeline';
 import { statusConfig, formatDuration } from './pipelineConfig';
-import { StatusBadge } from './pipelineUtils';
+import { StatusBadge } from './ScenarioIndicators';
 
 // Stage Card Component
 interface StageCardProps {

@@ -1,20 +1,5 @@
 // Pipeline scenario utilities - following ControlPlaneUtils.ts pattern
-
-export type PipelineScenario = 
-  | 'successful-deploy'
-  | 'test-failure'
-  | 'flaky-tests'
-  | 'hotfix'
-  | 'pull-request'
-  | 'rollback'
-  | 'parallel-jobs'
-  | 'manual-approval';
-
-export interface PipelineScenarioOption {
-  value: PipelineScenario;
-  label: string;
-  description: string;
-}
+import type { PipelineScenario, PipelineScenarioOption } from '@/types/pipeline';
 
 export const PIPELINE_SCENARIOS: PipelineScenarioOption[] = [
   { 

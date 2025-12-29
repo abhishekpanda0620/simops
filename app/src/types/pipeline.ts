@@ -1,6 +1,23 @@
 // CI/CD Pipeline Types
 
+
 export type StageStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'skipped' | 'cancelled';
+
+export type PipelineScenario = 
+  | 'successful-deploy'
+  | 'test-failure'
+  | 'flaky-tests'
+  | 'hotfix'
+  | 'pull-request'
+  | 'rollback'
+  | 'parallel-jobs'
+  | 'manual-approval';
+
+export interface PipelineScenarioOption {
+  value: PipelineScenario;
+  label: string;
+  description: string;
+}
 
 export interface Pipeline {
   id: string;

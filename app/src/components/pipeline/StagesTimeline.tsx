@@ -1,7 +1,7 @@
 import type { Stage, StageStatus } from '@/types/pipeline';
 import { statusConfig } from './pipelineConfig';
 import { StageIndicator } from './ScenarioIndicators';
-import type { PipelineScenario } from './PipelineUtils';
+import type { PipelineScenario } from '@/types/pipeline';
 
 interface StagesTimelineProps {
   stages: Stage[];
