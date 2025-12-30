@@ -11,21 +11,21 @@ export function LabWorkspacePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchLab = async () => {
-    if (!slug) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await api.labs.get(slug);
-      setLab(response.lab);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load lab');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchLab = async () => {
+      if (!slug) return;
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await api.labs.get(slug);
+        setLab(response.lab);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load lab');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchLab();
   }, [slug]);
 
@@ -53,7 +53,7 @@ export function LabWorkspacePage() {
               <Link to="/labs">
                 <Button variant="ghost">Back to Labs</Button>
               </Link>
-              <Button onClick={fetchLab} className="gap-2">
+              <Button onClick={() => window.location.reload()} className="gap-2">
                 <RefreshCw className="w-4 h-4" />
                 Retry
               </Button>
