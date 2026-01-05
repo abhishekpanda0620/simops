@@ -1,84 +1,167 @@
-# SimOps: Kubernetes Architecture Simulator
+# SimOps: Interactive DevOps Learning Platform
 
 ![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-7.2-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Laravel](https://img.shields.io/badge/Laravel-12.0-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.1-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Control Plane](https://img.shields.io/badge/K8s-Control_Plane-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/K8s-Simulation-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
 
-SimOps is an interactive, visual platform designed to simulate and demonstrate Kubernetes internal operations, traffic flows, and control plane logic in real-time. It provides a "glass box" view of K8s clusters, helping engineers understand how components like the API Server, Scheduler, etcd, and Controllers interact.
+**SimOps** is an interactive, visual platform designed to help engineers **learn DevOps by doing, not just watching**. It provides real-time simulations and visualizations of Kubernetes internals, CI/CD pipelines, and DevSecOps practices—giving you a "glass box" view into complex systems.
 
-## 🚀 Features
+<p align="center">
+  <strong>🚀 Learn DevOps by Doing, Not Just Watching</strong>
+</p>
 
-### 🧠 Control Plane Simulation
-Visualize the hidden "brain" of Kubernetes. Watch how the Control Plane components work together to manage the cluster state.
-- **Interactive Scenarios**: Run simulations for logic flows like `Pod Creation`, `Pod Deletion`, `Scale Deployment`, `Node Failure`, and `DaemonSet/StatefulSet` logic.
-- **Component Visualization**: See the exact sequence of operations between `kubectl`, `API Server`, `etcd`, `Scheduler`, and `Kubelet`.
-- **State Tracking**: Follow the request phases with a detailed status tracker.
+---
+
+## ✨ Features
+
+### 🧠 Kubernetes Control Plane Simulation
+Visualize the hidden "brain" of Kubernetes. Watch how Control Plane components work together to manage cluster state.
+- **Interactive Scenarios**: Pod Creation, Pod Deletion, Scale Deployment, Node Failure, DaemonSet/StatefulSet logic
+- **Component Visualization**: See exact operation sequences between `kubectl`, API Server, etcd, Scheduler, and Kubelet
+- **State Tracking**: Follow request phases with a detailed status tracker
 
 ### 🌐 User Request Flow
 Simulate real-world traffic patterns through your architecture.
-- **Traffic Animation**: Watch packets travel from Ingress → Service → Pod.
-- **Latency Simulation**: Visual delays at each hop to represent processing time.
-- **Response Handling**: See the return path of the response data back to the user.
+- **Traffic Animation**: Watch packets travel from Ingress → Service → Pod
+- **Latency Simulation**: Visual delays at each hop to represent processing time
+- **Response Handling**: See the return path of response data back to the user
 
 ### 🔄 CI/CD Pipeline Simulation
 Visualize deployment pipelines and common failure scenarios.
-- **Scenarios**: Simulate `Successful Deploy`, `Test Failure`, `Flaky Tests`, `Hotfix`, `Rollback`, and `Manual Approval`.
-- **Stage Visualization**: Track the progress of `Build`, `Test`, `Security`, and `Deploy` stages.
-- **Log Streaming**: View simulated console output for every step.
+- **Scenarios**: Successful Deploy, Test Failure, Flaky Tests, Hotfix, Rollback, Manual Approval
+- **Stage Visualization**: Track progress of Build, Test, Security, and Deploy stages
+- **Log Streaming**: View simulated console output for every step
+
+### 🔐 DevSecOps Security Module
+Learn security best practices through interactive simulations.
+- **Image Scanner**: Simulate CVE scanning with Trivy/Clair concepts
+- **Admission Control**: Test OPA Gatekeeper policy enforcement
+- **Security Dashboard**: View security scores, threats, and compliance metrics
+
+### 🧪 Interactive Labs
+Hands-on learning modules with progress tracking.
+- **Guided Learning**: Step-by-step exercises with clear objectives
+- **Difficulty Levels**: Beginner, Intermediate, and Advanced tracks
+- **Progress Tracking**: Resume where you left off
 
 ### 🏗️ Architecture Topology
-- **Interactive Graph**: Drag, zoom, and inspect Nodes, Pods, Services, and Ingresses.
-- **Resource Inspection**: Click on any component to view detailed specs, status, and resource usage.
-- **Dynamic Updates**: The topology reacts in real-time to simulation events (e.g., new pods appearing on nodes).
+- **Interactive Graph**: Drag, zoom, and inspect Nodes, Pods, Services, and Ingresses
+- **Resource Inspection**: Click on any component to view detailed specs, status, and resource usage
+- **Dynamic Updates**: Topology reacts in real-time to simulation events
+
+---
 
 ## 🛠️ Tech Stack
 
-- **Frontend Framework**: [React 19](https://react.dev/)
-- **Build Tool**: [Vite](https://vitejs.dev/)
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
-- **State Management**: [Zustand](https://github.com/pmndrs/zustand)
-- **Visualization**: [XYFlow (React Flow)](https://xyflow.com/)
-- **Animations**: [Framer Motion](https://www.framer.com/motion/)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Build Optimization**: Custom chunk splitting strategy for optimal production performance.
+### Frontend
+| Technology | Purpose |
+|------------|---------|
+| [React 19](https://react.dev/) | UI Framework |
+| [Vite](https://vitejs.dev/) | Build Tool |
+| [TypeScript](https://www.typescriptlang.org/) | Type Safety |
+| [Tailwind CSS v4](https://tailwindcss.com/) | Styling |
+| [Zustand](https://github.com/pmndrs/zustand) | State Management |
+| [XYFlow (React Flow)](https://xyflow.com/) | Graph Visualization |
+| [Framer Motion](https://www.framer.com/motion/) | Animations |
+
+### Backend
+| Technology | Purpose |
+|------------|---------|
+| [Laravel 12](https://laravel.com/) | PHP API Framework |
+| [Laravel Sanctum](https://laravel.com/docs/sanctum) | API Authentication |
+| [MySQL](https://www.mysql.com/) | Database |
+
+---
 
 ## 📂 Project Structure
 
-The project is organized into modular components to handle the complexity of simulations:
+```
+simops/
+├── app/                    # React Frontend (Vite)
+│   ├── src/
+│   │   ├── components/     # UI Components
+│   │   │   ├── landing/    # Landing page components
+│   │   │   ├── layout/     # Layout components (Sidebar, Header)
+│   │   │   ├── pipeline/   # CI/CD simulation components
+│   │   │   ├── security/   # DevSecOps components
+│   │   │   ├── topology/   # K8s visualization components
+│   │   │   └── ui/         # Reusable UI components
+│   │   ├── pages/          # Page components
+│   │   ├── store/          # Zustand stores
+│   │   └── services/       # API services
+│   └── ...
+├── server/                 # Laravel Backend API
+│   ├── app/
+│   │   ├── Http/Controllers/Api/
+│   │   └── Models/
+│   ├── routes/api.php      # API Routes
+│   └── ...
+└── docs/                   # Documentation
+```
 
-### Core Topologies
-- **`ArchitectureView.tsx`**: The main container utilizing a layered approach.
-    - **`ControlPlaneView.tsx`**: Handles the logic and visualization of the Kubernetes Control Plane (API Server, Scheduler, etc.).
-    - **`UserRequestView.tsx`**: Manages the traffic simulation, Worker Nodes, and User → Ingress → Service → Pod packet flows.
-    - **`TrafficAnimationLayer.tsx`**: Specialized layer for rendering moving traffic packets directly on top of the topology.
-
-### Information Panels
-- **`EnhancedInfoPanel.tsx`**: A context-aware panel providing deep-dive information for selected resources.
-    - **`enhancedContent.ts`**: Centralized educational content for all K8s resources.
-    - **`EnhancedPanelComponents.tsx`**: Reusable UI blocks for analogies, key points, and troubleshooting tips.
+---
 
 ## 📦 Getting Started
 
-1.  **Install dependencies**
-    ```bash
-    npm install
-    ```
+### Prerequisites
+- Node.js 18+ & npm
+- PHP 8.2+
+- Composer
+- MySQL 8.0+ (or SQLite for dev)
 
-2.  **Run the development server**
-    ```bash
-    npm run dev
-    ```
+### Frontend Setup
 
-3.  **Build for production**
-    ```bash
-    npm run build
-    ```
+```bash
+cd app
+npm install
+npm run dev
+```
+
+The app will be available at `http://localhost:5173`
+
+### Backend Setup
+
+```bash
+cd server
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --seed
+php artisan serve
+```
+
+The API will be available at `http://localhost:8000`
+
+---
 
 ## 🤝 Simulation Modes
 
 | Mode | Description | Key Components |
 |------|-------------|----------------|
-| **User Request** | Simulates external traffic hitting the cluster. Best for understanding networking. | Ingress, Service, Endpoints, Pods |
-| **Control Plane** | Simulates internal K8s logic. Best for understanding scheduling and state reconciliation. | API Server, etcd, Scheduler, Controller Manager |
+| **User Request** | Simulates external traffic hitting the cluster | Ingress, Service, Endpoints, Pods |
+| **Control Plane** | Simulates internal K8s logic | API Server, etcd, Scheduler, Controller Manager |
+| **CI/CD Pipeline** | Simulates deployment workflows | Build, Test, Security, Deploy stages |
+| **DevSecOps** | Simulates security scanning & policy enforcement | Trivy, OPA Gatekeeper |
+
+---
+
+## 🎯 Use Cases
+
+- **Learning**: Understand complex DevOps concepts visually
+- **Teaching**: Demonstrate K8s/CI/CD workflows to teams
+- **Interviews**: Practice explaining system architecture
+- **Onboarding**: Get new engineers up to speed quickly
+
+---
+
+## 📄 License
+
+This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+---
+
+<p align="center">
+  Made with ❤️ for the DevOps community
+</p>
