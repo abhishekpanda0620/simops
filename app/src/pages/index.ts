@@ -1,3 +1,4 @@
+export { LandingPage } from './LandingPage';
 export { DashboardPage } from './DashboardPage';
 export { TopologyPage } from './TopologyPage';
 export { PipelinePage } from './PipelinePage';
