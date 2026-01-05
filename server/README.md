@@ -1,59 +1,170 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SimOps Backend API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+![Laravel](https://img.shields.io/badge/Laravel-12.0-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![Sanctum](https://img.shields.io/badge/Sanctum-4.0-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
 
-## About Laravel
+The backend API server for **SimOps** - a Kubernetes Architecture Simulator. This Laravel-based API provides authentication, scenario management, and lab progress tracking for the SimOps frontend.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 🔐 Authentication
+- **User Registration & Login** - Secure authentication powered by Laravel Sanctum
+- **Token-based API access** - SPA authentication with HTTP-only cookies
+- **Guest access support** - Seeded guest credentials for demo access
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 📊 Scenarios API
+- **K8s Scenarios** - Kubernetes control plane simulation scenarios
+- **CI/CD Pipelines** - Pipeline configuration and execution states
+- **General Scenarios** - Additional simulation scenarios with status tracking
 
-## Learning Laravel
+### 🧪 Labs System
+- **Interactive Labs** - Guided learning experiences
+- **Progress Tracking** - Per-user lab completion tracking
+- **Achievement System** - Track milestones and accomplishments
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## 🛠️ Tech Stack
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Laravel | 12.0 | PHP Framework |
+| PHP | 8.2+ | Runtime |
+| MySQL | 8.0+ | Database |
+| Laravel Sanctum | 4.0 | API Authentication |
+| Laravel Sail | 1.41 | Docker Development |
 
-## Laravel Sponsors
+## 📦 Prerequisites
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- PHP 8.2 or higher
+- Composer
+- MySQL 8.0+ (or SQLite for development)
+- Node.js & npm (for asset compilation)
 
-### Premium Partners
+## ⚡ Quick Start
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 1. Install Dependencies
 
-## Contributing
+```bash
+composer install
+npm install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 2. Environment Setup
 
-## Code of Conduct
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 3. Database Setup
 
-## Security Vulnerabilities
+```bash
+# Create database (MySQL)
+mysql -u root -e "CREATE DATABASE simops;"
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Run migrations
+php artisan migrate
 
-## License
+# Seed demo data (optional)
+php artisan db:seed
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 4. Start Development Server
+
+```bash
+# Option 1: Using composer script (recommended)
+composer dev
+
+# Option 2: Manual start
+php artisan serve
+```
+
+The API will be available at `http://localhost:8000`
+
+## 🔌 API Endpoints
+
+### Public Routes
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/health` | Health check |
+| `POST` | `/api/auth/register` | User registration |
+| `POST` | `/api/auth/login` | User login |
+| `GET` | `/api/k8s-scenarios` | List K8s scenarios |
+| `GET` | `/api/k8s-scenarios/{id}` | Get K8s scenario details |
+| `GET` | `/api/pipelines` | List CI/CD pipelines |
+| `GET` | `/api/pipelines/{id}` | Get pipeline details |
+| `GET` | `/api/scenarios` | List scenarios |
+| `GET` | `/api/scenarios/{id}` | Get scenario details |
+| `GET` | `/api/scenarios/{id}/status` | Get scenario status |
+
+### Protected Routes (Requires Auth)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/auth/logout` | User logout |
+| `GET` | `/api/user` | Get current user |
+| `GET` | `/api/labs` | List labs |
+| `GET` | `/api/labs/{id}` | Get lab details |
+| `POST` | `/api/labs/{id}/progress` | Update lab progress |
+| `GET` | `/api/labs/{id}/progress` | Get lab progress |
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+composer test
+
+# Run specific test suite
+php artisan test --testsuite=Feature
+```
+
+## 📂 Project Structure
+
+```
+server/
+├── app/
+│   ├── Http/
+│   │   └── Controllers/Api/    # API Controllers
+│   ├── Models/                 # Eloquent Models
+│   └── Providers/              # Service Providers
+├── config/                     # Configuration files
+├── database/
+│   ├── factories/              # Model Factories
+│   ├── migrations/             # Database Migrations
+│   └── seeders/                # Database Seeders
+├── routes/
+│   └── api.php                 # API Routes
+├── storage/                    # Storage (logs, cache, etc.)
+└── tests/                      # Test Suite
+```
+
+## 🐳 Docker Development (Laravel Sail)
+
+```bash
+# Start containers
+./vendor/bin/sail up -d
+
+# Stop containers
+./vendor/bin/sail down
+
+# Run artisan commands
+./vendor/bin/sail artisan migrate
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `APP_NAME` | Application name | Laravel |
+| `APP_URL` | Application URL | http://localhost |
+| `DB_CONNECTION` | Database driver | mysql |
+| `DB_DATABASE` | Database name | simops |
+| `SANCTUM_STATEFUL_DOMAINS` | Allowed SPA domains | localhost |
+
+## 📄 License
+
+This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
