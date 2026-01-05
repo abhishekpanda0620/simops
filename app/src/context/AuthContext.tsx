@@ -14,6 +14,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginAsGuest: () => void;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   error: string | null;
@@ -70,6 +71,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginAsGuest = () => {
+    // Local guest login - no API call needed
+    setUser({
+      name: 'Guest User',
+      email: 'guest@simops.local',
+      role: 'student',
+    });
+    setIsAuthenticated(true);
+  };
+
   const register = async (name: string, email: string, password: string) => {
     setError(null);
     setIsLoading(true);
@@ -101,10 +112,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{ 
       isAuthenticated, 
-      isGuest: user?.email === 'test@example.com',
+      isGuest: user?.email === 'guest@simops.local' || user?.email === 'test@example.com',
       user, 
       isLoading,
-      login, 
+      login,
+      loginAsGuest,
       register,
       logout,
       error,

@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Terminal, ArrowRight, Github, Mail, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
 
 export function LoginPage() {
-  const { login, register, error, clearError, isLoading } = useAuth();
+  const { login, loginAsGuest, register, error, clearError, isLoading, isAuthenticated } = useAuth();
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
@@ -14,6 +15,11 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,11 +50,17 @@ export function LoginPage() {
   const handleGuestLogin = async () => {
     setFormError(null);
     clearError();
+    
+    // Get credentials from env, with fallback defaults
+    const guestEmail = import.meta.env.VITE_GUEST_EMAIL || 'test@example.com';
+    const guestPassword = import.meta.env.VITE_GUEST_PASSWORD || 'password';
+    
     try {
-      // Use the seeded demo account
-      await login('test@example.com', 'password');
+      // Try backend login first
+      await login(guestEmail, guestPassword);
     } catch {
-      setFormError('Guest login unavailable. Please register or try again.');
+      // If backend fails, use local guest mode
+      loginAsGuest();
     }
   };
 
