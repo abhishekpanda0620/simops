@@ -25,7 +25,7 @@ const navGroups: NavGroup[] = [
   {
     // Ungrouped items (Catalog)
     items: [
-      { to: '/', icon: LayoutDashboard, label: 'Catalog' },
+      { to: '/dashboard', icon: LayoutDashboard, label: 'Catalog' },
     ]
   },
   {

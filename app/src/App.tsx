@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import {
+  LandingPage,
   DashboardPage,
   TopologyPage,
   PipelinePage,
@@ -14,10 +15,10 @@ import {
 } from '@/pages';
 import './index.css';
 
-function AuthRoutes() {
+// Wrapper for pages that require authentication
+function RequireAuth({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Show loading state while checking auth
   if (isLoading) {
     return (
       <div className="min-h-screen bg-surface-950 flex items-center justify-center">
@@ -27,31 +28,39 @@ function AuthRoutes() {
   }
 
   if (!isAuthenticated) {
-    return <LoginPage />;
+    return <Navigate to="/login" replace />;
   }
 
-  return (
-    <Routes>
-      <Route element={<MainLayout />}>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/topology" element={<TopologyPage />} />
-        <Route path="/pipeline" element={<PipelinePage />} />
-        <Route path="/security" element={<DevSecOpsPage />} />
-        <Route path="/labs" element={<LabsPage />} />
-        <Route path="/labs/:slug" element={<LabWorkspacePage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        {/* Redirect any unknown routes to dashboard */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Route>
-    </Routes>
-  );
+  return <>{children}</>;
 }
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <AuthRoutes />
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          
+          {/* Protected routes - all wrapped in MainLayout */}
+          <Route element={
+            <RequireAuth>
+              <MainLayout />
+            </RequireAuth>
+          }>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/topology" element={<TopologyPage />} />
+            <Route path="/pipeline" element={<PipelinePage />} />
+            <Route path="/security" element={<DevSecOpsPage />} />
+            <Route path="/labs" element={<LabsPage />} />
+            <Route path="/labs/:slug" element={<LabWorkspacePage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+          </Route>
+          
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </BrowserRouter>
     </AuthProvider>
   );
