@@ -14,7 +14,7 @@ export function Footer() {
         </div>
         
         <div className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm text-surface-400">
-          <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-surface-100 transition-colors">
+          <a href="https://github.com/abhishekpanda0620/simops" target="_blank" rel="noopener noreferrer" className="hover:text-surface-100 transition-colors">
             GitHub
           </a>
           <Link to="/labs" className="hover:text-surface-100 transition-colors">

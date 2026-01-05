@@ -114,7 +114,7 @@ export function DemoPreview() {
           </div>
           
           {/* View Demo button */}
-          <div className="flex justify-center py-4 sm:py-6 bg-surface-900/80 border-t border-surface-800">
+          {/* <div className="flex justify-center py-4 sm:py-6 bg-surface-900/80 border-t border-surface-800">
             <Link
               to="/topology"
               className="flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 rounded-lg bg-primary-500 hover:bg-primary-600 text-white font-medium text-sm sm:text-base transition-colors"
@@ -122,7 +122,7 @@ export function DemoPreview() {
               <Play className="w-4 h-4" />
               Launch Demo
             </Link>
-          </div>
+          </div> */}
         </motion.div>
       </div>
     </section>

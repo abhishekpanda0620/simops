@@ -20,7 +20,7 @@ export function HeroSection() {
         
         <div className="flex items-center gap-1 sm:gap-3">
           <a 
-            href="https://github.com" 
+            href="https://github.com/abhishekpanda0620/simops" 
             target="_blank" 
             rel="noopener noreferrer"
             className="p-1.5 sm:p-2 rounded-lg text-surface-400 hover:text-surface-100 hover:bg-surface-800 transition-colors"
