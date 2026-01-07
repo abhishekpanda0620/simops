@@ -27,7 +27,18 @@ import {
   runArgoCDScenario,
   runCertManagerScenario,
   runResourceQuotaScenario,
-  runClusterAutoscalerScenario
+  runClusterAutoscalerScenario,
+  // Observability scenarios
+  runPrometheusScrapingScenario,
+  runPrometheusAlertScenario,
+  runJaegerTraceScenario,
+  runJaegerErrorTraceScenario,
+  // Service Mesh scenarios
+  runIstioCanaryScenario,
+  runIstioABTestingScenario,
+  runIstioFaultInjectionScenario,
+  runIstioMTLSScenario,
+  runIstioCircuitBreakerScenario
 } from './scenarios';
 import { runNetworkPolicyScenario } from './scenarios/advancedScenarios';
 
@@ -91,6 +102,17 @@ export function useControlPlaneSimulation(actions?: SimulationActions) {
       'certmanager-issue': 'Cert-Manager TLS',
       'resource-quota': 'ResourceQuota',
       'cluster-autoscaler': 'Cluster Autoscaler',
+      // Observability
+      'prometheus-scrape': 'Prometheus Metrics Scraping',
+      'prometheus-alert': 'Prometheus Alert Firing',
+      'jaeger-trace': 'Distributed Tracing',
+      'jaeger-error-trace': 'Distributed Tracing (Error)',
+      // Service Mesh
+      'istio-canary': 'Istio Canary Deployment',
+      'istio-ab-testing': 'Istio A/B Testing',
+      'istio-fault-injection': 'Istio Fault Injection',
+      'istio-mtls': 'Istio mTLS Handshake',
+      'istio-circuit-breaker': 'Istio Circuit Breaker',
     };
 
     const stop = () => {
@@ -168,6 +190,35 @@ export function useControlPlaneSimulation(actions?: SimulationActions) {
         break;
       case 'cluster-autoscaler':
         newTimeouts = runClusterAutoscalerScenario(setState, stop);
+        break;
+      // Observability scenarios
+      case 'prometheus-scrape':
+        newTimeouts = runPrometheusScrapingScenario(setState, stop, actions);
+        break;
+      case 'prometheus-alert':
+        newTimeouts = runPrometheusAlertScenario(setState, stop, actions);
+        break;
+      case 'jaeger-trace':
+        newTimeouts = runJaegerTraceScenario(setState, stop, actions);
+        break;
+      case 'jaeger-error-trace':
+        newTimeouts = runJaegerErrorTraceScenario(setState, stop, actions);
+        break;
+      // Service Mesh scenarios
+      case 'istio-canary':
+        newTimeouts = runIstioCanaryScenario(setState, stop, actions);
+        break;
+      case 'istio-ab-testing':
+        newTimeouts = runIstioABTestingScenario(setState, stop, actions);
+        break;
+      case 'istio-fault-injection':
+        newTimeouts = runIstioFaultInjectionScenario(setState, stop, actions);
+        break;
+      case 'istio-mtls':
+        newTimeouts = runIstioMTLSScenario(setState, stop, actions);
+        break;
+      case 'istio-circuit-breaker':
+        newTimeouts = runIstioCircuitBreakerScenario(setState, stop, actions);
         break;
     }
 

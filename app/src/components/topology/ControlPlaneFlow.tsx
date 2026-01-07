@@ -27,7 +27,19 @@ const SCENARIOS = [
   { value: 'certmanager-issue', label: 'Cert-Manager (TLS Certificate)' },
   { value: 'resource-quota', label: 'ResourceQuota (Admission Control)' },
   { value: 'cluster-autoscaler', label: 'Cluster Autoscaler (Scale-Up)' },
+  // Observability
+  { value: 'prometheus-scrape', label: 'Prometheus Metrics Scraping' },
+  { value: 'prometheus-alert', label: 'Prometheus Alert Firing' },
+  { value: 'jaeger-trace', label: 'Distributed Tracing (Healthy)' },
+  { value: 'jaeger-error-trace', label: 'Distributed Tracing (Error)' },
+  // Service Mesh (Istio)
+  { value: 'istio-canary', label: 'Istio Canary Deployment' },
+  { value: 'istio-ab-testing', label: 'Istio A/B Testing' },
+  { value: 'istio-fault-injection', label: 'Istio Fault Injection' },
+  { value: 'istio-mtls', label: 'Istio mTLS Handshake' },
+  { value: 'istio-circuit-breaker', label: 'Istio Circuit Breaker' },
 ] as const;
+
 
 export interface ControlPlaneFlowControlsProps {
   isFlowing: boolean;

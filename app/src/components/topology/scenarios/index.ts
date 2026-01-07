@@ -5,6 +5,8 @@ export * from './nodeScenarios';
 export * from './advancedScenarios';
 export * from './operatorScenarios';
 export * from './admissionScenarios';
+export * from './observabilityScenarios';
+export * from './servicemeshScenarios';
 export {
   runNodeAffinityScenario,
   runPodAntiAffinityScenario,

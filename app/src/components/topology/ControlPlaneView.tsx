@@ -9,6 +9,8 @@ import { NodeVisuals } from './simulations/NodeVisuals';
 import { PolicyVisuals } from './simulations/PolicyVisuals';
 import { OperatorVisuals } from './simulations/OperatorVisuals';
 import { AdmissionVisuals } from './simulations/AdmissionVisuals';
+import { ObservabilityVisuals } from './simulations/ObservabilityVisuals';
+import { ServiceMeshVisuals } from './simulations/ServiceMeshVisuals';
 import type { ClusterSnapshot } from '@/types';
 import type { SelectedItem } from './SelectionTypes';
 import type { ControlPlaneState, ControlPlaneScenario } from './ControlPlaneUtils';
@@ -82,6 +84,17 @@ export function ControlPlaneView({
               {controlPlaneScenario === 'certmanager-issue' && 'kubectl apply -f certificate.yaml'}
               {controlPlaneScenario === 'resource-quota' && 'kubectl apply -f deployment.yaml'}
               {controlPlaneScenario === 'cluster-autoscaler' && 'kubectl scale deploy nginx --replicas=10'}
+              {/* Observability */}
+              {controlPlaneScenario === 'prometheus-scrape' && 'Prometheus: Scraping metrics...'}
+              {controlPlaneScenario === 'prometheus-alert' && 'Alertmanager: Processing alerts...'}
+              {controlPlaneScenario === 'jaeger-trace' && 'Jaeger: Tracing request...'}
+              {controlPlaneScenario === 'jaeger-error-trace' && 'Jaeger: Tracing error...'}
+              {/* Service Mesh */}
+              {controlPlaneScenario === 'istio-canary' && 'kubectl apply -f virtual-service-canary.yaml'}
+              {controlPlaneScenario === 'istio-ab-testing' && 'kubectl apply -f virtual-service-ab.yaml'}
+              {controlPlaneScenario === 'istio-fault-injection' && 'kubectl apply -f fault-injection.yaml'}
+              {controlPlaneScenario === 'istio-mtls' && 'kubectl apply -f peer-authentication.yaml'}
+              {controlPlaneScenario === 'istio-circuit-breaker' && 'kubectl apply -f destination-rule.yaml'}
 
               {controlPlaneScenario === 'node-failure' && 'Simulating Power Failure...'}
               {controlPlaneScenario === 'worker-flow' && 'Simulating Kube-Proxy & Kubelet Flow...'}
@@ -178,6 +191,8 @@ export function ControlPlaneView({
       <PolicyVisuals scenario={controlPlaneScenario} state={controlPlaneState} />
       <OperatorVisuals scenario={controlPlaneScenario} state={controlPlaneState} />
       <AdmissionVisuals scenario={controlPlaneScenario} state={controlPlaneState} />
+      <ObservabilityVisuals scenario={controlPlaneScenario} state={controlPlaneState} />
+      <ServiceMeshVisuals scenario={controlPlaneScenario} state={controlPlaneState} />
 
       {/* Explanation */}
       <div className="p-4 rounded-lg bg-surface-800/50 border border-surface-700 mt-8">

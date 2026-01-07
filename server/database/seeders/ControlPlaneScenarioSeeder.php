@@ -38,6 +38,19 @@ class ControlPlaneScenarioSeeder extends Seeder
             
             // Certificates
             ['slug' => 'certmanager-issue', 'name' => 'Cert-Manager TLS', 'category' => 'security', 'description' => 'Issue and manage TLS certificates', 'icon' => 'lock', 'sort_order' => 13],
+            
+            // Observability
+            ['slug' => 'prometheus-scrape', 'name' => 'Prometheus Metrics Scraping', 'category' => 'observability', 'description' => 'Watch Prometheus discover and scrape metrics from targets', 'icon' => 'bar-chart-2', 'sort_order' => 14],
+            ['slug' => 'prometheus-alert', 'name' => 'Prometheus Alert Firing', 'category' => 'observability', 'description' => 'See how alerts are fired and routed to Alertmanager', 'icon' => 'bell', 'sort_order' => 15],
+            ['slug' => 'jaeger-trace', 'name' => 'Distributed Tracing (Healthy)', 'category' => 'observability', 'description' => 'Trace a request through multiple services', 'icon' => 'activity', 'sort_order' => 16],
+            ['slug' => 'jaeger-error-trace', 'name' => 'Distributed Tracing (Error)', 'category' => 'observability', 'description' => 'Trace an error propagating through services', 'icon' => 'x-circle', 'sort_order' => 17],
+            
+            // Service Mesh (Istio)
+            ['slug' => 'istio-canary', 'name' => 'Istio Canary Deployment', 'category' => 'service-mesh', 'description' => 'Route traffic with weighted canary releases', 'icon' => 'git-merge', 'sort_order' => 18],
+            ['slug' => 'istio-ab-testing', 'name' => 'Istio A/B Testing', 'category' => 'service-mesh', 'description' => 'Route traffic based on request headers', 'icon' => 'git-branch', 'sort_order' => 19],
+            ['slug' => 'istio-fault-injection', 'name' => 'Istio Fault Injection', 'category' => 'service-mesh', 'description' => 'Inject delays and errors to test resilience', 'icon' => 'zap', 'sort_order' => 20],
+            ['slug' => 'istio-mtls', 'name' => 'Istio mTLS Handshake', 'category' => 'service-mesh', 'description' => 'See mutual TLS authentication between services', 'icon' => 'shield', 'sort_order' => 21],
+            ['slug' => 'istio-circuit-breaker', 'name' => 'Istio Circuit Breaker', 'category' => 'service-mesh', 'description' => 'Watch circuit breaker protect against failures', 'icon' => 'power', 'sort_order' => 22],
         ];
 
         foreach ($scenarios as $scenario) {
