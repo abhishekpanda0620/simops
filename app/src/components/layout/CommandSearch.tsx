@@ -30,6 +30,17 @@ const SEARCHABLE_SCENARIOS = [
   { id: 'certmanager-issue', label: 'Cert-Manager TLS', category: 'Operators' },
   { id: 'resource-quota', label: 'ResourceQuota', category: 'Admission' },
   { id: 'cluster-autoscaler', label: 'Cluster Autoscaler', category: 'Autoscaling' },
+  // Observability
+  { id: 'prometheus-scrape', label: 'Prometheus Metrics Scraping', category: 'Observability' },
+  { id: 'prometheus-alert', label: 'Prometheus Alert Firing', category: 'Observability' },
+  { id: 'jaeger-trace', label: 'Distributed Tracing (Healthy)', category: 'Observability' },
+  { id: 'jaeger-error-trace', label: 'Distributed Tracing (Error)', category: 'Observability' },
+  // Service Mesh
+  { id: 'istio-canary', label: 'Istio Canary Deployment', category: 'Service Mesh' },
+  { id: 'istio-ab-testing', label: 'Istio A/B Testing', category: 'Service Mesh' },
+  { id: 'istio-fault-injection', label: 'Istio Fault Injection', category: 'Service Mesh' },
+  { id: 'istio-mtls', label: 'Istio mTLS Handshake', category: 'Service Mesh' },
+  { id: 'istio-circuit-breaker', label: 'Istio Circuit Breaker', category: 'Service Mesh' },
 ];
 
 interface CommandSearchProps {

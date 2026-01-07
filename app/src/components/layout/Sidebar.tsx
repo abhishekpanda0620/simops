@@ -6,7 +6,6 @@ import {
   GitBranch,
   Settings,
   BookOpen,
-  Lock,
 } from 'lucide-react';
 
 type NavItem = {

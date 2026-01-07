@@ -1,6 +1,4 @@
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { Play } from 'lucide-react';
 
 export function DemoPreview() {
   return (

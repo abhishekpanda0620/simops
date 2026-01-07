@@ -40,6 +40,21 @@ Learn security best practices through interactive simulations.
 - **Admission Control**: Test OPA Gatekeeper policy enforcement
 - **Security Dashboard**: View security scores, threats, and compliance metrics
 
+### 📊 Kubernetes Observability Module
+Understand monitoring and tracing in distributed systems.
+- **Prometheus Metrics Scraping**: Watch service discovery, scraping, and TSDB storage
+- **Prometheus Alert Firing**: See the alert lifecycle: Evaluate → Pending → Firing → Alertmanager → Slack
+- **Distributed Tracing (Healthy)**: Visualize request flow through microservices with Jaeger-style waterfall
+- **Distributed Tracing (Error)**: Track error propagation and timeout scenarios
+
+### 🌐 Kubernetes Service Mesh Module (Istio)
+Learn Istio traffic management and security concepts.
+- **Canary Deployments**: Visualize weighted traffic splitting (90/10)
+- **A/B Testing**: See header-based routing in action
+- **Fault Injection**: Simulate delays and HTTP error injection for chaos testing
+- **mTLS Handshake**: Watch certificate issuance and TLS 1.3 establishment
+- **Circuit Breaker**: Observe Open/Closed/Half-Open state transitions
+
 ### 🧪 Interactive Labs
 Hands-on learning modules with progress tracking.
 - **Guided Learning**: Step-by-step exercises with clear objectives
@@ -50,6 +65,7 @@ Hands-on learning modules with progress tracking.
 - **Interactive Graph**: Drag, zoom, and inspect Nodes, Pods, Services, and Ingresses
 - **Resource Inspection**: Click on any component to view detailed specs, status, and resource usage
 - **Dynamic Updates**: Topology reacts in real-time to simulation events
+
 
 ---
 
