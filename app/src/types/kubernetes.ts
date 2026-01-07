@@ -465,3 +465,138 @@ export interface CertificateRequest {
   status: 'Pending' | 'Approved' | 'Denied' | 'Ready';
 }
 
+// ============ OBSERVABILITY - PROMETHEUS ============
+export interface PrometheusTarget {
+  id: string;
+  endpoint: string;
+  job: string;
+  labels: Record<string, string>;
+  status: 'up' | 'down';
+  lastScrape: string;
+  scrapeInterval: string;
+}
+
+export interface PrometheusAlert {
+  id: string;
+  name: string;
+  state: 'pending' | 'firing' | 'resolved';
+  severity: 'critical' | 'warning' | 'info';
+  message: string;
+  labels: Record<string, string>;
+  startsAt?: string;
+  endsAt?: string;
+}
+
+export interface PrometheusRule {
+  id: string;
+  name: string;
+  expr: string;
+  forDuration: string;
+  severity: 'critical' | 'warning' | 'info';
+  annotations: { summary: string; description: string };
+}
+
+// ============ OBSERVABILITY - DISTRIBUTED TRACING ============
+export interface JaegerTrace {
+  id: string;
+  traceId: string;
+  rootSpan: string;
+  serviceName: string;
+  operationName: string;
+  duration: number; // in ms
+  spanCount: number;
+  status: 'ok' | 'error';
+  startTime: number;
+  spans: JaegerSpan[];
+}
+
+export interface JaegerSpan {
+  id: string;
+  traceId: string;
+  parentId?: string;
+  operationName: string;
+  serviceName: string;
+  duration: number; // in ms
+  startTime: number; // relative to trace start
+  status: 'ok' | 'error';
+  tags?: Record<string, string>;
+  logs?: JaegerLog[];
+}
+
+export interface JaegerLog {
+  timestamp: number;
+  message: string;
+  level: 'info' | 'warn' | 'error';
+}
+
+// ============ SERVICE MESH - ISTIO ============
+export interface IstioVirtualService {
+  id: string;
+  name: string;
+  namespace: string;
+  hosts: string[];
+  http: IstioHTTPRoute[];
+}
+
+export interface IstioHTTPRoute {
+  match?: IstioHTTPMatchRequest[];
+  route: IstioHTTPRouteDestination[];
+  fault?: {
+    delay?: { percentage: number; fixedDelay: string };
+    abort?: { percentage: number; httpStatus: number };
+  };
+  retries?: { attempts: number; perTryTimeout: string };
+}
+
+export interface IstioHTTPMatchRequest {
+  headers?: Record<string, { exact?: string; prefix?: string; regex?: string }>;
+  uri?: { exact?: string; prefix?: string; regex?: string };
+}
+
+export interface IstioHTTPRouteDestination {
+  destination: { host: string; subset?: string; port?: { number: number } };
+  weight?: number;
+}
+
+export interface IstioDestinationRule {
+  id: string;
+  name: string;
+  namespace: string;
+  host: string;
+  trafficPolicy?: {
+    connectionPool?: {
+      tcp?: { maxConnections: number };
+      http?: { h2UpgradePolicy: string; http1MaxPendingRequests: number };
+    };
+    outlierDetection?: {
+      consecutive5xxErrors: number;
+      interval: string;
+      baseEjectionTime: string;
+      maxEjectionPercent: number;
+    };
+  };
+  subsets?: IstioSubset[];
+}
+
+export interface IstioSubset {
+  name: string;
+  labels: Record<string, string>;
+}
+
+export interface IstioPeerAuthentication {
+  id: string;
+  name: string;
+  namespace: string;
+  mtls: { mode: 'STRICT' | 'PERMISSIVE' | 'DISABLE' };
+}
+
+export interface CircuitBreakerState {
+  id: string;
+  serviceName: string;
+  state: 'closed' | 'open' | 'half-open';
+  failureCount: number;
+  successCount: number;
+  threshold: number;
+  lastStateChange: string;
+  nextAttempt?: string;
+}

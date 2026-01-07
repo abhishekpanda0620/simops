@@ -33,7 +33,7 @@ const navGroups: NavGroup[] = [
     items: [
       { to: '/topology', icon: Network, label: 'K8s Architecture' },
       { to: '/pipeline', icon: GitBranch, label: 'Pipeline' },
-      { to: '/security', icon: Lock, label: 'DevSecOps', isNew: true },
+      // { to: '/security', icon: Lock, label: 'DevSecOps', isNew: true },
     ]
   },
   {

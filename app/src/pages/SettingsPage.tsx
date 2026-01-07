@@ -1,13 +1,12 @@
 import { Header } from '@/components/layout';
 import { Card, Button } from '@/components/ui';
-import { Moon, Sun, User, Bell, Shield, Trash2 } from 'lucide-react';
+import { User, Bell, Shield, Trash2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { useNotificationStore, useThemeStore } from '@/store';
+import { useNotificationStore } from '@/store';
 
 export function SettingsPage() {
   const { user } = useAuth();
   const { clearAll, notifications, enabled: notificationsEnabled, setEnabled } = useNotificationStore();
-  const { theme, setTheme } = useThemeStore();
 
   return (
     <div className="h-full flex flex-col">
@@ -35,38 +34,6 @@ export function SettingsPage() {
               <div className="flex justify-between items-center">
                 <span className="text-surface-400">Role</span>
                 <span className="text-primary-400 capitalize">{user?.role || 'Student'}</span>
-              </div>
-            </div>
-          </Card>
-
-          {/* Appearance */}
-          <Card>
-            <div className="p-4 border-b border-surface-800">
-              <h3 className="font-semibold text-surface-100 flex items-center gap-2">
-                {theme === 'dark' ? <Moon className="w-5 h-5 text-primary-400" /> : <Sun className="w-5 h-5 text-yellow-400" />}
-                Appearance
-              </h3>
-            </div>
-            <div className="p-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-surface-100">Theme</p>
-                  <p className="text-sm text-surface-500">Choose your preferred color scheme</p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setTheme('dark')}
-                    className={`px-3 py-1.5 rounded-lg text-sm ${theme === 'dark' ? 'bg-primary-500/20 text-primary-300 border border-primary-500' : 'bg-surface-800 text-surface-400 border border-surface-700'}`}
-                  >
-                    Dark
-                  </button>
-                  <button
-                    onClick={() => setTheme('light')}
-                    className={`px-3 py-1.5 rounded-lg text-sm ${theme === 'light' ? 'bg-primary-500/20 text-primary-300 border border-primary-500' : 'bg-surface-800 text-surface-400 border border-surface-700'}`}
-                  >
-                    Light
-                  </button>
-                </div>
               </div>
             </div>
           </Card>
